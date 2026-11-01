@@ -65,9 +65,14 @@ export const Header: React.FC<HeaderProps> = ({
             </span>
             <span className="c text-[22px] font-bold text-[#F29F05]">360</span>
           </span>
-          <span className="hidden sm:inline-block pl-3 border-l border-white/15 text-xs text-brand-textMuted uppercase font-semibold tracking-widest sy">
-            Laboratorio Digital
-          </span>
+          <div className="hidden sm:flex flex-col pl-3 border-l border-white/15 text-left">
+            <span className="text-[10px] text-brand-textMuted uppercase font-semibold tracking-widest sy">
+              Observatorio
+            </span>
+            <span className="text-xs text-[#5EC2DD] font-bold sy tracking-wide">
+              Laboratorio de Innovación
+            </span>
+          </div>
         </button>
 
         {/* Central Tool Nav Pills */}
@@ -80,7 +85,7 @@ export const Header: React.FC<HeaderProps> = ({
                 : 'text-brand-textSecondary hover:text-white hover:bg-white/5'
             }`}
           >
-            Catálogo
+            Inicio Observatorio
           </button>
           <button
             onClick={() => onSelectTool('radar')}
@@ -150,10 +155,15 @@ export const Header: React.FC<HeaderProps> = ({
                 ? 'bg-[#27DCFF]/20 border-[#27DCFF] text-[#27DCFF] shadow-[0_0_20px_rgba(39,220,255,0.4)]'
                 : 'g2 border-white/15 text-[#27DCFF] hover:border-[#27DCFF]/50'
             }`}
-            title="Abrir asistente holográfico ZOE"
+            title="Abrir asistente holográfico ZOE (Transversal en todo el Observatorio y Laboratorio)"
           >
             <Sparkles className="w-4 h-4 animate-spin text-[#27DCFF]" style={{ animationDuration: '6s' }} />
-            <span className="text-xs font-semibold sy tracking-wide">ZOE</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-semibold sy tracking-wide">ZOE</span>
+              <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-full bg-[#27DCFF]/20 text-[#27DCFF] border border-[#27DCFF]/30 hidden md:inline-block">
+                Transversal
+              </span>
+            </div>
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#27DCFF] opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-[#27DCFF]"></span>
@@ -176,6 +186,75 @@ export const Header: React.FC<HeaderProps> = ({
             <span>UNAD · VIEM</span>
           </div>
         </div>
+      </div>
+
+      {/* Responsive Sub-Navigation Bar for Tablet & Mobile (< xl) */}
+      <div className="flex xl:hidden items-center gap-1.5 overflow-x-auto no-scrollbar pt-3 pb-1 w-full border-t border-white/10 mt-3">
+        <button
+          onClick={() => onSelectTool('portal')}
+          className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+            currentTool === 'portal'
+              ? 'bg-white/15 text-white font-semibold shadow-sm'
+              : 'text-brand-textSecondary hover:text-white hover:bg-white/5'
+          }`}
+        >
+          Inicio Observatorio
+        </button>
+        <button
+          onClick={() => onSelectTool('radar')}
+          className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+            currentTool === 'radar'
+              ? 'bg-white/15 text-white font-semibold shadow-sm'
+              : 'text-brand-textSecondary hover:text-white hover:bg-white/5'
+          }`}
+        >
+          <Compass className="w-3.5 h-3.5 text-[#5EC2DD]" />
+          <span>Radar</span>
+        </button>
+        <button
+          onClick={() => onSelectTool('estudio')}
+          className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+            currentTool === 'estudio'
+              ? 'bg-white/15 text-white font-semibold shadow-sm'
+              : 'text-brand-textSecondary hover:text-white hover:bg-white/5'
+          }`}
+        >
+          <Layers className="w-3.5 h-3.5 text-[#A8C63C]" />
+          <span>Estudio</span>
+        </button>
+        <button
+          onClick={() => onSelectTool('ideacion')}
+          className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+            currentTool === 'ideacion'
+              ? 'bg-white/15 text-white font-semibold shadow-sm'
+              : 'text-brand-textSecondary hover:text-white hover:bg-white/5'
+          }`}
+        >
+          <BrainCircuit className="w-3.5 h-3.5 text-[#F3C26B]" />
+          <span>Ideación</span>
+        </button>
+        <button
+          onClick={() => onSelectTool('arbol')}
+          className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+            currentTool === 'arbol'
+              ? 'bg-white/15 text-white font-semibold shadow-sm'
+              : 'text-brand-textSecondary hover:text-white hover:bg-white/5'
+          }`}
+        >
+          <Trees className="w-3.5 h-3.5 text-[#A8C63C]" />
+          <span>Árbol</span>
+        </button>
+        <button
+          onClick={() => onSelectTool('prototipado')}
+          className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+            currentTool === 'prototipado'
+              ? 'bg-white/15 text-white font-semibold shadow-sm'
+              : 'text-brand-textSecondary hover:text-white hover:bg-white/5'
+          }`}
+        >
+          <Rocket className="w-3.5 h-3.5 text-[#A98FD6]" />
+          <span>Prototipado</span>
+        </button>
       </div>
     </header>
   );

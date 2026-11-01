@@ -28,7 +28,7 @@ export const ZoeCompanion: React.FC<ZoeCompanionProps> = ({ isOpen, onClose, act
     {
       id: '1',
       sender: 'zoe',
-      text: '¡Hola, hola! Soy ZOE, tu anfitrión y asesor holográfico en el Laboratorio Digital de Innovación. ¡No exageren con el trabajo duro sin mí! ¿Qué idea o territorio vamos a transformar hoy?',
+      text: '¡Hola, hola! Soy ZOE, tu anfitriona y asesora cognitiva transversal en el Observatorio InnovaHub360 y en el Laboratorio de Innovación. ¡No exageren con el trabajo duro sin mí! ¿Qué idea, territorio o prototipo vamos a transformar hoy?',
       timestamp: 'Ahora',
     },
   ]);
@@ -56,6 +56,8 @@ export const ZoeCompanion: React.FC<ZoeCompanionProps> = ({ isOpen, onClose, act
       contextualGreeting = '¡El Árbol de Innovación! Desde las raíces del territorio y los retos del suelo, hasta los frutos: proyectos y servicios. ¿Revisamos las tendencias globales o territoriales?';
     } else if (activeTool === 'prototipado') {
       contextualGreeting = '¡Módulo de Prototipado! Aquí podemos armar un plan integral de prototipado con IA para cualquier tema libre o convertir los frutos del árbol en soluciones tangibles. ¿Qué tema deseas prototipar?';
+    } else if (activeTool === 'portal') {
+      contextualGreeting = '¡Bienvenido a la página principal del Observatorio InnovaHub360! Como tu anfitriona y asesora cognitiva transversal, te acompaño tanto en los destinos del Observatorio como en el módulo del Laboratorio de Innovación. ¿Quieres explorar las 5 herramientas o necesitas orientación?';
     }
 
     if (contextualGreeting) {
