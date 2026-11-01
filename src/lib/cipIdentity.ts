@@ -2,15 +2,15 @@ import type { Prompt0Data } from '@/store/useStore';
 import { keywordsFromText } from '@/lib/sigiipRegistry';
 
 /**
- * Cómo se lee la casilla «Nombre tentativo del CIP» de la Ficha Base.
+ * Cómo se lee la casilla «Nombre tentativo del Centro de Innovación» de la Ficha Base.
  *
- * El nombre de un CIP se decide antes de tener diagnóstico, así que a veces es un rótulo
- * («CIP Sinapsis Lab») y a veces es el tema que la zona prevé trabajar («Cadena
+ * El nombre de un Centro de Innovación se decide antes de tener diagnóstico, así que a veces es un rótulo
+ * («Centro de Innovación Sinapsis Lab») y a veces es el tema que la zona prevé trabajar («Cadena
  * agroalimentaria de la papa»). El equipo de zona declara cuál de las dos cosas escribió,
  * y de eso dependen dos usos incompatibles del mismo texto:
  *
  * - `displayName` rotula títulos, portadas y nombres de archivo. Un tema no sirve como
- *   rótulo («Documento Fundante — Cadena agroalimentaria de la papa» no es un nombre de
+ *   rótulo («Ecosistema de Innovación — Cadena agroalimentaria de la papa» no es un nombre de
  *   centro), así que en ese caso se usa un nombre por defecto derivado del municipio y el
  *   nombre definitivo queda pendiente de confirmación.
  * - `focusText` es una **hipótesis de enfoque a verificar**, nunca evidencia. Sirve para
@@ -28,19 +28,19 @@ export interface CipIdentity {
 
 type FichaIdentityFields = Pick<
   Prompt0Data,
-  'cipName' | 'cipNameKind' | 'municipality' | 'department' | 'zonaUNAD'
+  'labName' | 'labNameKind' | 'municipality' | 'department' | 'zonaUNAD'
 >;
 
 /** Nombre por defecto cuando la casilla trae un tema y no un rótulo. */
 function defaultCipName(municipality: string): string {
   const place = municipality.trim();
-  return place ? `CIP ${place}` : '';
+  return place ? `Centro de Innovación ${place}` : '';
 }
 
 export function cipIdentity(p: FichaIdentityFields): CipIdentity {
-  const written = p.cipName?.trim() || '';
+  const written = p.labName?.trim() || '';
   // Las fichas guardadas antes de que existiera el marcador se leen como nombre.
-  if ((p.cipNameKind ?? 'nombre') !== 'tema' || !written) {
+  if ((p.labNameKind ?? 'nombre') !== 'tema' || !written) {
     return { displayName: written, focusText: '', focusKeywords: [] };
   }
 
@@ -56,18 +56,18 @@ export function cipIdentity(p: FichaIdentityFields): CipIdentity {
   };
 }
 
-/** Rótulo del CIP para títulos, portadas y nombres de archivo. */
+/** Rótulo del Centro de Innovación para títulos, portadas y nombres de archivo. */
 export function cipDisplayName(p: FichaIdentityFields): string {
   return cipIdentity(p).displayName;
 }
 
 /**
- * Rótulo para los títulos que ya dicen «del CIP …». Casi todas las zonas escriben el
- * nombre empezando por «CIP», y el nombre por defecto también lo lleva, así que el
- * título salía duplicado («del CIP CIP Pasto»): aquí se garantiza un solo prefijo.
+ * Rótulo para los títulos que ya dicen «del Centro de Innovación …». Casi todas las zonas escriben el
+ * nombre empezando por «Centro de Innovación», y el nombre por defecto también lo lleva, así que el
+ * título salía duplicado («del Centro de Innovación Centro de Innovación Pasto»): aquí se garantiza un solo prefijo.
  */
 export function cipTitleLabel(displayName: string): string {
   const name = displayName.trim();
-  if (!name) return 'CIP';
-  return /^cip\b/i.test(name) ? name : `CIP ${name}`;
+  if (!name) return 'Centro de Innovación';
+  return /^centro de innovaci[oó]n\b/i.test(name) ? name : `Centro de Innovación ${name}`;
 }

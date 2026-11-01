@@ -54,7 +54,7 @@ export interface DocumentPlan {
 }
 
 export interface DocumentMeta {
-  cipName: string;
+  labName: string;
   zonaUNAD: string;
   municipality: string;
   department: string;
@@ -292,9 +292,9 @@ function tableToBlock(token: Tokens.Table, number: number, title: string): PlanB
 /**
  * Construye el plan del documento. Inserta infografías y figuras en sus
  * apartados temáticos correspondientes:
- *   · Apartado 5: Pilares estratégicos del CIP (infografía)
+ *   · Apartado 5: Pilares estratégicos del Centro de Innovación (infografía)
  *   · Apartado 6: Figuras de datos del registro SIGIIP (zonas, tipos en donut, escuelas)
- *   · Apartado 11: Ruta de maduración del CIP (línea de tiempo)
+ *   · Apartado 11: Ruta de maduración del Centro de Innovación (línea de tiempo)
  */
 export function buildDocumentPlan(
   markdown: string,

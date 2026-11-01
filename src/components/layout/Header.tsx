@@ -1,7 +1,7 @@
 import React from 'react';
 import { Sparkles, Sun, Moon, Search, Layers, Compass, Trees, BrainCircuit, Rocket, ShieldCheck } from 'lucide-react';
 
-export type ToolId = 'portal' | 'radar' | 'estudio' | 'vocacion' | 'arbol' | 'servicios';
+export type ToolId = 'portal' | 'radar' | 'estudio' | 'ideacion' | 'arbol' | 'prototipado';
 
 interface HeaderProps {
   currentTool: ToolId;
@@ -23,7 +23,7 @@ export const Header: React.FC<HeaderProps> = ({
   zoeState,
 }) => {
   return (
-    <header className="relative z-40 box-border px-4 md:px-8 lg:px-[clamp(20px,6vw,120px)] pt-6 pb-4">
+    <header className="relative z-40 w-full box-border px-4 sm:px-6 md:px-8 xl:px-12 2xl:px-16 pt-6 pb-4">
       {/* Hidden SVGs for Logo Symbol */}
       <svg width="0" height="0" className="hidden" aria-hidden="true">
         <symbol id="mkFull" viewBox="0 0 1145 1113">
@@ -91,7 +91,7 @@ export const Header: React.FC<HeaderProps> = ({
             }`}
           >
             <Compass className="w-3.5 h-3.5 text-[#5EC2DD]" />
-            Radar
+            Radar de Innovación
           </button>
           <button
             onClick={() => onSelectTool('estudio')}
@@ -105,15 +105,15 @@ export const Header: React.FC<HeaderProps> = ({
             Estudio Territorial
           </button>
           <button
-            onClick={() => onSelectTool('vocacion')}
+            onClick={() => onSelectTool('ideacion')}
             className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
-              currentTool === 'vocacion'
+              currentTool === 'ideacion'
                 ? 'bg-white/15 text-white font-semibold shadow-sm'
                 : 'text-brand-textSecondary hover:text-white hover:bg-white/5'
             }`}
           >
             <BrainCircuit className="w-3.5 h-3.5 text-[#F3C26B]" />
-            Vocación
+            Ideación Estratégica
           </button>
           <button
             onClick={() => onSelectTool('arbol')}
@@ -127,15 +127,15 @@ export const Header: React.FC<HeaderProps> = ({
             Árbol de Innovación
           </button>
           <button
-            onClick={() => onSelectTool('servicios')}
+            onClick={() => onSelectTool('prototipado')}
             className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
-              currentTool === 'servicios'
+              currentTool === 'prototipado'
                 ? 'bg-white/15 text-white font-semibold shadow-sm'
                 : 'text-brand-textSecondary hover:text-white hover:bg-white/5'
             }`}
           >
             <Rocket className="w-3.5 h-3.5 text-[#A98FD6]" />
-            Generador de Servicios
+            Prototipado
           </button>
         </nav>
 

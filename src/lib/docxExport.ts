@@ -1,5 +1,5 @@
 /**
- * Exportación a Word real (.docx) del Documento Fundante: portada, tabla de
+ * Exportación a Word real (.docx) del Ecosistema de Innovación: portada, tabla de
  * contenido, índices de tablas y figuras, numeración de páginas y epígrafes APA.
  *
  * La tabla de contenido y los índices son campos de Word (TOC/SEQ), no listas
@@ -54,8 +54,8 @@ const HEADER_FILL = 'EAF1F6';
 /** Ancho útil de la página A4 con márgenes de una pulgada, en píxeles a 96 ppp. */
 const CONTENT_WIDTH_PX = 600;
 
-const BULLET_REFERENCE = 'cip-bullets';
-const ORDERED_REFERENCE = 'cip-ordered';
+const BULLET_REFERENCE = 'lab-bullets';
+const ORDERED_REFERENCE = 'lab-ordered';
 
 function runsFrom(nodes: readonly InlineNode[], overrides: { size?: number; color?: string } = {}): ParagraphChild[] {
   const children: ParagraphChild[] = [];
@@ -316,9 +316,9 @@ function coverChildren(meta: DocumentMeta): Paragraph[] {
   return [
     line('UNIVERSIDAD NACIONAL ABIERTA Y A DISTANCIA', { size: 28, bold: true, before: 1200, color: BRAND }),
     line('Vicerrectoría de Innovación y Emprendimiento', { size: 24 }),
-    line('DOCUMENTO FUNDANTE', { size: 52, bold: true, before: 900, color: BRAND }),
-    line('Centro de Innovación y Productividad', { size: 26 }),
-    line(meta.cipName?.trim() || 'Centro de Innovación y Productividad (nombre pendiente de confirmación)', {
+    line('proyecto de innovación', { size: 52, bold: true, before: 900, color: BRAND }),
+    line('Centro de Innovación', { size: 26 }),
+    line(meta.labName?.trim() || 'Centro de Innovación (nombre pendiente de confirmación)', {
       size: 32,
       bold: true,
       before: 200,
@@ -390,7 +390,7 @@ function frontMatter(plan: DocumentPlan): Array<Paragraph | TableOfContents> {
 
 /** Encabezado y pie compartidos por el cuerpo del documento. */
 function bodyHeaderFooter(meta: DocumentMeta): { header: Header; footer: Footer } {
-  const runningTitle = [meta.cipName?.trim() || 'Documento Fundante del CIP', meta.zonaUNAD?.trim()]
+  const runningTitle = [meta.labName?.trim() || 'Ecosistema de Innovación del Centro de Innovación', meta.zonaUNAD?.trim()]
     .filter(Boolean)
     .join(' · ');
   return {
@@ -482,9 +482,9 @@ export async function buildFundanteDocxBlob(plan: DocumentPlan, meta: DocumentMe
   const page = { margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 } };
 
   const doc = new Document({
-    title: `Documento Fundante — ${meta.cipName || 'CIP'}`,
+    title: `Ecosistema de Innovación — ${meta.labName || 'Centro de Innovación'}`,
     creator: meta.generatedBy?.trim() || 'Universidad Nacional Abierta y a Distancia',
-    description: 'Documento Fundante de Centro de Innovación y Productividad (versión preliminar sujeta a validación institucional)',
+    description: 'Ecosistema de Innovación de Centro de Innovación (versión preliminar sujeta a validación institucional)',
     // Word actualiza los campos TOC/SEQ al abrir el archivo.
     features: { updateFields: true },
     styles: documentStyles(),
@@ -551,7 +551,7 @@ export async function buildGenericDocxBlob({
   ];
 
   const doc = new Document({
-    title: `${title} — ${meta.cipName || 'CIP'}`,
+    title: `${title} — ${meta.labName || 'Centro de Innovación'}`,
     creator: meta.generatedBy?.trim() || 'Universidad Nacional Abierta y a Distancia',
     description: subtitle || title,
     features: { updateFields: true },

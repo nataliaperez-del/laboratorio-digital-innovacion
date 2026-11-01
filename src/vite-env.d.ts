@@ -20,7 +20,7 @@ interface ImportMetaEnv {
   readonly VITE_MAX_C2_PROMPT_DOC_CHARS?: string;
   /** Opcional: cola del documento parcial (caracteres) reenviada en cada apartado del fundante por secciones. */
   readonly VITE_MAX_FUNDANTE_PREV_CONTEXT_CHARS?: string;
-  /** Opcional: tope del TXT de instrucción del documento fundante embebido en cada apartado (instruccion_documento_fundante_CIP_actualizada.txt). */
+  /** Opcional: tope del TXT de instrucción del proyecto de innovación embebido en cada apartado (instruccion_documento_fundante_CIP_actualizada.txt). */
   readonly VITE_MAX_INSTRUCCION_FUNDANTE_CHARS?: string;
   /** Opcional: tope del texto bruto de Drive reenviado como material complementario en Fase 3. */
   readonly VITE_MAX_DOCUMENT_SUPPLEMENTARY_CHARS?: string;
@@ -38,7 +38,7 @@ interface ImportMetaEnv {
   readonly VITE_UNAD_GEMINI_THINKING_BUDGET?: string;
   /** Opcional: modelo de Anthropic (por defecto claude-sonnet-5). */
   readonly VITE_ANTHROPIC_MODEL?: string;
-  /** Opcional: ID de la carpeta institucional de Google Drive (por defecto la carpeta oficial del CIP). */
+  /** Opcional: ID de la carpeta institucional de Google Drive (por defecto la carpeta oficial del Centro de Innovación). */
   readonly VITE_DRIVE_FOLDER_ID?: string;
   /** Opcional: modelo para Gemini API directa (por defecto gemini-3.5-flash). */
   readonly VITE_GEMINI_MODEL?: string;

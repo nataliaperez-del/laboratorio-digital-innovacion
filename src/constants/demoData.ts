@@ -6,7 +6,7 @@
  * devuelven este contenido con progreso y retardos simulados, para que una
  * persona vea la aplicación funcionando de principio a fin sin claves ni conexión.
  *
- * El CIP es FICTICIO (Nariño · Pasto) y sirve solo para ilustrar el flujo.
+ * El Centro de Innovación es FICTICIO (Nariño · Pasto) y sirve solo para ilustrar el flujo.
  */
 import type { Prompt0Data } from '@/store/useStore';
 import type { LoadInstitutionalDriveResult } from '@/services/institutionalDrive';
@@ -25,8 +25,8 @@ export const DEMO_INSTITUTIONAL_ACCOUNT = 'lider.zona@unad.edu.co';
 
 /** Ficha Base de ejemplo (departamento y municipio válidos en DIVIPOLA). */
 export const DEMO_FICHA: Prompt0Data = {
-  cipName: 'CIP Agroalimentario del Sur',
-  cipNameKind: 'nombre',
+  labName: 'Centro de Innovación Agroalimentario del Sur',
+  labNameKind: 'nombre',
   zonaUNAD: 'Zona Sur (ZSUR)',
   municipality: 'Pasto',
   department: 'Nariño',
@@ -90,7 +90,7 @@ export const DEMO_DRIVE_RESULT: LoadInstitutionalDriveResult = {
  * Oportunidades del entorno, Matriz FODA territorial) para que el modo demostración
  * ilustre la misma estructura que produce el flujo real.
  */
-export const DEMO_CONTAINER_MD = `# Contenedor 2 — Contexto territorial del CIP Agroalimentario del Sur
+export const DEMO_CONTAINER_MD = `# Contenedor 2 — Contexto territorial del Centro de Innovación Agroalimentario del Sur
 
 > **DEMOSTRACIÓN:** documento de ejemplo generado sin conexión, solo para ilustrar el flujo de la aplicación.
 
@@ -166,7 +166,7 @@ La subcarpeta del territorio se emparejó de forma exacta con el municipio de la
 
 ## 12. Declaración de cierre
 
-Este contenedor entrega un diagnóstico territorial verificable. No declara la vocación de servicio del territorio ni los temas estratégicos del CIP; esa definición corresponde al paso de Vocación Territorial.
+Este contenedor entrega un diagnóstico territorial verificable. No declara la vocación de servicio del territorio ni los temas estratégicos del Centro de Innovación; esa definición corresponde al paso de Vocación Territorial.
 
 **ALERTA DE VERIFICACIÓN HUMANA: cifras ilustrativas del modo demostración; validar con fuentes oficiales antes de usar.**
 `;
@@ -174,9 +174,9 @@ Este contenedor entrega un diagnóstico territorial verificable. No declara la v
 /** Propuesta de vocación + 3 opciones de tema (estructura que reconoce ThemeDecisionPanel). */
 export const DEMO_THEME_PROPOSAL_MD = `## Vocación del territorio: Bioeconomía agroalimentaria del altiplano nariñense
 
-> **DEMOSTRACIÓN:** propuesta de ejemplo para ilustrar la elección de tema del CIP.
+> **DEMOSTRACIÓN:** propuesta de ejemplo para ilustrar la elección de tema del Centro de Innovación.
 
-Pasto reúne las condiciones para un CIP orientado a la **agregación de valor agroalimentaria** con enfoque de bioeconomía: cuenca lechera consolidada, agricultura andina diversa y un patrimonio cultural que puede integrarse al diseño de nuevos productos. La vocación propuesta articula productividad rural, sostenibilidad y saberes locales.
+Pasto reúne las condiciones para un Centro de Innovación orientado a la **agregación de valor agroalimentaria** con enfoque de bioeconomía: cuenca lechera consolidada, agricultura andina diversa y un patrimonio cultural que puede integrarse al diseño de nuevos productos. La vocación propuesta articula productividad rural, sostenibilidad y saberes locales.
 
 ### Opción de tema 1: Innovación láctea y agroindustria de alto valor
 
@@ -190,7 +190,7 @@ Transformar papa nativa, ulluco y otros tubérculos andinos en productos de valo
 
 Integrar el barniz de Pasto y otras artesanías con cadenas agroalimentarias para crear productos de identidad territorial, articulando turismo, cultura y economía creativa.
 
-**Selección humana:** el equipo del CIP debe elegir **una** de las tres opciones para continuar con el árbol de innovación.
+**Selección humana:** el equipo del Centro de Innovación debe elegir **una** de las tres opciones para continuar con el árbol de innovación.
 `;
 
 /** Árbol de innovación de ejemplo (incluye la sección "Estructurado" que dibuja el SVG). */
@@ -240,14 +240,14 @@ export const DEMO_INNOVATION_TREE_MD = `# Árbol de Innovación — Tema 2: Bioe
 **ALERTA DE VERIFICACIÓN HUMANA: contenido ilustrativo del modo demostración.**
 `;
 
-/** Documento fundante de ejemplo (13 apartados alineados con la metodología oficial). */
-export const DEMO_DOCUMENT_MD = `# Documento Fundante — CIP Agroalimentario del Sur
+/** proyecto de innovación de ejemplo (13 apartados alineados con la metodología oficial). */
+export const DEMO_DOCUMENT_MD = `# Ecosistema de Innovación — Centro de Innovación Agroalimentario del Sur
 
 > **DEMOSTRACIÓN:** documento de ejemplo generado sin conexión. Ilustra el resultado final descargable en PDF o Word con infografías vectoriales, tablas estilizadas y epígrafes APA.
 
 ## 1. Introducción y justificación estratégica
 
-El **CIP Agroalimentario del Sur**, con sede en Pasto (Nariño, Zona Sur de la UNAD), se constituye como Centro de Innovación y Productividad orientado a la bioeconomía de tubérculos y cultivos andinos con agregación de valor territorial.
+El **Centro de Innovación Agroalimentario del Sur**, con sede en Pasto (Nariño, Zona Sur de la UNAD), se constituye como Centro de Innovación orientado a la bioeconomía de tubérculos y cultivos andinos con agregación de valor territorial.
 
 ## 2. Marco Referencial, Normativo y Contextual
 
@@ -259,16 +259,16 @@ Se adopta la estructura del árbol de innovación validada en el paso intermedio
 
 ## 4. Articulación metasistémica UNAD
 
-El CIP opera como nodo reticular del metasistema UNAD, vinculando la Escuela de Ciencias Agrícolas, Pecuarias y del Medio Ambiente y la Escuela de Ciencias Básicas, Tecnología e Ingeniería con los centros comunitarios de la Zona Sur.
+El Centro de Innovación opera como nodo reticular del metasistema UNAD, vinculando la Escuela de Ciencias Agrícolas, Pecuarias y del Medio Ambiente y la Escuela de Ciencias Básicas, Tecnología e Ingeniería con los centros comunitarios de la Zona Sur.
 
-## 5. Plataforma estratégica del CIP
+## 5. Plataforma estratégica del Centro de Innovación
 
 - **Misión propuesta:** dinamizar la competitividad y la agregación de valor del sector agroalimentario en Nariño mediante investigación aplicada y transferencia tecnológica.
 - **Visión propuesta:** consolidarse como referente regional en innovación bioeconómica y alimentos funcionales al 2030.
 
 ## 6. Experiencias previas de investigación
 
-| Proyecto | Código | Tipo | Investigador | Escuela | Contribución al CIP |
+| Proyecto | Código | Tipo | Investigador | Escuela | Contribución al Centro de Innovación |
 |---|---|---|---|---|---|
 | "Valorización de tubérculos andinos" | SIG-2024-01 | Aplicada | Dr. Carlos Narváez | ECAPMA | Línea base de extracción de almidones |
 | "Biotecnología de alimentos en Nariño" | SIG-2023-14 | Desarrollo | Dra. Elena Rosero | ECBTI | Protocolos de deshidratado y calidad |

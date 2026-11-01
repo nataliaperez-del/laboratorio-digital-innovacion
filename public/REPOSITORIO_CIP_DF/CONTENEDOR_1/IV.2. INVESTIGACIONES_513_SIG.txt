@@ -1304,7 +1304,7 @@ Estado en la convocatoria: Aprobado pares definitivo
 --------------------------------------------------------------------------------
 
 PROYECTO 101
-Nombre del proyecto: Diseño de Soluciones Automatizadas en Excel con Inteligencia Artificial para el Fortalecimiento de Emprendimientos en la Zona Centro Sur: una Iniciativa Estratégica para el Centro de Innovación y Productividad de la Unad
+Nombre del proyecto: Diseño de Soluciones Automatizadas en Excel con Inteligencia Artificial para el Fortalecimiento de Emprendimientos en la Zona Centro Sur: una Iniciativa Estratégica para el Centro de Innovación de la Unad
 Código del proyecto: PI95ZCSURECACENINVIL2026
 Tipo de proyecto: Proyecto de investigación (PI)
 Responsable: Omar Osbaldo Forero Gonzalez
@@ -3580,7 +3580,7 @@ Estado en la convocatoria:
 --------------------------------------------------------------------------------
 
 PROYECTO 276
-Nombre del proyecto: Aumento de la Conectividad Estructural de las Quebradas la Víbora y Cañaveral en el Área de Influencia Del Centro de Innovación y Productividad Cip Dosquebradas de la Unad
+Nombre del proyecto: Aumento de la Conectividad Estructural de las Quebradas la Víbora y Cañaveral en el Área de Influencia Del Centros de Innovación Dosquebradas de la Unad
 Código del proyecto: PGI1901ECAPMA2024
 Tipo de proyecto: Proyecto de investigación (PI)
 Responsable: Angelica Maria Osorio Giraldo

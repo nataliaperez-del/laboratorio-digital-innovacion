@@ -68,7 +68,7 @@ export const GeneradorServiciosView: React.FC = () => {
               role: 'user',
               parts: [
                 {
-                  text: `Genera una ficha técnica para un nuevo Servicio de Innovación del Centro de Innovación Productiva (CIP) UNAD.
+                  text: `Genera una ficha técnica para un nuevo Servicio de Innovación del Centro de Innovación Productiva (Centro de Innovación) UNAD.
 Categoría: ${newServiceCategory}. Nombre o idea base: "${newServiceName || 'Servicio de Microredes Energéticas Comunitarias'}".
 Responde estrictamente en formato JSON válido con los campos:
 {
@@ -95,7 +95,7 @@ Responde estrictamente en formato JSON válido con los campos:
 
         const createdService: InnovationService = {
           id: `srv-${Date.now()}`,
-          name: parsed.name || 'Servicio de Innovación Agroindustrial CIP',
+          name: parsed.name || 'Servicio de Innovación Agroindustrial Centro de Innovación',
           category: parsed.category || newServiceCategory,
           targetAudience: parsed.targetAudience || 'Comunidades productivas del territorio',
           problemSolved: parsed.problemSolved || 'Optimización de procesos productivos locales',
@@ -149,7 +149,7 @@ Responde estrictamente en formato JSON válido con los campos:
           <nav className="m text-xs text-brand-textMuted mb-2" aria-label="Migas de pan">
             <span>Inicio</span> <span className="opacity-40">/</span> <span>Herramientas</span> <span className="opacity-40">/</span> <span className="text-white">Generador de Servicios</span>
           </nav>
-          <h1 className="h2 text-3xl md:text-4xl text-white font-bold tracking-tight">Generador de Portafolio de Servicios CIP</h1>
+          <h1 className="h2 text-3xl md:text-4xl text-white font-bold tracking-tight">Generador de Portafolio de Servicios Centro de Innovación</h1>
           <p className="bd text-sm text-brand-textSecondary mt-1">
             Estructuración de servicios de innovación a partir de los "Frutos" del Árbol de Innovación y las capacidades UNAD.
           </p>
@@ -305,12 +305,12 @@ Responde estrictamente en formato JSON válido con los campos:
           </div>
 
           <div className="pt-4 mt-auto border-t border-white/10 flex items-center justify-between">
-            <span className="text-xs text-brand-textMuted m">Apartado 8 · Documento Fundante CIP</span>
+            <span className="text-xs text-brand-textMuted m">Apartado 8 · Ecosistema de Innovación Centro de Innovación</span>
             <button
               type="button"
               className="metal px-5 py-2.5 text-xs font-semibold text-white flex items-center gap-2 cursor-pointer"
             >
-              <span>Vincular al Documento Fundante</span>
+              <span>Vincular al Ecosistema de Innovación</span>
               <ArrowRight className="w-3.5 h-3.5 text-[#F3C26B]" />
             </button>
           </div>

@@ -1,5 +1,5 @@
 /**
- * Nombres de referencia en el repositorio institucional de Drive (REPOSITORIO CIP-DF).
+ * Nombres de referencia en el repositorio institucional de Drive (REPOSITORIO Centro de Innovación-DF).
  * Los prompts citan estos archivos para que la IA priorice su lectura dentro del texto extraído.
  *
  * Cada referencia tiene un nombre principal (el vigente en el repositorio) y una lista
@@ -17,7 +17,7 @@ export const DRIVE_REFERENCE_CONTENEDOR_1_CANDIDATES = [
   'CONTENEDOR_ÚNICO_CONSOLIDADO.txt',
 ];
 
-/** Instrucción de redacción del documento fundante (GENERALES/). */
+/** Instrucción de redacción del proyecto de innovación (GENERALES/). */
 export const DRIVE_REFERENCE_INSTRUCCION_FUNDANTE = 'prompt_documento_fundante.txt';
 export const DRIVE_REFERENCE_INSTRUCCION_FUNDANTE_CANDIDATES = [
   DRIVE_REFERENCE_INSTRUCCION_FUNDANTE,
@@ -31,7 +31,7 @@ export const DRIVE_REFERENCE_PROMPT_ARBOL_INNOVACION_CANDIDATES = [
   'prompt_arbol_innovacion.txt',
 ];
 
-/** Prompt para vocación territorial y tres opciones de tema CIP (GENERALES/, Fase 3 paso 1). */
+/** Prompt para vocación territorial y tres opciones de tema Centro de Innovación (GENERALES/, Fase 3 paso 1). */
 export const DRIVE_REFERENCE_PROMPT_VOCACION_CIP = 'prompt_vocacion_cip_v2.txt';
 export const DRIVE_REFERENCE_PROMPT_VOCACION_CIP_CANDIDATES = [
   DRIVE_REFERENCE_PROMPT_VOCACION_CIP,

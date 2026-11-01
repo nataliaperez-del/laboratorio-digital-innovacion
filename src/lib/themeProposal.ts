@@ -1,4 +1,4 @@
-/** Una de las tres opciones de tema CIP: su título y su justificación en Markdown. */
+/** Una de las tres opciones de tema Centro de Innovación: su título y su justificación en Markdown. */
 export interface ParsedTheme {
   title: string;
   body: string;

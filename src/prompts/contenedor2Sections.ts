@@ -76,7 +76,7 @@ export function sanitizeContenedor2SectionMarkdown(markdown: string): string {
 
 /**
  * Autoevaluación local de un bloque del Contenedor 2 recién redactado:
- * Aplica el mismo rigor que el Documento Fundante para detectar si quedó vacío,
+ * Aplica el mismo rigor que el Ecosistema de Innovación para detectar si quedó vacío,
  * sin encabezado, cortado, con marcadores de relleno o con "rayas" (líneas divisorias,
  * cajas ASCII o tablas rotas). No consume llamadas al modelo.
  */
@@ -225,7 +225,7 @@ export function assembleContenedor2Document(
 
 /** Frase de cierre obligatoria del Contenedor 2, literal y sin variantes. */
 export const CONTENEDOR2_CLOSING_STATEMENT =
-  'Este contenedor entrega un diagnóstico territorial verificable. No declara la vocación de servicio del territorio ni los temas estratégicos del CIP; esa definición corresponde al paso de Vocación Territorial.';
+  'Este contenedor entrega un diagnóstico territorial verificable. No declara la vocación de servicio del territorio ni los temas estratégicos del Centro de Innovación; esa definición corresponde al paso de Vocación Territorial.';
 
 /**
  * Los **doce puntos de entrega** del Contenedor 2, en el orden y con los títulos que
@@ -503,7 +503,7 @@ export function buildContenedor2SectionPrompt(
   point: AiPoint,
   partIndex: number,
   previousSectionsMarkdown: string,
-  cipName: string,
+  labName: string,
 ): string {
   const focus = point.parts[partIndex];
   if (!focus) throw new Error(`Parte inválida del punto ${point.number} del Contenedor 2: ${partIndex}`);
@@ -523,7 +523,7 @@ ${prev}
     ? `- Este bloque **continúa** el apartado «${point.title}», que ya está abierto. **No** repitas su encabezado ni ningún otro: empieza directamente con el contenido.`
     : `- Tu salida debe **empezar** con el encabezado de nivel 2: \`${contenedor2Heading(point)}\`${
         point.number === 1
-          ? `\n- Antes de ese encabezado, la **primera línea** de tu salida debe ser el título de nivel 1:\n  # Contenedor 2 — Contexto territorial del ${cipTitleLabel(cipName)}`
+          ? `\n- Antes de ese encabezado, la **primera línea** de tu salida debe ser el título de nivel 1:\n  # Contenedor 2 — Contexto territorial del ${cipTitleLabel(labName)}`
           : ''
       }`;
 

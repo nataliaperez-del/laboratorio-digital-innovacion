@@ -164,7 +164,7 @@ export const RadarView: React.FC = () => {
           </nav>
           <h1 className="h2 text-3xl md:text-4xl text-white font-bold tracking-tight">Radar Tecnológico InnovaHub360</h1>
           <p className="bd text-sm text-brand-textSecondary mt-1">
-            Vigilancia prospectiva y señales de cambio para Centros de Innovación Productiva (CIP).{' '}
+            Vigilancia prospectiva y señales de cambio para Centros de Innovación Productiva (Centro de Innovación).{' '}
             <strong className="text-white font-semibold">{filteredSignals.length} de {signals.length} señales activas</strong>
           </p>
         </div>

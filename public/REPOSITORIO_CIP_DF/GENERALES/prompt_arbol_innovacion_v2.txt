@@ -1,10 +1,10 @@
 PROMPT MAESTRO PARA CONSTRUIR UN ÁRBOL DE INNOVACIÓN GLOBAL–NACIONAL–TERRITORIAL
-Uso: GENERALES/ (REPOSITORIO CIP-DF) → paso posterior a Vocación Territorial, anterior al Documento Fundante
+Uso: GENERALES/ (REPOSITORIO Centro de Innovación-DF) → paso posterior a Vocación Territorial, anterior al Documento Fundante
 
 ================================================================
 ROL
 ================================================================
-Actúa como un experto en innovación, vigilancia tecnológica, análisis de tendencias, prospectiva estratégica y formulación de proyectos. Debes construir un ÁRBOL DE INNOVACIÓN a partir del tema, territorio y sector que se definen a continuación — NO los inventes ni los pidas al usuario: se toman de los insumos ya generados en pasos anteriores del proceso CIP-DF.
+Actúa como un experto en innovación, vigilancia tecnológica, análisis de tendencias, prospectiva estratégica y formulación de proyectos. Debes construir un ÁRBOL DE INNOVACIÓN a partir del tema, territorio y sector que se definen a continuación — NO los inventes ni los pidas al usuario: se toman de los insumos ya generados en pasos anteriores del proceso Centro de Innovación-DF.
 
 ================================================================
 INSUMOS Y CÓMO SE COMPLETAN (no son campos manuales)
@@ -21,8 +21,8 @@ Departamento, municipio y zona UNAD, tomados de la Ficha Base y confirmados cont
 SECTOR O CAMPO DE APLICACIÓN:
 Se deriva del TEMA CENTRAL y de la caracterización productiva del Contenedor 2 (Fase 1 MDVT) — no de una lista genérica elegida al azar.
 
-Arquitectura de Drive (REPOSITORIO CIP-DF) para localizar estos insumos:
-REPOSITORIO CIP-DF/
+Arquitectura de Drive (REPOSITORIO Centro de Innovación-DF) para localizar estos insumos:
+REPOSITORIO Centro de Innovación-DF/
 ├── GENERALES/          → este mismo prompt, el de Vocación Territorial y el del Documento Fundante
 ├── CONTENEDOR_1/        → marco institucional UNAD (archivo CONTENEDOR__1.txt) — se usa solo como fuente adicional de sustento normativo cuando aplique, nunca para definir el tema
 └── CONTENEDOR_2/        → análisis territorial (MDVT, Fases 1-4) + C_TERRITORIO_ESPECIFICO con fuentes del líder de zona
@@ -98,7 +98,7 @@ Columnas: Tendencia territorial | Oportunidad de innovación | Posible solución
 
 7. Finalmente, redacta una síntesis estratégica del árbol de innovación en un párrafo académico, explicando cómo el análisis pasa del nivel global al nacional y luego al territorial.
 
-8. Manejo de vacíos de información — igual que en el resto del proceso CIP-DF:
+8. Manejo de vacíos de información — igual que en el resto del proceso Centro de Innovación-DF:
 No inventes datos específicos. Si no tienes evidencia suficiente, marca el apartado con resaltado amarillo y la etiqueta correspondiente:
 ==⚠️ ALERTA DE VERIFICACIÓN HUMANA: [detalle] (VACÍO-VERIFICAR)== → no hay ninguna fuente disponible.
 ==⚠️ ALERTA DE VERIFICACIÓN HUMANA: [detalle] (REQUIERE CONTRASTE)== → el dato existe pero es débil, parcial o sin validación territorial directa.
@@ -123,7 +123,7 @@ Al cierre del documento, agrega un apartado "Alertas pendientes de verificación
 - Todas las fuentes que se encuentren citadas en el Contenedor 1 y el Contenedor 2.
 Debes reverificar si son válidas y verificables antes de reutilizarlas; no las cites como "Contenedor 1" o "Contenedor 2", sino con la fuente original que contienen (norma APA 7).
 
-10. Usa un tono académico, estratégico y claro. El resultado debe servir como insumo directo del Documento Fundante del CIP (secciones "3. Árbol de innovación" y las que lo referencian).
+10. Usa un tono académico, estratégico y claro. El resultado debe servir como insumo directo del Documento Fundante del Centro de Innovación (secciones "3. Árbol de innovación" y las que lo referencian).
 
 ================================================================
 FORMATO FINAL ESPERADO

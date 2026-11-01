@@ -1,0 +1,125 @@
+{
+  "generadoEn": "2026-11-01T07:17:42.379Z",
+  "version": "1.0.1",
+  "hash": "sha256-85536377b635653ff4769b78fbaa472691e7d33bf5987f227c4231ccfd18a2a6",
+  "repoDir": "REPOSITORIO_CIP_DF",
+  "totales": {
+    "recursos": 7,
+    "caracteres": 1066921,
+    "tokensEstimados": 266734
+  },
+  "grupos": {
+    "CONTENEDOR_1": [
+      {
+        "id": "contenedor_1.contenedor_1",
+        "ruta": "CONTENEDOR_1/CONTENEDOR_1.md",
+        "grupo": "CONTENEDOR_1",
+        "familia": "contenedor_1",
+        "tipo": "documento",
+        "orden": 0,
+        "version": 1,
+        "vigente": true,
+        "aceptaFuentesPropias": false,
+        "bytes": 565152,
+        "caracteres": 546281,
+        "tokensEstimados": 136571,
+        "hash": "sha256-21ebf39020402bb7dc212a43f4d742efb56df952122a7b5c3e8b1f3b0349336b"
+      },
+      {
+        "id": "contenedor_1.iv.2. investigaciones_513_sig",
+        "ruta": "CONTENEDOR_1/IV.2. INVESTIGACIONES_513_SIG.txt",
+        "grupo": "CONTENEDOR_1",
+        "familia": "iv.2. investigaciones_513_sig",
+        "tipo": "documento",
+        "orden": 10,
+        "version": 1,
+        "vigente": true,
+        "aceptaFuentesPropias": false,
+        "bytes": 395530,
+        "caracteres": 390085,
+        "tokensEstimados": 97522,
+        "hash": "sha256-c2949a15356eb380159494c5acc1b1b4b892632fdee752308ae87e7b50f026a0"
+      }
+    ],
+    "CONTENEDOR_2": [
+      {
+        "id": "contenedor_2.contenedor2_contexto_territorial",
+        "ruta": "CONTENEDOR_2/prompt_contenedor2_contexto_territorial.txt",
+        "grupo": "CONTENEDOR_2",
+        "familia": "contenedor2_contexto_territorial",
+        "tipo": "prompt",
+        "orden": 20,
+        "version": 1,
+        "vigente": true,
+        "aceptaFuentesPropias": true,
+        "bytes": 20235,
+        "caracteres": 19821,
+        "tokensEstimados": 4956,
+        "hash": "sha256-ec2cbe5b85344902a777528967cad84d515c8800cefee192e24298b34c3c75b7"
+      },
+      {
+        "id": "contenedor_2.prompts_fuentes_consulta_contenedor2_territorial 1",
+        "ruta": "CONTENEDOR_2/PROMPTS_FUENTES_CONSULTA_CONTENEDOR2_TERRITORIAL 1.txt",
+        "grupo": "CONTENEDOR_2",
+        "familia": "prompts_fuentes_consulta_contenedor2_territorial 1",
+        "tipo": "documento",
+        "orden": 30,
+        "version": 1,
+        "vigente": true,
+        "aceptaFuentesPropias": true,
+        "bytes": 41196,
+        "caracteres": 40995,
+        "tokensEstimados": 10249,
+        "hash": "sha256-cae7fa3bb45b390d76f4a9e971d856c7fb0adce51c77ea3e752eab0603db4474"
+      }
+    ],
+    "GENERALES": [
+      {
+        "id": "generales.arbol_innovacion",
+        "ruta": "GENERALES/prompt_arbol_innovacion_v2.txt",
+        "grupo": "GENERALES",
+        "familia": "arbol_innovacion",
+        "tipo": "prompt",
+        "orden": 40,
+        "version": 2,
+        "vigente": true,
+        "aceptaFuentesPropias": false,
+        "bytes": 10029,
+        "caracteres": 9826,
+        "tokensEstimados": 2457,
+        "hash": "sha256-196bb14d6af57ac2ac5bc192fcf7ee2df810b30ec335e44e8e872e6866553fa1"
+      },
+      {
+        "id": "generales.documento_fundante",
+        "ruta": "GENERALES/prompt_documento_fundante_v2.md",
+        "grupo": "GENERALES",
+        "familia": "documento_fundante",
+        "tipo": "prompt",
+        "orden": 50,
+        "version": 2,
+        "vigente": true,
+        "aceptaFuentesPropias": false,
+        "bytes": 52351,
+        "caracteres": 51231,
+        "tokensEstimados": 12808,
+        "hash": "sha256-f7d1fcccaece5b454638ac589e772ccb1ee630743e068ced2c541f036cd88721"
+      },
+      {
+        "id": "generales.vocacion_cip",
+        "ruta": "GENERALES/prompt_vocacion_cip_v2.txt",
+        "grupo": "GENERALES",
+        "familia": "vocacion_cip",
+        "tipo": "prompt",
+        "orden": 60,
+        "version": 2,
+        "vigente": true,
+        "aceptaFuentesPropias": false,
+        "bytes": 8879,
+        "caracteres": 8682,
+        "tokensEstimados": 2171,
+        "hash": "sha256-17e1cdff37ba7ddc1d192b46e829dcf98b890430ff0c35add3e007a3955566a7"
+      }
+    ]
+  },
+  "avisos": []
+}

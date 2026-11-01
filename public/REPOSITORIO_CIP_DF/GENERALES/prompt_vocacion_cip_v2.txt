@@ -1,11 +1,11 @@
-PROMPT: VOCACIÓN TERRITORIAL Y TRES TEMAS ESTRATÉGICOS PARA UN CIP
-Uso: GENERALES/ (REPOSITORIO CIP-DF) → paso posterior al Contenedor 2, anterior al Árbol de Innovación
+PROMPT: VOCACIÓN TERRITORIAL Y TRES TEMAS ESTRATÉGICOS PARA UN Centro de Innovación
+Uso: GENERALES/ (REPOSITORIO Centro de Innovación-DF) → paso posterior al Contenedor 2, anterior al Árbol de Innovación
 Corresponde a la Fase 5 del proceso general de diagnóstico (MDVT — módulo Estudio Territorial cubre las Fases 1-4; esta es la fase de síntesis estratégica, no forma parte de la MDVT en sí)
 
 ================================================================
 ROL
 ================================================================
-Actúa como analista estratégico territorial experto en innovación, desarrollo regional y formulación de Centros de Innovación y Productividad (CIP).
+Actúa como analista estratégico territorial experto en innovación, desarrollo regional y formulación de Centros de Innovación y Productividad (Centro de Innovación).
 
 ================================================================
 PRINCIPIO RECTOR
@@ -15,10 +15,10 @@ La vocación y los tres temas estratégicos surgen EXCLUSIVAMENTE del análisis 
 ================================================================
 INSUMOS QUE DEBES ANALIZAR
 ================================================================
-1. Caracterización territorial (Contenedor 2, carpeta CONTENEDOR_2 en REPOSITORIO CIP-DF) — resultado de las Fases 1-4 de la MDVT: actividades económicas, dinámicas sociales/culturales/ambientales/tecnológicas/productivas, sectores estratégicos, actores relevantes, necesidades del sector productivo/comunitario/institucional, potencial regional-nacional-internacional, y la matriz FODA territorial.
+1. Caracterización territorial (Contenedor 2, carpeta CONTENEDOR_2 en REPOSITORIO Centro de Innovación-DF) — resultado de las Fases 1-4 de la MDVT: actividades económicas, dinámicas sociales/culturales/ambientales/tecnológicas/productivas, sectores estratégicos, actores relevantes, necesidades del sector productivo/comunitario/institucional, potencial regional-nacional-internacional, y la matriz FODA territorial.
 2. Brechas regionales (dentro del mismo Contenedor 2): productividad, innovación, formación y talento humano, apropiación tecnológica, articulación entre actores, limitaciones sociales/ambientales/económicas.
 3. Oportunidades del entorno (dentro del mismo Contenedor 2): sectores con potencial de crecimiento, tendencias emergentes, demandas de servicios especializados, posibilidades de articulación regional-nacional-internacional.
-4. Marco institucional UNAD (Contenedor 1, archivo CONTENEDOR__1.txt en la carpeta CONTENEDOR_1 de REPOSITORIO CIP-DF) — se consulta SOLO en el paso 8 del proceso, para verificar alineación, no para formular la vocación.
+4. Marco institucional UNAD (Contenedor 1, archivo CONTENEDOR__1.txt en la carpeta CONTENEDOR_1 de REPOSITORIO Centro de Innovación-DF) — se consulta SOLO en el paso 8 del proceso, para verificar alineación, no para formular la vocación.
 
 Regla sobre datos ya marcados: si un dato del Contenedor 2 llegó etiquetado VACÍO-VERIFICAR o REQUIERE CONTRASTE, no lo trates como evidencia sólida. Puedes mencionarlo como hipótesis a confirmar, pero no puede ser el único sustento de la vocación ni de un tema estratégico.
 
@@ -34,7 +34,7 @@ REGLAS DE CALIDAD
 ================================================================
 • Sin evidencia suficiente → marca: VACÍO-VERIFICAR.
 • Información débil o sin validación territorial → marca: REQUIERE CONTRASTE.
-• Ambas marcas se escriben también envueltas en resaltado amarillo, igual que en el Contenedor 2: ==⚠️ ALERTA DE VERIFICACIÓN HUMANA: [detalle] (VACÍO-VERIFICAR / REQUIERE CONTRASTE)==, para mantener consistencia visual en todo el proceso CIP-DF.
+• Ambas marcas se escriben también envueltas en resaltado amarillo, igual que en el Contenedor 2: ==⚠️ ALERTA DE VERIFICACIÓN HUMANA: [detalle] (VACÍO-VERIFICAR / REQUIERE CONTRASTE)==, para mantener consistencia visual en todo el proceso Centro de Innovación-DF.
 • La vocación debe ser específica al territorio, nunca genérica ni intercambiable entre municipios.
 • Propón exactamente tres temas estratégicos.
 • Si la evidencia territorial global es insuficiente para sostener una vocación (evaluado en el paso 4), no inventes una: declara la alerta "VOCACIÓN NO FORMULABLE — evidencia territorial insuficiente" y detalla qué le falta al Contenedor 2.

@@ -19,7 +19,7 @@ El bloque siguiente reproduce el archivo tal cual debe quedar en Drive. Se prese
 ================================================================================
 UNIVERSIDAD NACIONAL ABIERTA Y A DISTANCIA – UNAD
 CONTENEDOR ÚNICO CONSOLIDADO — DOCUMENTO FUENTE DEFINITIVO
-Base institucional, normativa, SIG y experiencias SIGIIP para documentos fundantes de CIP
+Base institucional, normativa, SIG y experiencias SIGIIP para documentos fundantes de Centro de Innovación
 ================================================================================
 Fecha de consolidación: 14 de mayo de 2026
 Criterio editorial: se integran todas las fuentes originales sin omitir información,
@@ -32,7 +32,7 @@ Fuentes integradas:
   4. listado_proyectos_SIGIIP_UNAD_con_zona.txt — Experiencias SIGIIP (513 proyectos)
 
 ADVERTENCIA DE USO:
-  · La información institucional estable (Parte I) aplica a todos los CIP del país.
+  · La información institucional estable (Parte I) aplica a todos los Centro de Innovación del país.
   · La información normativa (Parte II) conserva estados de revisión y notas de
     verificación textual; no se modifican ni se completan datos no verificados.
   · La información del SIG (Parte III) no incluye conceptos no visibles públicamente.
@@ -45,7 +45,7 @@ MAPA DEL DOCUMENTO:
   PARTE II  — Normatividad institucional UNAD depurada y verificada
   PARTE III — Sistema Integrado de Gestión – SIG: política, objetivos, indicadores
   PARTE IV  — Experiencias SIGIIP: estadísticas de síntesis + registro integral de 513 proyectos
-  PARTE V   — Reglas de uso e integración para documentos fundantes CIP
+  PARTE V   — Reglas de uso e integración para documentos fundantes Centro de Innovación
 
 ================================================================================
 
@@ -59,12 +59,12 @@ NO sustituye el Contenedor 2 territorial.
 ================================================================================
 UNIVERSIDAD NACIONAL ABIERTA Y A DISTANCIA – UNAD
 CONTENEDOR 1 — DOCUMENTO FUENTE ÚNICO
-Unificación de Criterios para Documentos Fundantes de CIP
+Unificación de Criterios para Documentos Fundantes de Centro de Innovación
 ================================================================================
 Versión   : 1.0 (optimizada para LLM)
 Fecha     : 23 de abril de 2026
 Naturaleza: Documento maestro de referencia nacional
-Alcance   : Aplicación común para todos los documentos fundantes de CIP en Colombia
+Alcance   : Aplicación común para todos los documentos fundantes de Centro de Innovación en Colombia
 Función   : Fuente única institucional para análisis, trazabilidad y normalización
 Carácter  : Marco estable. NO sustituye el Contenedor 2 territorial.
 ================================================================================
@@ -77,12 +77,12 @@ TABLA DE CONTENIDO
  3. Jerarquía documental y principios de uso
  4. Base identitaria de la UNAD
  5. Marco estatutario y metasistémico
- 6. Estructura organizacional común para todos los CIP
+ 6. Estructura organizacional común para todos los Centro de Innovación
  7. Fundamento pedagógico: MHUS 5.0
  8. Responsabilidades sustantivas, criterios de actuación y dispositivos
  9. Horizonte estratégico UNAD 5.0 y Plan de Desarrollo 2023–2034
 10. ODS, sostenibilidad y medición de impacto
-11. Capacidades institucionales y oferta de servicios relevantes para CIP
+11. Capacidades institucionales y oferta de servicios relevantes para Centro de Innovación
 12. Proyección hacia parques tecnológicos / PCTI (si aplica)
 13. Auditoría de innovación en modalidad interna (si aplica)
 14. Arquitectura metodológica del Contenedor 1
@@ -101,7 +101,7 @@ TABLA DE CONTENIDO
 
 Este documento desarrolla de manera integrada el contenido del Contenedor 1,
 entendido como la unificación nacional de criterios para la formulación de
-documentos fundantes de Centros de Innovación y Productividad – CIP de la UNAD.
+documentos fundantes de Centros de Innovación de la UNAD.
 Su propósito es consolidar en un solo cuerpo de referencia la base normativa,
 organizacional, pedagógica, estratégica, terminológica y metodológica que no
 cambia entre territorios y que, por lo tanto, debe orientar todos los análisis y
@@ -114,7 +114,7 @@ FUNCIONES DEL CONTENEDOR 1:
     estructura organizacional, reglas del metalenguaje unadista, criterios de
     sostenibilidad y proyección de calidad e innovación.
   · Referencia principal para revisar consistencia conceptual, terminológica
-    y estratégica de cualquier documento fundante CIP.
+    y estratégica de cualquier documento fundante Centro de Innovación.
 
 LIMITACIONES:
   · NO reemplaza el Contenedor 2 territorial.
@@ -127,7 +127,7 @@ LIMITACIONES:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 CONTENEDOR 1 = Componente ESTABLE, nacional y doctrinal.
-  Recoge criterios que aplican a todos los CIP del país: identidad unadista,
+  Recoge criterios que aplican a todos los Centro de Innovación del país: identidad unadista,
   estatutos, metasistema, estructura organizacional, MHUS 5.0, Plan de Desarrollo
   2023–2034, ODS institucionales, glosario, capacidad de servicios y referentes
   de proyección tecnológica e innovadora.
@@ -146,7 +146,7 @@ COMPARACIÓN:
                      | Desarrollo, glosario, estructura | observatorios, cámaras
   Resultado          | Marco único de criterios         | Base territorial y portafolio
 
-NOTA: En la metodología CIP el territorio define el anclaje; los servicios se
+NOTA: En la metodología Centro de Innovación el territorio define el anclaje; los servicios se
 ofrecen al país. Ambos contenedores son complementarios y NO intercambiables.
 
 
@@ -197,7 +197,7 @@ DECÁLOGO DE VALORES UNADISTA:
   entre derechos y deberes · proyección social · investigación al servicio de
   poblaciones vulnerables · cualificación permanente de toda la comunidad.
 
-IMPLICACIONES PARA LOS CIP:
+IMPLICACIONES PARA LOS Centro de Innovación:
   · Ningún documento fundante puede formularse por fuera del propósito de
     educación para todos.
   · La innovación debe estar siempre vinculada con desarrollo humano integral
@@ -220,7 +220,7 @@ RESPONSABILIDADES SUSTANTIVAS (6):
   Formación · Investigación · Proyección social · Internacionalización ·
   Inclusión · Innovación
 
-CRITERIOS DE ACTUACIÓN UNADISTAS (obligatorios para arquitectura de todo CIP):
+CRITERIOS DE ACTUACIÓN UNADISTAS (obligatorios para arquitectura de todo Centro de Innovación):
   · Sistematicidad
   · Reticularidad
   · Fractalidad
@@ -229,9 +229,9 @@ CRITERIOS DE ACTUACIÓN UNADISTAS (obligatorios para arquitectura de todo CIP):
   · Gestión por proyectos
 
 TABLA DE CONCEPTOS METASISTÉMICOS:
-  Concepto              | Sentido institucional              | Implicación para CIP
+  Concepto              | Sentido institucional              | Implicación para Centro de Innovación
   ----------------------|------------------------------------|------------------------------
-  Metasistema           | UNAD opera como sistema de sistemas| CIP: dispositivo articulado,
+  Metasistema           | UNAD opera como sistema de sistemas| Centro de Innovación: dispositivo articulado,
                         |                                    | no unidad aislada
   Variabilidad          | Capacidad de responder a demandas  | Prever adaptación y evolución
   Complejidad           | Número de estados posibles         | Gestionar múltiples actores
@@ -242,7 +242,7 @@ TABLA DE CONCEPTOS METASISTÉMICOS:
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-6. ESTRUCTURA ORGANIZACIONAL COMÚN PARA TODOS LOS CIP
+6. ESTRUCTURA ORGANIZACIONAL COMÚN PARA TODOS LOS Centro de Innovación
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 CUATRO SISTEMAS ESTRATÉGICOS:
@@ -274,7 +274,7 @@ CUATRO SISTEMAS ESTRATÉGICOS:
   Unidades especiales: Instituto Virtual de Lenguas · Instituto Técnico Profesional
   Presencia territorial: CEAD · CCAV · UDR (en lógica de red zonal y nodal)
 
-REGLA: Toda formulación CIP debe identificar explícitamente sus relaciones con
+REGLA: Toda formulación Centro de Innovación debe identificar explícitamente sus relaciones con
 estos sistemas, sus dependencias y sus dispositivos.
 
 
@@ -290,14 +290,14 @@ PRINCIPIOS CLAVE:
   autorregulación · flexibilidad · hibridez · innovación · uso intensivo de
   tecnologías.
 
-IMPLICACIÓN PARA CIP:
-  El CIP debe concebirse como dispositivo de aprendizaje, gestión del conocimiento,
+IMPLICACIÓN PARA Centro de Innovación:
+  El Centro de Innovación debe concebirse como dispositivo de aprendizaje, gestión del conocimiento,
   innovación, articulación y transferencia — NO solo como dependencia administrativa.
 
 COMPONENTES ESTRUCTURANTES:
-  Dimensión              | Lectura para CIP
+  Dimensión              | Lectura para Centro de Innovación
   -----------------------|-------------------------------------------------------
-  H-Metacurrículo        | CIP apoya currículo, mediaciones, comunidad e impacto
+  H-Metacurrículo        | Centro de Innovación apoya currículo, mediaciones, comunidad e impacto
   H-Estudiante           | Centro y protagonista del aprendizaje
   H-Mediador PRISMA      | Líder transformador que planifica y acompaña
   H-Comunidad            | Formación en territorios, vínculos y redes
@@ -307,18 +307,18 @@ COMPONENTES ESTRUCTURANTES:
 
 EJES TRANSVERSALES:
   · H-Investigación y creación sostenible-sustentable
-    → CIP articula investigación, creación y sostenibilidad.
+    → Centro de Innovación articula investigación, creación y sostenibilidad.
   · H-Innovación y Emprendimiento para la Competitividad Asociativa y Solidaria
-    → CIP produce soluciones, valor y articulación con actores.
+    → Centro de Innovación produce soluciones, valor y articulación con actores.
   · H-Calidad holística y H-Bienestar integral
-    → Gestión del CIP incorpora calidad, experiencia y pertinencia humana.
+    → Gestión del Centro de Innovación incorpora calidad, experiencia y pertinencia humana.
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 8. RESPONSABILIDADES SUSTANTIVAS, CRITERIOS DE ACTUACIÓN Y DISPOSITIVOS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Un documento fundante de CIP NO puede limitarse a una sola responsabilidad
+Un documento fundante de Centro de Innovación NO puede limitarse a una sola responsabilidad
 sustantiva; debe explicar cómo contribuye a varias, con prioridades diferenciadas.
 
 TABLA GUÍA:
@@ -350,7 +350,7 @@ CUATRO MACROPROYECTOS DEL PLAN DOCENAL:
   4. Plataformas escalares hacia modelos eficientes y flexibles con visión
      evolutiva e incluyente.
 
-PROYECTOS MÁS PERTINENTES PARA CIP:
+PROYECTOS MÁS PERTINENTES PARA Centro de Innovación:
   · Gestión tecnocientífica intersistémica para el impacto glocal.
   · Emprendimientos disruptivos fortalecidos desde lo regional.
   · Gestión internacional e intersistémica.
@@ -358,8 +358,8 @@ PROYECTOS MÁS PERTINENTES PARA CIP:
   · Tecnologías exponenciales y disruptivas al servicio de la innovación educativa.
   · Calidad, flexibilidad y efectividad interoperativa del metasistema UNAD 5.0.
 
-CRITERIO COMÚN PARA CIP:
-  Los CIP se formulan como expresiones aplicadas del horizonte estratégico
+CRITERIO COMÚN PARA Centro de Innovación:
+  Los Centro de Innovación se formulan como expresiones aplicadas del horizonte estratégico
   institucional — no como iniciativas aisladas.
 
 NOTAS:
@@ -374,8 +374,8 @@ NOTAS:
 10. ODS, SOSTENIBILIDAD Y MEDICIÓN DE IMPACTO
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-MATRIZ BASE DE LECTURA ODS PARA CIP:
-  ODS  | Razonamiento para CIP                      | Indicadores tipo sugeridos
+MATRIZ BASE DE LECTURA ODS PARA Centro de Innovación:
+  ODS  | Razonamiento para Centro de Innovación                      | Indicadores tipo sugeridos
   -----|---------------------------------------------|----------------------------
   ODS 4| Base natural de la misión unadista          | Beneficiarios; cobertura;
        | y aprendizaje a lo largo de la vida         | permanencia; satisfacción
@@ -394,11 +394,11 @@ MATRIZ BASE DE LECTURA ODS PARA CIP:
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-11. CAPACIDADES INSTITUCIONALES Y OFERTA DE SERVICIOS RELEVANTES PARA CIP
+11. CAPACIDADES INSTITUCIONALES Y OFERTA DE SERVICIOS RELEVANTES PARA Centro de Innovación
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 El portafolio institucional de la UNAD evidencia capacidades transferibles y
-articulables con futuras configuraciones CIP. NO se toman como portafolio cerrado,
+articulables con futuras configuraciones Centro de Innovación. NO se toman como portafolio cerrado,
 sino como evidencia de potencial institucional.
 
 CAPACIDADES DISPONIBLES:
@@ -411,8 +411,8 @@ CAPACIDADES DISPONIBLES:
   · Programas de transformación digital del sector educativo.
   · Programas de formación de formadores.
 
-IMPLICACIÓN PARA CIP:
-  Los macroservicios de un CIP pueden apoyarse en plataformas humanas, académicas,
+IMPLICACIÓN PARA Centro de Innovación:
+  Los macroservicios de un Centro de Innovación pueden apoyarse en plataformas humanas, académicas,
   tecnopedagógicas y tecnológicas ya existentes. La articulación universidad–empresa–
   Estado–sociedad NO parte de cero.
 
@@ -423,7 +423,7 @@ IMPLICACIÓN PARA CIP:
 
 NOTA CRÍTICA:
   PCTI debe aparecer en forma PROSPECTIVA y MODAL.
-  Formulación adecuada: "si aplica, el CIP adoptará una ruta de alistamiento
+  Formulación adecuada: "si aplica, el Centro de Innovación adoptará una ruta de alistamiento
   para cumplir condiciones de reconocimiento PCTI".
   NUNCA como cumplimiento consumado.
 
@@ -440,7 +440,7 @@ TABLA DE DIMENSIONES:
                  | universidad-empresa-Estado-sociedad     | ampliado
   Recursos       | Talento, infraestructura, financiación  | Si requiere ruta de
                  |                                         | maduración institucional
-  Actividades    | Servicios, I+D+i, transferencia,        | Si CIP tendrá portafolio
+  Actividades    | Servicios, I+D+i, transferencia,        | Si Centro de Innovación tendrá portafolio
                  | formación, emprendimiento               | robusto y medible
   Resultados     | Productos, impactos, indicadores        | Si se quiere trazar ruta
                  |                                         | a reconocimiento futuro
@@ -461,7 +461,7 @@ consistencia organizacional, condiciones de lanzamiento o ruta de mejoramiento.
 TABLA DE DIMENSIONES:
   Dimensión          | Pregunta guía                   | Evidencias tipo
   -------------------|---------------------------------|----------------------------
-  Alineación         | ¿El CIP responde a misión,      | Matriz de coherencia;
+  Alineación         | ¿El Centro de Innovación responde a misión,      | Matriz de coherencia;
   estratégica        | metasistema, MHUS, Plan Docenal?| mapa de articulación
   Capacidades        | ¿Existen capacidades mínimas    | Inventario de capacidades;
   y recursos         | humanas, físicas, tecnológicas? | fuentes de soporte
@@ -515,14 +515,14 @@ REGLAS DE CONTROL:
   Resp. sustantivas       | Formación, investigación, proyección | Acuerdo 039 /
                           | social, intern., inclusión, innov.   | Plan Docenal
   ODS y sostenibilidad    | ODS prioritarios, metas, indicadores | Plan Docenal /
-                          |                                      | metodología CIP
+                          |                                      | metodología Centro de Innovación
   Capacidades inst.       | Servicios, plataformas, consultorías | Portafolio UNAD
   Proyección PCTI         | Dimensiones, habilitantes,           | Guía PCTI /
   (si aplica)             | plan de mejora                       | plan de mejora
   Auditoría innovación    | Alineación, capacidades, gobernanza, | Síntesis metodol.
   (si aplica)             | portafolio, impacto, mejora          | interna
   Metalenguaje            | Conceptos obligatorios y expresiones | Diccionario unadista
-                          | a evitar                             | / guía CIP
+                          | a evitar                             | / guía Centro de Innovación
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -560,7 +560,7 @@ REGLAS DE CONTROL:
   Nodo                      | Punto de articulación operativa dentro de una zona.
   Vocación territorial      | Apuesta principal del análisis de capacidades del terr.
   Macroservicio             | Servicio de alto nivel que integra procesos y resultados.
-  Portafolio de servicios   | Conjunto estructurado de servicios ofertables de un CIP.
+  Portafolio de servicios   | Conjunto estructurado de servicios ofertables de un Centro de Innovación.
   Impacto diferencial       | Valor específico y distinguible de una iniciativa.
   Gestión del conocimiento  | Procesos para producir, organizar, compartir y aplicar
                             | conocimiento.
@@ -595,7 +595,7 @@ REGLAS DE CONTROL:
      coherencia terminológica, estratégica y documental. generar Alertas sobre marcadas de en que partes se requiere Auditoria Humana para validación, muy visibles
 
 FÓRMULA DE INTEGRACIÓN RECOMENDADA:
-  Documento fundante CIP =
+  Documento fundante Centro de Innovación =
     Contenedor 1 (criterios unificados)
     + Contenedor 2 (evidencia territorial)
 	+ Árbol de innovación de acuerdo al tema y en concordancia a los servicios 
@@ -655,7 +655,7 @@ FÓRMULA DE INTEGRACIÓN RECOMENDADA:
 
 [R10] Universidad Nacional Abierta y a Distancia —  VIEM.
       (2026). Guía para construir el Contenedor de Fuentes para el documento
-      fundante de un CIP — UNAD. Versión 3 optimizada con IA. UNAD.
+      fundante de un Centro de Innovación — UNAD. Versión 3 optimizada con IA. UNAD.
       URL: Documento de uso interno institucional.
 
 [R11] Universidad Nacional Abierta y a Distancia. (s. f.). Portafolio de
@@ -687,7 +687,7 @@ ANEXO A — FUENTES CARGADAS Y FUNCIÓN DENTRO DEL CONTENEDOR 1
   Acuerdo 014 de 2018 [R1]      | Base estatutaria  | Alta       | Criterios de
                                 | superior          |            | actuación y marco
   Acuerdo 039 de 2019 [R2]      | Base metasistémica| Alta       | Fuente más fuerte
-                                | y organizacional  |            | para CIP articulado
+                                | y organizacional  |            | para Centro de Innovación articulado
   MHUS 5.0 [R3]                 | Fundamento        | Alta       | Define UNAD 5.0,
                                 | pedagógico        |            | dimensiones y ejes
   Plan Desarrollo 2023–2034 [R4]| Horizonte         | Alta       | Macroproyectos,
@@ -701,10 +701,10 @@ ANEXO A — FUENTES CARGADAS Y FUNCIÓN DENTRO DEL CONTENEDOR 1
   Portafolio servicios [R11]    | Capacidades       | Media      | Sustenta
                                 | transferibles     |            | macroservicios
   Guía técnica PCTI [R8]        | Proyección si     | Media      | No obligatoria
-                                | aplica            |            | para todo CIP
+                                | aplica            |            | para todo Centro de Innovación
   Plan mejoramiento PCTI [R12]  | Cierre brechas    | Media      | Útil para
                                 | si aplica         |            | maduración
-  Guía Contenedor CIP v3 [R10]  | Arquitectura      | Alta       | Organiza bloques,
+  Guía Contenedor Centro de Innovación v3 [R10]  | Arquitectura      | Alta       | Organiza bloques,
                                 | metodológica      |            | matrices y readiness
 
 
@@ -796,7 +796,7 @@ CCAV: Centros Comunitarios de Atención Virtual.
 CEAD: Centro de Educación Abierta y a Distancia.
 Centros de Desarrollo Tecnológico (CDT): Dispositivos dedicados al desarrollo
   tecnológico y la transferencia de soluciones con impacto territorial.
-Centros de Innovación y Productividad (CIP): Dispositivos institucionales enfocados
+Centros de Innovación y Productividad (Centro de Innovación): Dispositivos institucionales enfocados
   en innovación organizacional, productividad y transformación territorial.
 Centros de Investigación y Creación: Estructuras para potenciar investigación
   formativa, aplicada y de frontera, así como creación artística y cultural.
@@ -833,7 +833,7 @@ Currículo: Interacción dinámica entre conocimientos, actores, contextos y fin
   formativos.
 Currículo flexible: Organización curricular adaptable a recorridos, contextos y
   necesidades diversas.
-CIP: Centro de innovación y productividad 
+Centro de Innovación: Centro de Innovación 
 
 ── LETRA D ──────────────────────────────────────────────────────────────────────
 Desarrollo tecnológico: Creación de soluciones tecnológicas aplicadas a problemáticas
@@ -844,7 +844,7 @@ Didáctica innovadora: Estrategias pedagógicas novedosas alineadas con heutagog
   hibridez y aprendizaje activo.
 Director de curso: Responsable académico del diseño, actualización y coordinación.
 Dispositivos de gestión intersistémica: Mecanismos que hacen operativa el MHUS 5.0:
-  OIR, SISSU, CPT, CIP, CDT, semilleros y redes.
+  OIR, SISSU, CPT, Centro de Innovación, CDT, semilleros y redes.
 Docente: Actor educativo que diseña, media, orienta, evalúa y acompaña aprendizajes.
 Docente GC: Docente gestor de conocimiento, encargado de articular saberes,
   metodologías, contextos y redes.
@@ -1635,7 +1635,7 @@ Las tablas de metas ambientales 2025 muestran las siguientes sedes:
 4. CEAD Medellín.
 5. CEAD Tunja.
 6. CCAV Neiva.
-7. CIP Dosquebradas.
+7. Centro de Innovación Dosquebradas.
 
 Nota de depuración:
 Las metas por sede aparecen en la fuente oficial, pero se presentan como tablas extensas. En este documento se conserva la identificación de programas, objetivos y sedes, sin reescribir todas las metas para evitar errores de transcripción.
@@ -3151,7 +3151,7 @@ Estado en la convocatoria: Aprobado pares definitivo
 --------------------------------------------------------------------------------
 
 PROYECTO 101
-Nombre del proyecto: Diseño de Soluciones Automatizadas en Excel con Inteligencia Artificial para el Fortalecimiento de Emprendimientos en la Zona Centro Sur: una Iniciativa Estratégica para el Centro de Innovación y Productividad de la Unad
+Nombre del proyecto: Diseño de Soluciones Automatizadas en Excel con Inteligencia Artificial para el Fortalecimiento de Emprendimientos en la Zona Centro Sur: una Iniciativa Estratégica para el Centro de Innovación de la Unad
 Código del proyecto: PI95ZCSURECACENINVIL2026
 Tipo de proyecto: Proyecto de investigación (PI)
 Responsable: Omar Osbaldo Forero Gonzalez
@@ -5426,7 +5426,7 @@ Estado en la convocatoria:
 --------------------------------------------------------------------------------
 
 PROYECTO 276
-Nombre del proyecto: Aumento de la Conectividad Estructural de las Quebradas la Víbora y Cañaveral en el Área de Influencia Del Centro de Innovación y Productividad Cip Dosquebradas de la Unad
+Nombre del proyecto: Aumento de la Conectividad Estructural de las Quebradas la Víbora y Cañaveral en el Área de Influencia Del Centros de Innovación Dosquebradas de la Unad
 Código del proyecto: PGI1901ECAPMA2024
 Tipo de proyecto: Proyecto de investigación (PI)
 Responsable: Angelica Maria Osorio Giraldo
@@ -8522,7 +8522,7 @@ Estado en la convocatoria: Aprobado pares definitivo
 
 
 ================================================================================
-PARTE V. REGLAS DE USO E INTEGRACIÓN PARA DOCUMENTOS FUNDANTES CIP
+PARTE V. REGLAS DE USO E INTEGRACIÓN PARA DOCUMENTOS FUNDANTES Centro de Innovación
 ================================================================================
 
 REGLAS DE INTEGRACIÓN (del Contenedor 1, sección 17, ampliadas con criterios consolidados):
@@ -8569,7 +8569,7 @@ REGLAS DE INTEGRACIÓN (del Contenedor 1, sección 17, ampliadas con criterios c
        desarrolladas en el archivo base aportado.
 
 FÓRMULA DE INTEGRACIÓN RECOMENDADA:
-  Documento fundante CIP =
+  Documento fundante Centro de Innovación =
     Parte I de este documento (criterios institucionales unificados)
     + Contenedor 2 (evidencia territorial)
     + Árbol de innovación según tema y servicios
@@ -8611,7 +8611,7 @@ Archivos a los que aplica (la aplicación acepta cualquiera de estos nombres en 
 1. Descarga el Contenedor 1 completo desde Drive (no la versión recortada que se envía al modelo), para que el registro no se pierda por el límite de tamaño.
 2. Localiza el inicio del registro con la línea `REGISTRO INTEGRAL DE LOS ... PROYECTOS SIGIIP` o con el delimitador `<<< INICIO_LISTADO_SIGIIP >>>`.
 3. Recorre bloques que empiezan con `PROYECTO <número>` y leen líneas con la forma `Campo: valor`.
-4. Filtra por **zona de la Ficha Base** y por **pertinencia con el tema del CIP**, y envía los 30 más pertinentes al modelo ya tabulados, con instrucción de transcribir el nombre textual entre comillas.
+4. Filtra por **zona de la Ficha Base** y por **pertinencia con el tema del Centro de Innovación**, y envía los 30 más pertinentes al modelo ya tabulados, con instrucción de transcribir el nombre textual entre comillas.
 5. Con los conteos del registro completo dibuja las **figuras de datos**. Esas figuras no las genera la IA: cada barra es un conteo del archivo.
 
 Campos presentes en los 513 bloques, sin excepción: `Nombre del proyecto`, `Código del proyecto`, `Tipo de proyecto`, `Responsable`, `Fecha de inicio`, `Fecha de finalización`, `Estado del proyecto`, `Zona`, `Convocatoria`, `Estado en la convocatoria`.
@@ -8632,7 +8632,7 @@ La **escuela** no viene como campo: se deduce de las siglas del código. Ver sec
 
 Ubicación en el archivo corregido: línea 1832 (apertura, justo bajo el título `IV.2.`) y línea 8503 (cierre, tras la línea de guiones del bloque 513).
 
-**Por qué no era opcional:** inmediatamente después del registro empieza `PARTE V. REGLAS DE USO E INTEGRACIÓN PARA DOCUMENTOS FUNDANTES CIP`, con 60 líneas de prosa. Hoy ninguna tiene forma `Campo: valor`, así que no había contaminación, pero el registro terminaba sin frontera declarada y cualquier edición futura de la Parte V podía introducirla.
+**Por qué no era opcional:** inmediatamente después del registro empieza `PARTE V. REGLAS DE USO E INTEGRACIÓN PARA DOCUMENTOS FUNDANTES Centro de Innovación`, con 60 líneas de prosa. Hoy ninguna tiene forma `Campo: valor`, así que no había contaminación, pero el registro terminaba sin frontera declarada y cualquier edición futura de la Parte V podía introducirla.
 
 ### 2.2 Codificación UTF-8 — APLICADO
 
@@ -8671,7 +8671,7 @@ Los cuatro casos de la versión 1 se confirman:
 
 | N.º | Hallazgo verificado | Decisión requerida |
 | ---: | --- | --- |
-| 41 | Código `PIZCORI872025` (Centro Oriente) contra `Zona: Zona Centro Bogotá Cundinamarca` | Cuál de los dos manda; determina en qué CIP se cuenta |
+| 41 | Código `PIZCORI872025` (Centro Oriente) contra `Zona: Zona Centro Bogotá Cundinamarca` | Cuál de los dos manda; determina en qué Centro de Innovación se cuenta |
 | 82 | `Código del proyecto: 0` | Sin código no hay escuela deducible ni citación precisa |
 | 93 | Código `PIC150ZAOECASAH2026` — `ECASAH` no es sigla válida | Corregir a `ECSAH` en la fuente |
 | 123 | `Zona: Sede Nacional José Celestino Mutis` (4 registros) | Asignarles zona o declararlos nacionales; hoy no cruzan con ninguna Ficha Base |

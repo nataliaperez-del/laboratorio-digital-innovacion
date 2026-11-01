@@ -868,12 +868,12 @@ function fileKey(name: string): string {
  * Palabras que no identifican a un archivo concreto del repositorio: aparecen en
  * varios nombres o son ruido de versionado («prompt», «v2», «actualizada», «copia»).
  * Se descartan al comparar por términos, para que `prompt_documento_fundante.txt`
- * reconozca también a `fundante_v3` o a `Documento fundante (1)`.
+ * reconozca también a `fundante_v3` o a `proyecto de innovación (1)`.
  */
 const GENERIC_NAME_TOKENS = new Set([
   'PROMPT', 'PROMPTS', 'INSTRUCCION', 'INSTRUCCIONES', 'DOCUMENTO', 'DOCUMENTOS',
   'ARCHIVO', 'FORMATO', 'VERSION', 'ACTUALIZADA', 'ACTUALIZADO', 'ACTUALIZACION',
-  'FINAL', 'COPIA', 'COPY', 'V1', 'V2', 'V3', 'V4', 'CIP', 'UNAD',
+  'FINAL', 'COPIA', 'COPY', 'V1', 'V2', 'V3', 'V4', 'Centro de Innovación', 'UNAD',
   'DE', 'DEL', 'LA', 'EL', 'LOS', 'LAS', 'Y', 'PARA',
 ]);
 
@@ -1156,7 +1156,7 @@ export async function fetchInnovationTreePromptFromDrive(
   return fetchInstitutionalDriveFileByName(DRIVE_REFERENCE_PROMPT_ARBOL_INNOVACION_CANDIDATES, folderId);
 }
 
-/** Instrucción oficial de redacción del documento fundante (Fase 3, cada apartado). */
+/** Instrucción oficial de redacción del proyecto de innovación (Fase 3, cada apartado). */
 export async function fetchInstruccionFundanteFromDrive(
   folderId: string = INSTITUTIONAL_DRIVE_FOLDER_ID,
 ): Promise<string | null> {
@@ -1175,7 +1175,7 @@ export async function fetchContenedor1FromDrive(
   return fetchInstitutionalDriveFileByName(DRIVE_REFERENCE_CONTENEDOR_1_CANDIDATES, folderId);
 }
 
-/** Prompt de vocación + tres temas CIP (GENERALES/, Fase 3); acepta nombre vigente e histórico. */
+/** Prompt de vocación + tres temas Centro de Innovación (GENERALES/, Fase 3); acepta nombre vigente e histórico. */
 export async function fetchVocacionCipPromptFromDrive(
   folderId: string = INSTITUTIONAL_DRIVE_FOLDER_ID,
 ): Promise<string | null> {

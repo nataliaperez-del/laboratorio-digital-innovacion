@@ -45,7 +45,7 @@ export function getMaxCombinedSourceChars(provider: AIProvider): number {
 
 /**
  * Texto bruto adicional de Google Drive que se reenvía en Fase 3 junto al contenedor,
- * para que el documento fundante pueda desarrollar detalle que el Contenedor 2 resumió.
+ * para que el proyecto de innovación pueda desarrollar detalle que el Contenedor 2 resumió.
  */
 export function getMaxSupplementaryDocumentChars(provider: AIProvider): number {
   const raw = import.meta.env.VITE_MAX_DOCUMENT_SUPPLEMENTARY_CHARS?.trim();

@@ -5,7 +5,7 @@
  * El registro vive al final del Contenedor 1 y el texto institucional se recorta por
  * el inicio (`slice(0, max)`), así que en la práctica nunca llegaba al modelo: por eso
  * las tablas de experiencias previas salían vacías o inventadas. Aquí se parsea, se
- * seleccionan los proyectos pertinentes (zona de la ficha + tema del CIP) y se entrega
+ * seleccionan los proyectos pertinentes (zona de la ficha + tema del Centro de Innovación) y se entrega
  * como bloque propio, ya tabulado, para que la IA transcriba nombres reales en lugar
  * de reconstruirlos.
  */
@@ -242,7 +242,7 @@ const STOPWORDS = new Set(
   ].map((w) => w.toUpperCase()),
 );
 
-/** Palabras significativas de un texto (tema del CIP, ficha) para puntuar pertinencia. */
+/** Palabras significativas de un texto (tema del Centro de Innovación, ficha) para puntuar pertinencia. */
 export function keywordsFromText(text: string, limit = 30): string[] {
   const counts = new Map<string, number>();
   for (const token of normalize(text).split(' ')) {
@@ -457,7 +457,7 @@ REGISTRO SIGIIP — PROYECTOS REALES (transcribir, no reconstruir)
 ══════════════════════════════════════════════════
 
 Este bloque viene del registro oficial de proyectos que contiene el Contenedor 1. Total del registro: **${selection.total}** proyectos. ${zoneLine}
-Abajo van los **${selection.selected.length}** proyectos seleccionados por zona y por pertinencia con el tema del CIP, en ese orden de prioridad.
+Abajo van los **${selection.selected.length}** proyectos seleccionados por zona y por pertinencia con el tema del Centro de Innovación, en ese orden de prioridad.
 
 REGLAS DE USO OBLIGATORIAS DE ESTE BLOQUE
 - El **nombre del proyecto** se transcribe **textualmente y entre comillas**, tal como aparece abajo: no lo resumas, no lo traduzcas, no lo reescribas ni le cambies la puntuación.

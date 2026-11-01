@@ -1,6 +1,6 @@
 =======================================================================
 DOCUMENTO DE PROMPTS — VERSION 1.4
-CONTENEDOR 2 TERRITORIAL CIP UNAD
+CONTENEDOR 2 TERRITORIAL Centro de Innovación UNAD
 EXTRACCION AMPLIADA CON RESUMEN DOCUMENTAL POR FUENTE
 Mayo 2026 | UNAD – VIEM | Validacion HITL requerida
 =======================================================================
@@ -43,7 +43,7 @@ DISTRIBUCION MINIMA POR EJE:
 |  7  | Ordenamiento, ambiente e infraestr.   | 5               |
 |  8  | Institucionalidad y gobernanza        | 4               |
 |  9  | Emprendimiento e innovacion social    | 4               |
-| 10  | Eje especifico del CIP               | 4               |
+| 10  | Eje especifico del Centro de Innovación               | 4               |
 |     | TOTAL MINIMO                          | 52              |
 
 Nota: un eje debil (menos de 4 fuentes) puede compensarse con fuentes
@@ -52,7 +52,7 @@ El contenedor no puede cerrarse si el total no alcanza 50 fuentes.
 
 DATOS DE ENTRADA
 -----------------------------------------------------------------------
-Nombre tentativo del CIP:    [ ]
+Nombre tentativo del Centro de Innovación:    [ ]
 Municipio sede principal:    [ ]
 Departamento:                [ ]
 Pais:                        Colombia
@@ -92,7 +92,7 @@ FUENTE ID: C2-EJE-000
 9.  Tablas, graficos, mapas o anexos
 10. Resumen documental amplio — minimo 1000 palabras
 11. Conteo de palabras del resumen
-12. Informacion especifica para el tema del CIP
+12. Informacion especifica para el tema del Centro de Innovación
 13. Vacios HITL de la fuente
 14. Necesidad de contraste
 15. Referencia APA 7
@@ -105,7 +105,7 @@ PROMPT MAESTRO — ACTIVAR AL INICIO DE CADA SESION
 =======================================================================
 
 Eres un arquitecto metodologico, curador documental y extractor tecnico
-experto en construccion de Contenedores 2 territoriales para CIP UNAD.
+experto en construccion de Contenedores 2 territoriales para Centro de Innovación UNAD.
 Tu unica funcion es construir el Contenedor 2 territorial: buscar,
 clasificar, registrar, extraer literalmente, ampliar evidencia,
 homologar variables y auditar fuentes del territorio.
@@ -165,7 +165,7 @@ PROMPT 1 — CONFIGURACION INICIAL, ALCANCE Y REGLAS DE PROFUNDIDAD
 =======================================================================
 [Ejecutar una vez al inicio.]
 
-CIP: [NOMBRE DEL CIP] | Municipio: [MUNICIPIO] | Dpto: [DEPARTAMENTO]
+Centro de Innovación: [NOMBRE DEL Centro de Innovación] | Municipio: [MUNICIPIO] | Dpto: [DEPARTAMENTO]
 Zona UNAD: [ZONA, si aplica] | Pais: Colombia
 
 --- 1A. FICHA METODOLOGICA ---
@@ -202,7 +202,7 @@ salud | salud mental | CTI | innovacion | transformacion digital |
 productividad | tejido empresarial | emprendimiento |
 industrias creativas | ambiente | infraestructura | gobernanza |
 actores institucionales | programas y proyectos vigentes |
-capacidades instaladas | tema especifico del CIP.
+capacidades instaladas | tema especifico del Centro de Innovación.
 
 --- 1D. META CUANTITATIVA DE FUENTES ---
 Registrar en la ficha como criterio de cierre cuantitativo:
@@ -244,7 +244,7 @@ PROMPT 2 — ARQUITECTURA TEMATICA Y ESTRUCTURA DEL TXT
 =======================================================================
 [Ejecutar una vez. Define el esqueleto del trabajo y del TXT final.]
 
-CIP: [NOMBRE DEL CIP] | [MUNICIPIO] | [DEPARTAMENTO]
+Centro de Innovación: [NOMBRE DEL Centro de Innovación] | [MUNICIPIO] | [DEPARTAMENTO]
 
 --- 2A. EJES TEMATICOS ---
 Para cada eje define: nombre | subejes (min. 3) | variables esperadas |
@@ -261,12 +261,12 @@ EJE 6:  Estructura productiva, empresarial e industrias creativas.
 EJE 7:  Ordenamiento territorial, ambiente e infraestructura.
 EJE 8:  Institucionalidad, gobernanza y politica publica.
 EJE 9:  Emprendimiento, innovacion social y economia solidaria.
-EJE 10: [Eje especifico del CIP — definir segun el tema del centro]
+EJE 10: [Eje especifico del Centro de Innovación — definir segun el tema del centro]
 
 Nota sobre EJE 10: este eje se nombra y define segun el enfoque
-tematico del CIP que se esta construyendo. No tiene nombre fijo en
+tematico del Centro de Innovación que se esta construyendo. No tiene nombre fijo en
 la plantilla general. Completar con el nombre real del eje especifico
-una vez se definan los datos de entrada del CIP.
+una vez se definan los datos de entrada del Centro de Innovación.
 
 Tabla:
 | Eje | Subejes | Var. cuantitativas | Var. cualitativas | Tipo fuente | Entidades | URL | Prioridad | Riesgo documental |
@@ -283,7 +283,7 @@ SECCION 6:  Fuentes sobre presencia territorial de la UNAD.
             [Nota: no son documentos normativos internos. Son fuentes
             que registran la oferta academica, capacidades instaladas
             y presencia de la UNAD en el territorio — datos externos
-            al CIP que fundamentan su pertinencia territorial.]
+            al Centro de Innovación que fundamentan su pertinencia territorial.]
 SECCION 7:  Fuentes Nivel 3 — institucionales especializadas y multilaterales.
 SECCION 8:  Fuentes Nivel 4-5 — gremiales y secundarias [REQUIERE CONTRASTE].
 SECCION 9:  Matriz de extraccion ampliada y homologacion de variables.
@@ -310,7 +310,7 @@ PROMPT 3 — PROTOCOLO DE JERARQUIA Y CALIDAD DE FUENTES
 =======================================================================
 [Ejecutar una vez. Marco de referencia para evaluar toda fuente.]
 
-CIP: [NOMBRE DEL CIP] | [MUNICIPIO] | [DEPARTAMENTO]
+Centro de Innovación: [NOMBRE DEL Centro de Innovación] | [MUNICIPIO] | [DEPARTAMENTO]
 
 JERARQUIA DE FUENTES:
 
@@ -382,7 +382,7 @@ PROMPT 4 — PREPARACION DEL RASTREO: PALABRAS CLAVE Y ENTIDADES
 =======================================================================
 [Ejecutar una vez antes del rastreo por eje.]
 
-CIP: [NOMBRE DEL CIP] | [MUNICIPIO] | [DEPARTAMENTO]
+Centro de Innovación: [NOMBRE DEL Centro de Innovación] | [MUNICIPIO] | [DEPARTAMENTO]
 
 Antes de aceptar una fuente, verifica si permite extraer:
 cifras | diagnostico | programas | indicadores | metas | tablas |
@@ -407,10 +407,10 @@ productividad [MUNICIPIO] | POT [MUNICIPIO] | pobreza [MUNICIPIO] |
 educacion superior [DEPARTAMENTO] | DANE [MUNICIPIO] poblacion |
 TerriData [MUNICIPIO] | SNIES [DEPARTAMENTO].
 
---- PALABRAS CLAVE ESPECIFICAS DEL TEMA DEL CIP ---
-[Completar con los terminos propios del enfoque tematico del CIP
+--- PALABRAS CLAVE ESPECIFICAS DEL TEMA DEL Centro de Innovación ---
+[Completar con los terminos propios del enfoque tematico del Centro de Innovación
 una vez definidos los datos de entrada. Estas palabras clave son
-especificas de cada CIP y deben construirse segun su nombre,
+especificas de cada Centro de Innovación y deben construirse segun su nombre,
 eje tematico central y poblaciones o sectores que atiende.
 No se incluyen ejemplos aqui para evitar sesgos tematicos.]
 
@@ -488,7 +488,7 @@ FUENTE ID: C2-[EJE]-[NUMERO]
     e. Que brechas, problemas o necesidades registra.
     f. Que capacidades, activos o actores identifica.
     g. Como aporta documentalmente al Contenedor 2.
-    h. Como se relaciona documentalmente con el tema del CIP.
+    h. Como se relaciona documentalmente con el tema del Centro de Innovación.
     i. Que limitaciones tiene la fuente.
     j. Que requiere validar HITL.
     k. Que fuentes complementarias requiere.
@@ -510,11 +510,11 @@ FUENTE ID: C2-[EJE]-[NUMERO]
     o
     [INCOMPLETO — NO SUPERA 1000 PALABRAS — AMPLIAR]
 
-12. INFORMACION ESPECIFICA PARA EL TEMA DEL CIP
+12. INFORMACION ESPECIFICA PARA EL TEMA DEL Centro de Innovación
     | Componente del tema | Texto o dato extraido | Fuente interna | Pagina/seccion | Alerta |
     [Completar con los componentes propios del enfoque tematico
-    del CIP una vez definidos los datos de entrada. Los componentes
-    son propios de cada CIP y no tienen valores fijos en esta plantilla.]
+    del Centro de Innovación una vez definidos los datos de entrada. Los componentes
+    son propios de cada Centro de Innovación y no tienen valores fijos en esta plantilla.]
 
 13. VACIOS HITL DE LA FUENTE
     | Informacion esperada | Estado | Accion HITL | Prioridad |
@@ -538,7 +538,7 @@ PROMPT 6 — RASTREO, EVALUACION Y REGISTRO POR EJE
 [Ejecutar una vez por cada eje definido en el Prompt 2.]
 
 Eje: [NOMBRE DEL EJE]
-CIP: [NOMBRE DEL CIP] | [MUNICIPIO] | [DEPARTAMENTO]
+Centro de Innovación: [NOMBRE DEL Centro de Innovación] | [MUNICIPIO] | [DEPARTAMENTO]
 
 META DEL EJE
 Antes de iniciar el rastreo, registrar:
@@ -600,7 +600,7 @@ Usa la Plantilla del Prompt 5 como guia de los 15 campos.]
 Fuente: [ID: C2-EJE_-___]
 Titulo: [TITULO EXACTO]
 Entidad: [ENTIDAD]
-CIP: [NOMBRE DEL CIP] | [MUNICIPIO] | [DEPARTAMENTO]
+Centro de Innovación: [NOMBRE DEL Centro de Innovación] | [MUNICIPIO] | [DEPARTAMENTO]
 
 Genera el bloque completo con los 15 campos de la Plantilla (Prompt 5).
 
@@ -622,13 +622,13 @@ Estructura sugerida del resumen (minimo 1000 palabras):
   Parrafo 4: programas, proyectos, lineas o politicas.
   Parrafo 5: brechas, problemas, necesidades o prioridades.
   Parrafo 6: capacidades, actores e instituciones.
-  Parrafo 7: relacion documental con el tema del CIP.
+  Parrafo 7: relacion documental con el tema del Centro de Innovación.
   Parrafo 8: limitaciones, vacios y necesidad HITL.
   Parrafo 9: fuentes complementarias requeridas.
 
 RESTRICCIONES CRITICAS:
 - No inferir datos no escritos en la fuente.
-- No relacionar datos con vocacion del CIP.
+- No relacionar datos con vocacion del Centro de Innovación.
 - Si no esta explicito: NO EVIDENCIADO.
 - No escribir "la fuente sugiere" ni "se puede inferir".
 - Este bloque va insertado completo en el TXT final.
@@ -645,7 +645,7 @@ PROMPT 8 — AUDITORIA INTEGRAL, CIERRE Y GENERACION DEL TXT
 =======================================================================
 [Ejecutar una vez al finalizar todos los ejes y fuentes.]
 
-CIP: [NOMBRE DEL CIP] | [MUNICIPIO] | [DEPARTAMENTO]
+Centro de Innovación: [NOMBRE DEL Centro de Innovación] | [MUNICIPIO] | [DEPARTAMENTO]
 
 --- 8A. AUDITORIA DE TRAZABILIDAD ---
 Por cada registro verificar: ID | URL | nivel | fecha | cobertura |
@@ -746,7 +746,7 @@ como sustituto de los resumenes por fuente. Corrige asi:
    "RESUMEN DOCUMENTAL AMPLIO DE LA FUENTE — MINIMO 1000 PALABRAS".
 3. En ese apartado explica la fuente: tipo, territorio, datos principales,
    cifras, programas, tablas, brechas, capacidades, relacion documental
-   con el CIP, limitaciones y vacios HITL.
+   con el Centro de Innovación, limitaciones y vacios HITL.
 4. Incluye conteo estimado de palabras de cada resumen.
 5. Si una fuente no permite 1000 palabras sin inventar, marca:
    [RESUMEN INSUFICIENTE POR LIMITACION DE LA FUENTE —
@@ -833,13 +833,13 @@ CALIDAD DEL TXT:
 CONTROL METODOLOGICO:
 [ ] No hay resumen general sustituyendo resumenes por fuente.
 [ ] No hay analisis estrategico.
-[ ] No hay definicion de vocacion del CIP.
+[ ] No hay definicion de vocacion del Centro de Innovación.
 [ ] No hay propuesta de macroservicios ni microservicios.
 [ ] No hay conclusiones no sustentadas en la fuente.
 [ ] HITL: validacion y firma del responsable institucional.
 
 =======================================================================
 FIN DEL DOCUMENTO DE PROMPTS — VERSION 1.4
-Metodologia CIP UNAD | Contenedor 2 Territorial
+Metodologia Centro de Innovación UNAD | Contenedor 2 Territorial
 UNAD — VIEM | Validacion HITL requerida en todas las fases
 =======================================================================

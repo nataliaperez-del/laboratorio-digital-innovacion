@@ -21,7 +21,7 @@ export const VocacionTerritorialView: React.FC = () => {
       title: 'Biotecnología Aplicada y Valorización de Biomasa Agropecuaria',
       shortTag: 'Enfoque Biotecnológico y Bioeconomía',
       focus: 'Aprovechamiento de residuos de cosechas, biofertilizantes y bioplaguicidas para sustituir químicos.',
-      description: 'Ancla el CIP en la capacidad científica de ECAPMA y la necesidad regional de reducir costos de insumos, restaurar suelos degradados y promover agricultura regenerativa.',
+      description: 'Ancla el Centro de Innovación en la capacidad científica de ECAPMA y la necesidad regional de reducir costos de insumos, restaurar suelos degradados y promover agricultura regenerativa.',
       strengths: [
         'Resuelve la principal brecha de rentabilidad campesina',
         'Alta disponibilidad de biomasa residual en la cuenca',
@@ -68,7 +68,7 @@ export const VocacionTerritorialView: React.FC = () => {
           <nav className="m text-xs text-brand-textMuted mb-2" aria-label="Migas de pan">
             <span>Inicio</span> <span className="opacity-40">/</span> <span>Herramientas</span> <span className="opacity-40">/</span> <span className="text-white">Vocación Territorial</span>
           </nav>
-          <h1 className="h2 text-3xl md:text-4xl text-white font-bold tracking-tight">Decisión Estratégica de Vocación CIP</h1>
+          <h1 className="h2 text-3xl md:text-4xl text-white font-bold tracking-tight">Decisión Estratégica de Vocación Centro de Innovación</h1>
           <p className="bd text-sm text-brand-textSecondary mt-1">
             Fase 3 · Paso I: Selección deliberada de la vocación productiva y el tema ancla que orientará el Árbol de Innovación.
           </p>

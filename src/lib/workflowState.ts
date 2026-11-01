@@ -6,7 +6,7 @@ import { useStore } from '@/store/useStore';
  * exactamente los mismos criterios (antes cada una tenía su propia versión).
  */
 export interface WorkflowSnapshot {
-  cipName: string;
+  labName: string;
   zonaUNAD: string;
   department: string;
   municipality: string;
@@ -20,7 +20,7 @@ export interface WorkflowSnapshot {
 export function readWorkflowSnapshot(): WorkflowSnapshot {
   const s = useStore.getState();
   return {
-    cipName: s.prompt0Data.cipName,
+    labName: s.prompt0Data.labName,
     zonaUNAD: s.prompt0Data.zonaUNAD,
     department: s.prompt0Data.department,
     municipality: s.prompt0Data.municipality,
@@ -36,7 +36,7 @@ const filled = (...values: string[]) => values.some((v) => Boolean(v?.trim()));
 /** ¿Hay algo guardado en el proyecto? (ficha o cualquier resultado de las 3 fases) */
 export function hasProjectWork(s: WorkflowSnapshot): boolean {
   return filled(
-    s.cipName,
+    s.labName,
     s.zonaUNAD,
     s.department,
     s.municipality,

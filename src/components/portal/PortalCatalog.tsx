@@ -1,5 +1,17 @@
 import React from 'react';
-import { Compass, Layers, BrainCircuit, Trees, Rocket, Sparkles, ArrowRight, ShieldCheck, CheckCircle2, Bot } from 'lucide-react';
+import {
+  Compass,
+  Layers,
+  BrainCircuit,
+  Trees,
+  Rocket,
+  ArrowRight,
+  Sparkles,
+  Bot,
+  ShieldCheck,
+  CheckCircle2,
+  Workflow
+} from 'lucide-react';
 import { ToolId } from '../layout/Header';
 
 interface PortalCatalogProps {
@@ -12,57 +24,57 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
     {
       id: 'radar' as ToolId,
       name: 'Radar de Innovación',
-      tagline: 'Vigilancia prospectiva y señales tecnológicas',
-      description: 'Monitoreo dinámico de señales de cambio en cuadrantes de impacto y adopción. Filtros por horizontes H1/H2/H3 y áreas de oportunidad para los territorios.',
+      tagline: 'Vigilancia activa y prospectiva tecnológica territorial',
+      description: 'Exploración interactiva de 31 señales y macrotendencias en matriz de impacto versus velocidad de adopción en cuatro cuadrantes de acción.',
       icon: Compass,
       color: '#5EC2DD',
       accentColor: '#2E9CBA',
-      badge: 'Vigilancia Activa · 31 Señales',
+      badge: 'Herramienta 1 · 31 Señales',
     },
     {
       id: 'estudio' as ToolId,
       name: 'Estudio Territorial',
       tagline: 'Diagnóstico zonal y caracterización en 12 bloques',
-      description: 'Ingesta de fuentes del núcleo institucional y del territorio vía Google Drive y OCR. Generación estructurada del Contenedor 2 con autoevaluación local.',
+      description: 'Ingesta y procesamiento de fuentes del territorio, códigos DIVIPOLA y banco de iniciativas para generar un diagnóstico contextual riguroso.',
       icon: Layers,
       color: '#A8C63C',
       accentColor: '#7A9706',
-      badge: 'Contenedor 2 · 12 Bloques',
+      badge: 'Herramienta 2 · 12 Bloques',
     },
     {
-      id: 'vocacion' as ToolId,
-      name: 'Vocación Territorial',
-      tagline: 'Decisión estratégica de temática y enfoque CIP',
-      description: 'Cruce entre la vocación productiva y las 3 alternativas temáticas. Evaluación rigurosa de impacto, factibilidad y capacidades de las 6 escuelas UNAD.',
+      id: 'ideacion' as ToolId,
+      name: 'Ideación Estratégica y Elección del Tema',
+      tagline: 'Decisión deliberada de vocación y tema ancla',
+      description: 'Consecuente con el diagnóstico territorial o de formulación independiente. Evaluación de alternativas y selección del eje estructurador.',
       icon: BrainCircuit,
       color: '#F3C26B',
       accentColor: '#F29F05',
-      badge: 'Fase 3 · Paso I',
+      badge: 'Herramienta 3 · Decisión Temática',
     },
     {
       id: 'arbol' as ToolId,
       name: 'Árbol de Innovación',
-      tagline: 'Metáfora estructural y cascada de tendencias',
-      description: 'Visualización interactiva desde el suelo y las raíces hasta los frutos. Análisis en cascada: 10 tendencias globales, 5 nacionales y 3 territoriales.',
+      tagline: 'Estructura holográfica y circuito de valor 10-5-3',
+      description: 'Visualización interactiva tipo circuito: suelo (actores), raíces (riesgos), tronco (tema central), ramas (10 globales, 5 nacionales, 3 territoriales) y frutos.',
       icon: Trees,
       color: '#A8C63C',
       accentColor: '#A8C63C',
-      badge: 'Fase 3 · Paso II (SVG Interactivo)',
+      badge: 'Herramienta 4 · Circuito Holográfico',
     },
     {
-      id: 'servicios' as ToolId,
-      name: 'Generador de Servicios',
-      tagline: 'Estructuración de portafolio y fichas técnicas',
-      description: 'Conversión de los frutos del árbol en servicios tangibles de innovación: vigilancia, prototipado, asistencia técnica, transferencia e incubación.',
+      id: 'prototipado' as ToolId,
+      name: 'Prototipado',
+      tagline: 'Banco de diseño, especificación y validación rápida',
+      description: 'Estructuración de prototipos tecnológicos, servicios de innovación y proyectos territoriales. Funciona a partir de los frutos del árbol o de forma 100% independiente.',
       icon: Rocket,
       color: '#A98FD6',
       accentColor: '#6B4FA0',
-      badge: 'Fase 3 · Paso III',
+      badge: 'Herramienta 5 · Banco de Prototipos',
     },
   ];
 
   return (
-    <div className="space-y-12">
+    <div className="w-full space-y-12">
       {/* Hero Welcome Banner */}
       <section className="g p-8 md:p-12 rounded-[28px] relative overflow-hidden border border-white/15 bg-gradient-to-r from-[#0C5E78]/30 via-transparent to-[#2E9CBA]/15">
         <div className="max-w-3xl space-y-4">
@@ -80,7 +92,7 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
           </h1>
 
           <p className="bd text-base md:text-lg text-[#CFE0E6] leading-relaxed max-w-2xl">
-            Ecosistema integrado para la formulación, vigilancia y estructuración de Centros de Innovación Productiva (CIP), con mediación de Inteligencia Artificial institucional y acompañamiento holográfico de ZOE.
+            Ecosistema integrado para la vigilancia, diagnóstico territorial, ideación estratégica, modelado holográfico y prototipado rápido de soluciones, con soporte de IA institucional y asistencia de ZOE.
           </p>
 
           <div className="pt-2 flex flex-wrap items-center gap-4">
@@ -88,7 +100,7 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
               onClick={() => onSelectTool('radar')}
               className="metal px-6 py-3 text-sm font-bold text-white flex items-center gap-2 cursor-pointer shadow-lg hover:scale-105 transition-all"
             >
-              <span>Explorar Radar Tecnológico</span>
+              <span>Explorar Radar de Innovación</span>
               <ArrowRight className="w-4 h-4 text-[#F3C26B]" />
             </button>
 
@@ -114,11 +126,11 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
           </div>
           <div className="g2 p-4 rounded-2xl text-center">
             <span className="text-3xl font-bold sy text-[#A8C63C]">31</span>
-            <span className="block text-xs text-brand-textMuted uppercase l mt-1">Señales de Vigilancia</span>
+            <span className="block text-xs text-brand-textMuted uppercase l mt-1">Señales del Radar</span>
           </div>
           <div className="g2 p-4 rounded-2xl text-center">
             <span className="text-3xl font-bold sy text-[#F3C26B]">100%</span>
-            <span className="block text-xs text-brand-textMuted uppercase l mt-1">Gemini Institucional</span>
+            <span className="block text-xs text-brand-textMuted uppercase l mt-1">Independientes o Juntas</span>
           </div>
         </div>
       </section>
@@ -129,7 +141,7 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
           <div>
             <h2 className="text-xl md:text-2xl font-bold text-white sy">Catálogo de Herramientas de Innovación</h2>
             <p className="text-xs md:text-sm text-brand-textSecondary mt-0.5">
-              Acceso directo a los desarrollos y módulos del laboratorio.
+              Acceso directo a las 5 herramientas. Pueden utilizarse de manera independiente o como una ruta integrada.
             </p>
           </div>
           <span className="text-xs text-brand-textMuted m hidden sm:inline-block">
@@ -183,51 +195,51 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
         </div>
       </section>
 
-      {/* Methodological Pathway Flow */}
+      {/* Integrated Pathway Flow Section */}
       <section className="g p-8 rounded-2xl border border-white/15 space-y-6">
         <div className="flex items-center gap-2">
-          <ShieldCheck className="w-5 h-5 text-[#A8C63C]" />
-          <h3 className="text-lg font-bold text-white sy">Ruta Metodológica Integral para el Documento Fundante</h3>
+          <Workflow className="w-5 h-5 text-[#A8C63C]" />
+          <h3 className="text-lg font-bold text-white sy">Ruta Metodológica Integrada del Laboratorio</h3>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <div className="g2 p-4 rounded-xl space-y-2">
-            <span className="text-xs font-bold text-[#5EC2DD] m">01 · INGESTA</span>
-            <h4 className="text-sm font-bold text-white sy">Fuentes y Drive</h4>
+            <span className="text-xs font-bold text-[#5EC2DD] m">01 · VIGILANCIA</span>
+            <h4 className="text-sm font-bold text-white sy">Radar de Innovación</h4>
             <p className="text-xs text-brand-textSecondary">
-              Conexión de fuentes primarias del territorio y el banco de proyectos SIGIIP.
+              Mapeo de 31 señales y macrotendencias con niveles de impacto y adopción.
             </p>
           </div>
 
           <div className="g2 p-4 rounded-xl space-y-2">
-            <span className="text-xs font-bold text-[#A8C63C] m">02 · DIAGNÓSTICO</span>
+            <span className="text-xs font-bold text-[#A8C63C] m">02 · TERRITORIO</span>
             <h4 className="text-sm font-bold text-white sy">Estudio Territorial</h4>
             <p className="text-xs text-brand-textSecondary">
-              Estructuración y revisión granular de los 12 bloques del Contenedor 2.
+              Diagnóstico territorial estructurado en 12 bloques y fuentes primarias.
             </p>
           </div>
 
           <div className="g2 p-4 rounded-xl space-y-2">
-            <span className="text-xs font-bold text-[#F3C26B] m">03 · DECISIÓN</span>
-            <h4 className="text-sm font-bold text-white sy">Vocación y 3 Temas</h4>
+            <span className="text-xs font-bold text-[#F3C26B] m">03 · IDEACIÓN</span>
+            <h4 className="text-sm font-bold text-white sy">Ideación Estratégica</h4>
             <p className="text-xs text-brand-textSecondary">
-              Selección deliberada del tema ancla para el Centro de Innovación Productiva.
+              Elección deliberada del tema ancla a partir de los retos y vocaciones zonales.
             </p>
           </div>
 
           <div className="g2 p-4 rounded-xl space-y-2">
-            <span className="text-xs font-bold text-[#A8C63C] m">04 · TENDENCIAS</span>
+            <span className="text-xs font-bold text-[#A8C63C] m">04 · MODELADO</span>
             <h4 className="text-sm font-bold text-white sy">Árbol de Innovación</h4>
             <p className="text-xs text-brand-textSecondary">
-              Cascada de 10 tendencias globales, 5 nacionales y 3 territoriales.
+              Estructura holográfica: actores, riesgos, tronco temático y ramas 10-5-3.
             </p>
           </div>
 
           <div className="g2 p-4 rounded-xl space-y-2">
-            <span className="text-xs font-bold text-[#A98FD6] m">05 · PORTAFOLIO</span>
-            <h4 className="text-sm font-bold text-white sy">Servicios CIP</h4>
+            <span className="text-xs font-bold text-[#A98FD6] m">05 · SOLUCIONES</span>
+            <h4 className="text-sm font-bold text-white sy">Prototipado</h4>
             <p className="text-xs text-brand-textSecondary">
-              Fichas técnicas y estructuración de líneas de acción para el Documento Fundante.
+              Especificación técnica, validación rápida y estructuración de proyectos y servicios.
             </p>
           </div>
         </div>
@@ -235,3 +247,4 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
     </div>
   );
 };
+export default PortalCatalog;

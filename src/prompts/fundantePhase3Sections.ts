@@ -19,7 +19,7 @@ export const FUNDANTE_SECTIONS: readonly FundanteSectionMeta[] = [
     number: 1,
     title: 'Introducción y justificación estratégica',
     focus:
-      'Formaliza el CIP, pertinencia territorial, alineación con misión UNAD y con el **tema humano elegido** y la vocación descrita en los insumos del flujo intermedio. No adelantes tablas SIGIIP ni el árbol detallado: eso va en los apartados 3 y 6.',
+      'Formaliza el Centro de Innovación, pertinencia territorial, alineación con misión UNAD y con el **tema humano elegido** y la vocación descrita en los insumos del flujo intermedio. No adelantes tablas SIGIIP ni el árbol detallado: eso va en los apartados 3 y 6.',
   },
   {
     number: 2,
@@ -37,11 +37,11 @@ export const FUNDANTE_SECTIONS: readonly FundanteSectionMeta[] = [
     number: 4,
     title: 'Articulación metasistémica UNAD',
     focus:
-      'Vincula el CIP con el metasistema, responsabilidades sustantivas, intersistémico y horizonte UNAD 5.0 según lo que respalden las fuentes.',
+      'Vincula el Centro de Innovación con el metasistema, responsabilidades sustantivas, intersistémico y horizonte UNAD 5.0 según lo que respalden las fuentes.',
   },
   {
     number: 5,
-    title: 'Plataforma estratégica del CIP',
+    title: 'Plataforma estratégica del Centro de Innovación',
     focus:
       'Visión, líneas o ejes alineados al territorio y al tema elegido; lenguaje accionable, sin inventar programas no mencionados en fuentes.',
   },
@@ -49,7 +49,7 @@ export const FUNDANTE_SECTIONS: readonly FundanteSectionMeta[] = [
     number: 6,
     title: 'Experiencias previas de investigación',
     focus:
-      '**Único apartado principal** para proyectos de investigación registrados, trayectoria en la zona y tablas de experiencias. La matriz se construye **transcribiendo** el bloque REGISTRO SIGIIP de las entradas: **nombre textual del proyecto entre comillas**, código, tipo, investigador responsable, escuela, zona, estado y convocatoria, más una columna de **contribución al CIP** que sí razonas tú. Los campos que el registro no publica (grupo de investigación, categoría, líneas, número de investigadores) se escriben como "No disponible en la fuente consultada" con su ALERTA. No asumas que el lector "ya vio" una tabla en el apartado 2: aquí va el desarrollo completo.',
+      '**Único apartado principal** para proyectos de investigación registrados, trayectoria en la zona y tablas de experiencias. La matriz se construye **transcribiendo** el bloque REGISTRO SIGIIP de las entradas: **nombre textual del proyecto entre comillas**, código, tipo, investigador responsable, escuela, zona, estado y convocatoria, más una columna de **contribución al Centro de Innovación** que sí razonas tú. Los campos que el registro no publica (grupo de investigación, categoría, líneas, número de investigadores) se escriben como "No disponible en la fuente consultada" con su ALERTA. No asumas que el lector "ya vio" una tabla en el apartado 2: aquí va el desarrollo completo.',
   },
   {
     number: 7,
@@ -77,7 +77,7 @@ export const FUNDANTE_SECTIONS: readonly FundanteSectionMeta[] = [
   {
     number: 11,
     title: 'Ruta de maduración',
-    focus: 'Fases o hitos de maduración del CIP de forma coherente con el resto del documento y las fuentes.',
+    focus: 'Fases o hitos de maduración del Centro de Innovación de forma coherente con el resto del documento y las fuentes.',
   },
   {
     number: 12,
@@ -313,17 +313,17 @@ export function sanitizeFundanteSectionMarkdown(sectionIndex: number, markdown: 
 
 /**
  * Reglas del subapartado 8.4: el talento humano debe proyectar el aporte de **cada**
- * escuela de la UNAD al CIP, y los recursos administrativos se describen en términos
+ * escuela de la UNAD al Centro de Innovación, y los recursos administrativos se describen en términos
  * generales, sin siglas ni acrónimos que dificulten la lectura externa.
  */
 function talentoHumanoBlock(): string {
   return `
 BLOQUE OBLIGATORIO — TALENTO HUMANO Y RECURSOS (subapartado **8.4 Infraestructura y recursos**)
 
-- Viñeta **Talento humano**: nombra **una por una las seis escuelas de la UNAD**, con su **nombre oficial completo y sin siglas ni acrónimos**, y para **cada** escuela proyecta en dos o tres líneas su **aporte concreto al CIP** de este documento: qué disciplinas, programas, semilleros o capacidades aporta al tema elegido y al territorio. Ninguna escuela puede quedar sin su aporte. Las seis escuelas son:
+- Viñeta **Talento humano**: nombra **una por una las seis escuelas de la UNAD**, con su **nombre oficial completo y sin siglas ni acrónimos**, y para **cada** escuela proyecta en dos o tres líneas su **aporte concreto al Centro de Innovación** de este documento: qué disciplinas, programas, semilleros o capacidades aporta al tema elegido y al territorio. Ninguna escuela puede quedar sin su aporte. Las seis escuelas son:
 ${formatEscuelasForPrompt()}
-  Preséntalas como lista de viñetas o como tabla de dos columnas (escuela / aporte proyectado al CIP). El aporte es una **proyección razonada** a partir del tema del CIP y del perfil disciplinar de cada escuela: redáctalo en potencial ("puede aportar…", "estaría en capacidad de…") y no lo presentes como un compromiso ya adquirido ni inventes programas, docentes o cifras que no consten en las fuentes.
-- Viñeta **Recursos administrativos**: descríbelos de forma **general** (acompañamiento administrativo, financiero, jurídico, de talento humano, de comunicaciones y de gestión documental que respaldan la operación del CIP). **Prohibido** usar siglas, acrónimos o nombres codificados de dependencias, sistemas o unidades: escribe siempre la denominación completa en palabras. No detalles estructuras internas que no consten en las fuentes.
+  Preséntalas como lista de viñetas o como tabla de dos columnas (escuela / aporte proyectado al Centro de Innovación). El aporte es una **proyección razonada** a partir del tema del Centro de Innovación y del perfil disciplinar de cada escuela: redáctalo en potencial ("puede aportar…", "estaría en capacidad de…") y no lo presentes como un compromiso ya adquirido ni inventes programas, docentes o cifras que no consten en las fuentes.
+- Viñeta **Recursos administrativos**: descríbelos de forma **general** (acompañamiento administrativo, financiero, jurídico, de talento humano, de comunicaciones y de gestión documental que respaldan la operación del Centro de Innovación). **Prohibido** usar siglas, acrónimos o nombres codificados de dependencias, sistemas o unidades: escribe siempre la denominación completa en palabras. No detalles estructuras internas que no consten en las fuentes.
 `.trim();
 }
 
@@ -336,13 +336,13 @@ function experienciasSigiipBlock(): string {
   return `
 BLOQUE OBLIGATORIO — MATRIZ DE EXPERIENCIAS PREVIAS (apartado 6)
 
-- La matriz se construye **priorizando entre 8 y 12 proyectos estratégicos** del bloque **REGISTRO SIGIIP** de las entradas (los más pertinentes para la zona y el tema del CIP). Si ese bloque no llegó, escribe la ALERTA DE VERIFICACIÓN HUMANA por ausencia del registro y **no** inventes proyectos.
-- Columnas obligatorias, en este orden: **Nombre del proyecto (textual)** | **Código** | **Tipo** | **Investigador responsable** | **Escuela** | **Zona** | **Estado** | **Convocatoria** | **Contribución proyectada al CIP**.
+- La matriz se construye **priorizando entre 8 y 12 proyectos estratégicos** del bloque **REGISTRO SIGIIP** de las entradas (los más pertinentes para la zona y el tema del Centro de Innovación). Si ese bloque no llegó, escribe la ALERTA DE VERIFICACIÓN HUMANA por ausencia del registro y **no** inventes proyectos.
+- Columnas obligatorias, en este orden: **Nombre del proyecto (textual)** | **Código** | **Tipo** | **Investigador responsable** | **Escuela** | **Zona** | **Estado** | **Convocatoria** | **Contribución proyectada al Centro de Innovación**.
 - El nombre va **entre comillas y palabra por palabra** como aparece en el registro. Nada de paráfrasis, títulos abreviados ni descripciones genéricas del estilo "un proyecto sobre turismo rural".
-- La **contribución proyectada al CIP** es la única columna que razonas tú: una o dos líneas por proyecto, en potencial, conectando el proyecto con el tema del CIP y con el territorio.
+- La **contribución proyectada al Centro de Innovación** es la única columna que razonas tú: una o dos líneas por proyecto, en potencial, conectando el proyecto con el tema del Centro de Innovación y con el territorio.
 - Escuelas siempre con **denominación completa, sin siglas**.
 - Grupo de investigación, categoría del grupo, líneas de investigación y número de investigadores **no existen** en la fuente: si necesitas mencionarlos, escribe "No disponible en la fuente consultada" y añade la ALERTA DE VERIFICACIÓN HUMANA. Prohibido estimarlos.
-- Acompaña la matriz con párrafos que lean la trayectoria: cuántos proyectos hay en la zona, qué tipos predominan, qué capacidades se pueden transferir al CIP. Usa los conteos reales del bloque, no cifras propias.
+- Acompaña la matriz con párrafos que lean la trayectoria: cuántos proyectos hay en la zona, qué tipos predominan, qué capacidades se pueden transferir al Centro de Innovación. Usa los conteos reales del bloque, no cifras propias.
 - SÍNTESIS EJECUTIVA: Mantén el apartado en una extensión ejecutiva controlada (máximo 8–12 proyectos en la tabla principal). Indica que los inventarios exhaustivos de proyectos o matrices complementarias se ubican en los Anexos (Apartado 13).
 `.trim();
 }
@@ -442,7 +442,7 @@ ${prev}
     meta.number === 1
       ? `
 - La **primera línea** de tu salida debe ser exactamente el título de nivel 1:
-  # Documento Fundante del ${cipLabel}
+  # Ecosistema de Innovación del ${cipLabel}
 - En la **siguiente línea en blanco**, continúa con el encabezado de nivel 2 y el desarrollo:
   ${headingLine}
 `
@@ -454,7 +454,7 @@ ${prev}
 
   const instruccionBlock = `
 ══════════════════════════════════════════════════
-INSTRUCCIÓN INSTITUCIONAL DEL DOCUMENTO FUNDANTE (Google Drive: ${DRIVE_REFERENCE_INSTRUCCION_FUNDANTE})
+INSTRUCCIÓN INSTITUCIONAL DEL proyecto de innovación (Google Drive: ${DRIVE_REFERENCE_INSTRUCCION_FUNDANTE})
 ══════════════════════════════════════════════════
 
 ${instruccionFundanteText.trim()}
@@ -475,7 +475,7 @@ ${prevBlock}
 TAREA — APARTADO ${meta.number} DE ${FUNDANTE_SECTION_COUNT} (generación por partes)
 ══════════════════════════════════════════════════
 
-Estás redactando el Documento Fundante del CIP **por secciones**. Esta respuesta debe cubrir **solo** el apartado **${meta.number}**.
+Estás redactando el Ecosistema de Innovación del Centro de Innovación **por secciones**. Esta respuesta debe cubrir **solo** el apartado **${meta.number}**.
 
 Enfoque obligatorio para este apartado:
 ${meta.focus}
@@ -499,7 +499,7 @@ REGLAS DE SALIDA Y PRESENTACIÓN
 - PROHIBIDO citar como fuente el **Contenedor 1**, el **Contenedor 2**, la propuesta de temas o el árbol de innovación: son insumos internos. Cita siempre el **documento original** del que proviene el dato (ver punto 5 de la normativa).
 - En las tablas Markdown escribe la fila separadora (\`|---|---|\`) **una sola vez**, justo bajo el encabezado, y máximo ${usesSigiip ? '12' : '10'} filas de datos por tabla (reserva inventarios exhaustivos de proyectos para el Apartado 13). Nunca repitas filas separadoras ni dejes filas vacías con solo guiones (- - -). Las matrices masivas complementarias se reservan para el Apartado 13.
 - PROHIBIDO dibujar diagramas u organigramas en "arte ASCII" (cajas \`[...]\` unidas con \`|\`, \`+---\` o similares). Todo mapa, organigrama o estructura jerárquica (p. ej. el mapa de articulación institucional) se presenta como **lista jerárquica de Markdown**: viñetas anidadas donde cada nivel de sangría representa un nivel de dependencia, con el nombre de cada instancia en negrilla en el primer nivel.
-- Sigue el bloque **INSTRUCCIÓN INSTITUCIONAL DEL DOCUMENTO FUNDANTE** de arriba para redactar **solo** este apartado; no contradigas criterios ni estructura oficial.
+- Sigue el bloque **INSTRUCCIÓN INSTITUCIONAL DEL proyecto de innovación** de arriba para redactar **solo** este apartado; no contradigas criterios ni estructura oficial.
 
 Redacta ahora **únicamente** este apartado.
 `.trim();

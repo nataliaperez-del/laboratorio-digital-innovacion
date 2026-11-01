@@ -1,5 +1,5 @@
 /**
- * Pasos intermedios entre Contenedor 2 y documento fundante: vocación + 3 temas, y árbol de innovación.
+ * Pasos intermedios entre Contenedor 2 y proyecto de innovación: vocación + 3 temas, y árbol de innovación.
  * Ambos se generan **por partes** (una llamada al modelo por parte, como el Contenedor 2 y el fundante)
  * para que cada bloque disponga del presupuesto completo de tokens de salida y no llegue cortado.
  */
@@ -40,7 +40,7 @@ ${prev}
 
 export const VOCATION_PARTS: readonly GenerationPartMeta[] = [
   { number: 1, title: 'Vocación territorial' },
-  { number: 2, title: 'Tres opciones de tema CIP' },
+  { number: 2, title: 'Tres opciones de tema Centro de Innovación' },
 ] as const;
 
 /**
@@ -72,7 +72,7 @@ function vocationSharedContext(inputs: VocationPromptInputs): string {
   const { containerTrimmed, fodaMatrix, contenedor1, fichaBlock, focusHypothesis, institutionalVocacionPromptText } =
     inputs;
   return `
-Eres analista estratégico territorial experto en innovación, desarrollo regional y formulación de CIP UNAD.
+Eres analista estratégico territorial experto en innovación, desarrollo regional y formulación de Centro de Innovación UNAD.
 
 ══════════════════════════════════════════════════
 INSUMOS DEL CASO
@@ -85,7 +85,7 @@ ${
     ? `
 **Tema previsto por el equipo de zona (hipótesis, no insumo)**: antes de existir el diagnóstico, la zona declaró que preveía trabajar «${focusHypothesis.trim()}». El Contenedor 2 ya lo confrontó con la evidencia en su apartado «Resultado del contraste participativo»: lo que vale es **ese veredicto**, no la declaración.
 - La hipótesis no es evidencia ni una decisión tomada. Si la matriz FODA apunta a otra actividad, declara la vocación que sostenga el diagnóstico, sin forzarla hacia el tema anunciado.
-- Si lo que declaras se aparta de ese tema previsto, añade una nota breve recomendando revisar el nombre y el enfoque anunciados del CIP, para que el equipo de zona lo corrija a tiempo.
+- Si lo que declaras se aparta de ese tema previsto, añade una nota breve recomendando revisar el nombre y el enfoque anunciados del Centro de Innovación, para que el equipo de zona lo corrija a tiempo.
 `
     : ''
 }
@@ -133,7 +133,7 @@ En ESTA llamada redacta **solo la primera parte** del entregable: el análisis y
 - **NO** incluyas todavía las opciones de tema: van en la siguiente llamada.
 `
       : `
-La vocación territorial ya está redactada (bloque anterior). En ESTA llamada redacta **solo** las **tres opciones de tema CIP** y el cierre o traspaso que exija la plantilla:
+La vocación territorial ya está redactada (bloque anterior). En ESTA llamada redacta **solo** las **tres opciones de tema Centro de Innovación** y el cierre o traspaso que exija la plantilla:
 - \`## Opción de tema 1:\` … \`## Opción de tema 2:\` … \`## Opción de tema 3:\` — cada una con título persuasivo y **justificación breve** anclada en brechas y oportunidades del Contenedor 2, **coherente** con la vocación ya declarada.
 - Este **rótulo de encabezado es obligatorio y prevalece** sobre la numeración de la plantilla: escribe \`## Opción de tema 2: <título>\`, nunca \`## 3.2 <título>\` ni las tres opciones dentro de una tabla. La aplicación los usa para armar las tarjetas de decisión del equipo y para heredar el tema elegido al árbol de innovación.
 - **NO** repitas ni reescribas la vocación.
@@ -193,7 +193,7 @@ function treeSharedContext(
   institutionalArbolPromptText: string,
 ): string {
   return `
-Eres analista de tendencias en innovación, productividad y desarrollo territorial, al servicio de un CIP UNAD.
+Eres analista de tendencias en innovación, productividad y desarrollo territorial, al servicio de un Centro de Innovación UNAD.
 
 ══════════════════════════════════════════════════
 DATOS DEL CASO (rellenan la plantilla institucional)
@@ -329,7 +329,7 @@ export function reviewVocationPart(
     }
   }
 
-  // Parte 1: Tres opciones de tema CIP
+  // Parte 1: Tres opciones de tema Centro de Innovación
   if (partIndex === 1) {
     const parsed = parseThemeProposal(clean);
     if (parsed.themes.length < 3) {

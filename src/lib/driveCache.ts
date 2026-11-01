@@ -10,7 +10,7 @@
  * romper la carga (si IndexedDB no está disponible, simplemente no hay caché).
  */
 
-const DB_NAME = 'cip-drive-cache';
+const DB_NAME = 'lab-drive-cache';
 const DB_VERSION = 1;
 const STORE = 'files';
 

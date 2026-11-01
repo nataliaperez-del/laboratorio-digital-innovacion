@@ -3,9 +3,9 @@ import { Header, ToolId } from './components/layout/Header';
 import { PortalCatalog } from './components/portal/PortalCatalog';
 import { RadarView } from './components/tools/RadarView';
 import { EstudioTerritorialView } from './components/tools/EstudioTerritorialView';
-import { VocacionTerritorialView } from './components/tools/VocacionTerritorialView';
+import { IdeacionEstrategicaView } from './components/tools/IdeacionEstrategicaView';
 import { ArbolInnovacionView } from './components/tools/ArbolInnovacionView';
-import { GeneradorServiciosView } from './components/tools/GeneradorServiciosView';
+import { PrototipadoView } from './components/tools/PrototipadoView';
 import { ZoeCompanion } from './components/zoe/ZoeCompanion';
 
 export const App: React.FC = () => {
@@ -26,7 +26,7 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-screen w-full max-w-[1440px] mx-auto overflow-x-hidden flex flex-col justify-between">
+    <div className="relative min-h-screen w-full min-w-full overflow-x-hidden flex flex-col justify-between">
       {/* Background Animated Halos (Fidelidad Oficial InnovaHub360) */}
       <div
         className="halo pointer-events-none"
@@ -75,7 +75,7 @@ export const App: React.FC = () => {
 
       {/* SVG Vector Mesh Background Overlay */}
       <svg
-        width="1440"
+        width="100%"
         height="100%"
         aria-hidden="true"
         className="absolute inset-0 pointer-events-none w-full h-full opacity-40 z-0"
@@ -109,8 +109,8 @@ export const App: React.FC = () => {
         zoeState={zoeState}
       />
 
-      {/* Main Dynamic View Content */}
-      <main className="relative z-10 flex-1 box-border px-4 md:px-8 lg:px-[clamp(20px,6vw,120px)] py-6">
+      {/* Main Dynamic View Content (Fluid Full-Width Layout) */}
+      <main className="relative z-10 flex-1 box-border w-full px-4 sm:px-6 md:px-8 xl:px-12 2xl:px-16 py-6">
         {currentTool === 'portal' && (
           <PortalCatalog
             onSelectTool={setCurrentTool}
@@ -119,9 +119,13 @@ export const App: React.FC = () => {
         )}
         {currentTool === 'radar' && <RadarView />}
         {currentTool === 'estudio' && <EstudioTerritorialView />}
-        {currentTool === 'vocacion' && <VocacionTerritorialView />}
-        {currentTool === 'arbol' && <ArbolInnovacionView />}
-        {currentTool === 'servicios' && <GeneradorServiciosView />}
+        {currentTool === 'ideacion' && (
+          <IdeacionEstrategicaView onNavigateToTree={() => setCurrentTool('arbol')} />
+        )}
+        {currentTool === 'arbol' && (
+          <ArbolInnovacionView onNavigateToPrototyping={() => setCurrentTool('prototipado')} />
+        )}
+        {currentTool === 'prototipado' && <PrototipadoView />}
       </main>
 
       {/* ZOE Interactive Sidecar Companion */}
@@ -132,13 +136,13 @@ export const App: React.FC = () => {
       />
 
       {/* Footer Oficial InnovaHub360 */}
-      <footer className="relative z-20 box-border px-4 md:px-8 lg:px-[clamp(20px,6vw,120px)] py-8 border-t border-white/10 mt-12 flex flex-wrap items-center justify-between gap-4 text-xs text-brand-textMuted">
+      <footer className="relative z-20 box-border w-full px-4 sm:px-6 md:px-8 xl:px-12 2xl:px-16 py-8 border-t border-white/10 mt-12 flex flex-wrap items-center justify-between gap-4 text-xs text-brand-textMuted">
         <div className="flex items-center gap-3">
           <span className="font-bold text-white sy">InnovaHub360</span>
           <span>·</span>
           <span>Universidad Nacional Abierta y a Distancia (UNAD)</span>
           <span>·</span>
-          <span>VIEM 2026</span>
+          <span>Laboratorio Digital de Innovación 2026</span>
         </div>
 
         <div className="flex items-center gap-4 m">

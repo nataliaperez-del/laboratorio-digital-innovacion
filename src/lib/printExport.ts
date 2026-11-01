@@ -102,9 +102,9 @@ function coverHtml(meta: DocumentMeta): string {
   return `<section class="cover">
     <p class="cover-institution">UNIVERSIDAD NACIONAL ABIERTA Y A DISTANCIA</p>
     <p class="cover-unit">Vicerrectoría de Innovación y Emprendimiento</p>
-    <p class="cover-title">DOCUMENTO FUNDANTE</p>
-    <p class="cover-subtitle">Centro de Innovación y Productividad</p>
-    <p class="cover-cip">${escapeHtml(meta.cipName?.trim() || 'Centro de Innovación y Productividad (nombre pendiente de confirmación)')}</p>
+    <p class="cover-title">proyecto de innovación</p>
+    <p class="cover-subtitle">Centro de Innovación</p>
+    <p class="cover-lab">${escapeHtml(meta.labName?.trim() || 'Centro de Innovación (nombre pendiente de confirmación)')}</p>
     ${meta.zonaUNAD?.trim() ? `<p class="cover-line">${escapeHtml(meta.zonaUNAD.trim())}</p>` : ''}
     ${territory ? `<p class="cover-line">${escapeHtml(territory)}</p>` : ''}
     <p class="cover-disclaimer">Versión preliminar. Los objetivos, la misión, la visión, el diseño organizacional, los indicadores, los macroservicios y la ruta de maduración son formulaciones propuestas y quedan sujetas a validación institucional.</p>
@@ -170,7 +170,7 @@ const PRINT_CSS = `
   .cover-unit { font-size: 14px; }
   .cover-title { font-size: 40px; font-weight: 700; color: #005883; margin-top: 34px !important; letter-spacing: 1px; }
   .cover-subtitle { font-size: 16px; }
-  .cover-cip { font-size: 22px; font-weight: 700; margin-top: 10px !important; }
+  .cover-lab { font-size: 22px; font-weight: 700; margin-top: 10px !important; }
   .cover-line { font-size: 14px; }
   .cover-disclaimer { font-size: 11px; font-style: italic; max-width: 125mm; margin-top: 34px !important; color: #475569; }
   .cover-by { font-size: 11px; font-style: italic; color: #475569; }
@@ -184,7 +184,7 @@ const PRINT_CSS = `
 
 /** Documento HTML completo para abrir en la ventana de impresión del navegador. */
 export function buildPrintHtml(plan: DocumentPlan, meta: DocumentMeta): string {
-  const title = `Documento Fundante — ${meta.cipName?.trim() || 'CIP'}`;
+  const title = `Ecosistema de Innovación — ${meta.labName?.trim() || 'Centro de Innovación'}`;
   const body = plan.blocks.map(blockToHtml).join('\n');
   return `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><title>${escapeHtml(title)}</title><style>${PRINT_CSS}</style></head><body>${coverHtml(
     meta,

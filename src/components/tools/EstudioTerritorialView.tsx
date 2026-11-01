@@ -97,10 +97,10 @@ export const EstudioTerritorialView: React.FC = () => {
     },
     {
       number: 12,
-      title: 'Síntesis Diagnóstica y Vocación Sugerida para el CIP',
+      title: 'Síntesis Diagnóstica y Vocación Sugerida para el Centro de Innovación',
       category: 'Conclusiones',
       status: 'completado',
-      summary: 'Se concluye que el CIP debe anclarse en la vocación agrobiotecnológica con tecnologías digitales para soberanía alimentaria y bioeconomía.',
+      summary: 'Se concluye que el Centro de Innovación debe anclarse en la vocación agrobiotecnológica con tecnologías digitales para soberanía alimentaria y bioeconomía.',
     },
   ]);
 

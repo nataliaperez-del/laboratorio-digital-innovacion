@@ -1,13 +1,13 @@
 /**
- * Figuras del Documento Fundante generadas de forma determinista a partir de los
+ * Figuras del Ecosistema de Innovación generadas de forma determinista a partir de los
  * datos reales del proceso (conteos del registro de proyectos) y de las
- * constantes institucionales del CIP. No hay generación de imágenes por IA:
+ * constantes institucionales del Centro de Innovación. No hay generación de imágenes por IA:
  * cada valor corresponde a un dato trazable, de modo que las figuras no pueden
  * «alucinar» cifras.
  *
  * Figuras estáticas (siempre presentes):
- *   · maduracion-cip   — línea de tiempo de maduración del CIP (4 fases)
- *   · cip-pilares      — cuadrícula de los 6 pilares estratégicos
+ *   · maduracion-lab   — línea de tiempo de maduración del Centro de Innovación (4 fases)
+ *   · lab-pilares      — cuadrícula de los 6 pilares estratégicos
  *
  * Figuras de datos (solo si el snapshot SIGIIP tiene registros):
  *   · sigiip-zonas     — barras horizontales por zona UNAD
@@ -225,7 +225,7 @@ function maturityTimeline(): { svg: string; width: number; height: number } {
   // Fondo
   el += `<rect width="${width}" height="${height}" fill="#f8fafc" rx="10"/>`;
   // Título
-  el += `<text x="${width / 2}" y="30" text-anchor="middle" font-size="15" font-weight="bold" fill="#005883">Ruta de Maduración del Centro de Innovación y Productividad</text>`;
+  el += `<text x="${width / 2}" y="30" text-anchor="middle" font-size="15" font-weight="bold" fill="#005883">Ruta de Maduración del Centro de Innovación</text>`;
 
   // Conectores con flecha
   for (let i = 0; i < xs.length - 1; i++) {
@@ -285,7 +285,7 @@ function cipPillarsGrid(): { svg: string; width: number; height: number } {
 
   let el = '';
   el += `<rect width="${width}" height="${height}" fill="#f8fafc" rx="10"/>`;
-  el += `<text x="${width / 2}" y="30" text-anchor="middle" font-size="16" font-weight="bold" fill="#005883">Pilares Estratégicos del Centro de Innovación y Productividad</text>`;
+  el += `<text x="${width / 2}" y="30" text-anchor="middle" font-size="16" font-weight="bold" fill="#005883">Pilares Estratégicos del Centro de Innovación</text>`;
 
   pillars.forEach((p, i) => {
     const col = i % cols;
@@ -322,18 +322,18 @@ const MAX_BARS = 9;
 
 export function buildMaturityFigure(): FigureSpec {
   return {
-    id: 'maduracion-cip',
-    title: 'Ruta de maduración del Centro de Innovación y Productividad',
-    note: 'Nota. Elaboración propia basada en el modelo institucional de maduración de Centros de Innovación y Productividad de la Universidad Nacional Abierta y a Distancia. Las fases y períodos son indicativos y están sujetos a la planificación específica de cada CIP.',
+    id: 'maduracion-lab',
+    title: 'Ruta de maduración del Centro de Innovación',
+    note: 'Nota. Elaboración propia basada en el modelo institucional de maduración de Centros de Innovación y Productividad de la Universidad Nacional Abierta y a Distancia. Las fases y períodos son indicativos y están sujetos a la planificación específica de cada Centro de Innovación.',
     ...maturityTimeline(),
   };
 }
 
 export function buildPillarsFigure(): FigureSpec {
   return {
-    id: 'cip-pilares',
-    title: 'Pilares estratégicos del Centro de Innovación y Productividad',
-    note: 'Nota. Elaboración propia a partir del marco institucional de Centros de Innovación y Productividad de la Universidad Nacional Abierta y a Distancia. Los pilares representan los ejes de gestión y acción del CIP en el territorio y quedan sujetos a validación institucional.',
+    id: 'lab-pilares',
+    title: 'Pilares estratégicos del Centro de Innovación',
+    note: 'Nota. Elaboración propia a partir del marco institucional de Centros de Innovación y Productividad de la Universidad Nacional Abierta y a Distancia. Los pilares representan los ejes de gestión y acción del Centro de Innovación en el territorio y quedan sujetos a validación institucional.',
     ...cipPillarsGrid(),
   };
 }

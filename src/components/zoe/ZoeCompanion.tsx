@@ -51,7 +51,7 @@ export const ZoeCompanion: React.FC<ZoeCompanionProps> = ({ isOpen, onClose, act
     } else if (activeTool === 'estudio') {
       contextualGreeting = 'Módulo de Estudio Territorial activado. Aquí cruzamos fuentes del núcleo institucional y del territorio en 12 bloques clave. ¿En qué zona o municipio estamos trabajando?';
     } else if (activeTool === 'vocacion') {
-      contextualGreeting = '¡Momento de decidir! En Vocación Territorial analizamos las cadenas productivas para elegir entre las 3 hipótesis temáticas del CIP. ¿Te ayudo a comparar opciones?';
+      contextualGreeting = '¡Momento de decidir! En Vocación Territorial analizamos las cadenas productivas para elegir entre las 3 hipótesis temáticas del Centro de Innovación. ¿Te ayudo a comparar opciones?';
     } else if (activeTool === 'arbol') {
       contextualGreeting = '¡El Árbol de Innovación! Desde las raíces del territorio y los retos del suelo, hasta los frutos: proyectos y servicios. ¿Revisamos las tendencias globales o territoriales?';
     } else if (activeTool === 'servicios') {
@@ -137,12 +137,12 @@ export const ZoeCompanion: React.FC<ZoeCompanionProps> = ({ isOpen, onClose, act
           'Mi secreto es sencillo: "La innovación no comienza con la tecnología. Comienza cuando alguien se atreve a imaginar que las cosas pueden ser diferentes." Llegué desde una dimensión de luz para recordarles que los territorios esconden posibilidades infinitas.';
       } else if (prompt.toLowerCase().includes('herramienta') || prompt.toLowerCase().includes('laboratorio')) {
         fallbackText =
-          'El Laboratorio integra 5 frentes: 1) Radar de Innovación, 2) Estudio Territorial, 3) Vocación Territorial, 4) Árbol de Innovación y 5) Generador de Servicios. ¡Todo orquestado con Gemini institucional!';
+          'El Laboratorio integra 5 frentes: 1) Radar de Innovación, 2) Estudio Territorial, 3) Ideación Estratégica y Elección del Tema, 4) Árbol de Innovación y 5) Prototipado. ¡Todo orquestado con Gemini institucional!';
       } else {
         fallbackText =
           mode === 'anfitrion'
             ? `¡Me encanta tu curiosidad! Como anfitrión en el módulo de ${activeTool.toUpperCase()}, te sugiero dar el siguiente paso en la barra superior o cargar fuentes primarias para acelerar el análisis.`
-            : `Desde la perspectiva de asesor metodológico para ${activeTool.toUpperCase()}: te recomiendo verificar la coherencia con el Documento Fundante y la matriz de tendencias territoriales.`;
+            : `Desde la perspectiva de asesor metodológico para ${activeTool.toUpperCase()}: te recomiendo verificar la coherencia con el Ecosistema de Innovación y la matriz de tendencias territoriales.`;
       }
 
       setMessages((prev) => [
@@ -286,10 +286,10 @@ export const ZoeCompanion: React.FC<ZoeCompanionProps> = ({ isOpen, onClose, act
           Guía de {activeTool}
         </button>
         <button
-          onClick={() => handleSendMessage('Orientación para el Documento Fundante')}
+          onClick={() => handleSendMessage('Árbol y Prototipado')}
           className="px-2.5 py-1 rounded-full bg-white/10 text-white/80 hover:bg-[#27DCFF]/20 hover:text-[#27DCFF] transition-colors"
         >
-          Documento Fundante
+          Ecosistema de Innovación
         </button>
       </div>
 

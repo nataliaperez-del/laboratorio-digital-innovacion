@@ -146,7 +146,7 @@ export class GenerationCancelledError extends Error {
 let activeAbort: AbortController | null = null;
 
 /**
- * Bandera pegajosa: en flujos de varias llamadas (documento fundante, 13 apartados)
+ * Bandera pegajosa: en flujos de varias llamadas (proyecto de innovación, 13 apartados)
  * el «Detener» puede llegar entre dos peticiones, cuando no hay aborto activo.
  * La bandera hace que la siguiente llamada falle de inmediato.
  */
@@ -580,7 +580,7 @@ async function callAIWithRecovery(prompt: string, options?: CallAIOptions): Prom
   if (isDegenerateOutput(text)) {
     const salvaged = salvageDegenerateTail(text);
     if (salvaged) {
-      console.warn('[CIP] El modelo entró en bucle al final del bloque; se conservó la parte válida y se marcó con alerta.');
+      console.warn('[Centro de Innovación] El modelo entró en bucle al final del bloque; se conservó la parte válida y se marcó con alerta.');
       return { text: salvaged + DEGENERATE_TAIL_ALERT, degenerate: false };
     }
     return { text, degenerate: true };
@@ -588,7 +588,7 @@ async function callAIWithRecovery(prompt: string, options?: CallAIOptions): Prom
 
   for (let i = 0; truncated && i < MAX_CONTINUATIONS; i++) {
     console.info(
-      `[CIP] El bloque alcanzó el límite de tokens; se completa con una continuación automática (${i + 1}/${MAX_CONTINUATIONS}). No es un error.`,
+      `[Centro de Innovación] El bloque alcanzó el límite de tokens; se completa con una continuación automática (${i + 1}/${MAX_CONTINUATIONS}). No es un error.`,
     );
     const cont = await callAIOnce(buildContinuationPrompt(prompt, text), options);
     if (!cont.text.trim() || isDegenerateOutput(cont.text)) break;
@@ -600,7 +600,7 @@ async function callAIWithRecovery(prompt: string, options?: CallAIOptions): Prom
   if (isDegenerateOutput(text)) {
     const salvaged = salvageDegenerateTail(text);
     if (salvaged) {
-      console.warn('[CIP] El modelo entró en bucle al final del bloque; se conservó la parte válida y se marcó con alerta.');
+      console.warn('[Centro de Innovación] El modelo entró en bucle al final del bloque; se conservó la parte válida y se marcó con alerta.');
       return { text: salvaged + DEGENERATE_TAIL_ALERT, degenerate: false };
     }
     return { text, degenerate: true };
@@ -900,7 +900,7 @@ async function prepareContenedor2Context(
     .join(' y ');
 
   const identityFacts = identity.focusText
-    ? `- Nombre del CIP: **todavía sin definir**. El equipo de zona usó esa casilla para declarar el tema que prevé trabajar; el rótulo provisional del documento es «${identity.displayName || 'CIP (nombre pendiente de confirmación)'}».
+    ? `- Nombre del Centro de Innovación: **todavía sin definir**. El equipo de zona usó esa casilla para declarar el tema que prevé trabajar; el rótulo provisional del documento es «${identity.displayName || 'Centro de Innovación (nombre pendiente de confirmación)'}».
 - **Tema previsto por el equipo de zona: «${identity.focusText}»**. Es una hipótesis de trabajo declarada antes del diagnóstico: no es un hecho verificado, no es una fuente y no es una decisión tomada.
 
 Qué debes hacer con ese tema previsto (obligatorio):
@@ -908,7 +908,7 @@ Qué debes hacer con ese tema previsto (obligatorio):
 - Búscalo de forma **dirigida**: además del diagnóstico territorial general, comprueba en cada apartado que lo admita (caracterización productiva, pilares, brechas y oportunidades) si las fuentes del territorio y la consulta por internet dicen algo **específico** sobre ese tema en este municipio. Si no dicen nada, dilo; no lo compenses con generalidades del sector.
 - Insumos del repositorio que mencionan el tema: ${focusMatchedFiles.length ? focusMatchedFiles.join(', ') : '**ninguno**; si tampoco aparece en la consulta por internet, el tema queda sin respaldo documental y debes declararlo así'}.
 - El veredicto sobre la hipótesis se da **solo** en el punto 8, donde se te pedirá expresamente. No lo adelantes en los apartados anteriores y no declares por él la vocación ni los temas estratégicos.`
-    : `- Nombre tentativo del CIP: ${prompt0Data.cipName}
+    : `- Nombre tentativo del Centro de Innovación: ${prompt0Data.labName}
 - El equipo de zona no declaró ningún tema previsto: el diagnóstico no tiene hipótesis de enfoque que verificar y ninguna orientación temática debe darse por supuesta.`;
 
   const sharedContext = `
@@ -1173,7 +1173,7 @@ export async function regenerateContenedor2Section(
 
 function formatFichaCompact(prompt0Data: Prompt0Data): string {
   return [
-    `CIP (nombre tentativo): ${cipDisplayName(prompt0Data) || 'pendiente de confirmación'}`,
+    `Centro de Innovación (nombre tentativo): ${cipDisplayName(prompt0Data) || 'pendiente de confirmación'}`,
     `Zona UNAD: ${prompt0Data.zonaUNAD || '—'}`,
     `Territorio: ${prompt0Data.municipality || '—'}, ${prompt0Data.department || '—'}, ${prompt0Data.country || '—'}`,
   ].join('\n');
@@ -1317,7 +1317,7 @@ async function generateVocationPartItem(
   };
 }
 
-/** Paso intermedio 1: vocación territorial + 3 temas CIP con justificación breve (IA). */
+/** Paso intermedio 1: vocación territorial + 3 temas Centro de Innovación con justificación breve (IA). */
 export async function generateThemeVocationAndOptions(
   onProgress?: (p: GenerationPartProgress) => void,
 ): Promise<VocationDocumentResult> {
@@ -1405,14 +1405,14 @@ async function prepareInnovationTreeContext(): Promise<InnovationTreeContext> {
     containerData,
     prompt0Data,
     themeProposalMarkdown,
-    selectedCipThemeIndex,
+    selectedLabThemeIndex,
     aiProvider,
     institutionalDriveBundle,
   } = useStore.getState();
   if (!containerData.trim()) {
     throw new Error('No hay Contenedor 2.');
   }
-  if (selectedCipThemeIndex === null || selectedCipThemeIndex < 0 || selectedCipThemeIndex > 2) {
+  if (selectedLabThemeIndex === null || selectedLabThemeIndex < 0 || selectedLabThemeIndex > 2) {
     throw new Error('Selecciona una de las tres opciones de tema (Paso 1) antes de crear el árbol de innovación.');
   }
   if (!themeProposalMarkdown.trim()) {
@@ -1445,7 +1445,7 @@ async function prepareInnovationTreeContext(): Promise<InnovationTreeContext> {
   const maxC = getMaxThemeStepContainerChars(aiProvider);
   const { text: cTrim, notice } = truncateContainerForDocument(containerData, maxC);
   const ficha = formatFichaCompact(prompt0Data);
-  const optionNumber = (selectedCipThemeIndex + 1) as 1 | 2 | 3;
+  const optionNumber = (selectedLabThemeIndex + 1) as 1 | 2 | 3;
   const propSlice =
     themeProposalMarkdown.length > 100_000
       ? `${themeProposalMarkdown.slice(0, 100_000)}\n\n[… propuesta truncada …]`
@@ -1656,7 +1656,7 @@ type FundanteContext = {
   suppTrimmed: string;
   workflowExtras: {
     themeProposalMarkdown: string;
-    selectedCipThemeIndex: number;
+    selectedLabThemeIndex: number;
     innovationTreeMarkdown: string;
   };
   instruccionFundanteSlice: string;
@@ -1666,7 +1666,7 @@ type FundanteContext = {
 };
 
 /**
- * Proyectos del registro SIGIIP (Parte IV del Contenedor 1) pertinentes para este CIP.
+ * Proyectos del registro SIGIIP (Parte IV del Contenedor 1) pertinentes para este Centro de Innovación.
  *
  * El Contenedor 1 se recorta por el inicio cuando excede el presupuesto de contexto, y
  * el registro está al final: por eso nunca llegaba al modelo y las matrices de
@@ -1720,7 +1720,7 @@ async function buildSigiipBlockForFundante(
   const selection = selectSigiipProjects(
     projects,
     prompt0Data.zonaUNAD || '',
-    `${prompt0Data.cipName || ''} ${prompt0Data.municipality || ''} ${prompt0Data.department || ''} ${themeText}`,
+    `${prompt0Data.labName || ''} ${prompt0Data.municipality || ''} ${prompt0Data.department || ''} ${themeText}`,
     getSigiipProjectLimit(),
   );
 
@@ -1742,18 +1742,18 @@ async function prepareFundanteContext(containerData: string): Promise<FundanteCo
     aiProvider,
     prompt0Data,
     institutionalDriveBundle,
-    selectedCipThemeIndex,
+    selectedLabThemeIndex,
     themeProposalMarkdown,
     innovationTreeMarkdown,
   } = useStore.getState();
 
-  if (selectedCipThemeIndex === null || selectedCipThemeIndex < 0 || selectedCipThemeIndex > 2) {
+  if (selectedLabThemeIndex === null || selectedLabThemeIndex < 0 || selectedLabThemeIndex > 2) {
     throw new Error(
       'Completa el Paso 1: genera la vocación y las tres opciones de tema, y selecciona **exactamente una** opción (1, 2 o 3).',
     );
   }
   if (!innovationTreeMarkdown.trim()) {
-    throw new Error('Completa el Paso 2: genera el **árbol de innovación** antes del documento fundante.');
+    throw new Error('Completa el Paso 2: genera el **árbol de innovación** antes del proyecto de innovación.');
   }
 
   const maxDoc = getMaxDocumentContainerChars(aiProvider);
@@ -1790,7 +1790,7 @@ async function prepareFundanteContext(containerData: string): Promise<FundanteCo
 
   const workflowExtras = {
     themeProposalMarkdown,
-    selectedCipThemeIndex,
+    selectedLabThemeIndex,
     innovationTreeMarkdown,
   };
 
@@ -1871,7 +1871,7 @@ async function generateFundanteSection(
   } catch (e) {
     if (e instanceof GenerationCancelledError) throw e;
     const msg = e instanceof Error ? e.message : String(e);
-    console.warn(`[CIP] Falló el apartado ${meta.number} (${meta.title}): ${msg}`);
+    console.warn(`[Centro de Innovación] Falló el apartado ${meta.number} (${meta.title}): ${msg}`);
     return {
       number: meta.number,
       title: meta.title,
@@ -1882,7 +1882,7 @@ async function generateFundanteSection(
   }
 
   if (review.status !== 'ok') {
-    console.info(`[CIP] Autoevaluación del apartado ${meta.number}: ${review.issue} Reintentando una vez…`);
+    console.info(`[Centro de Innovación] Autoevaluación del apartado ${meta.number}: ${review.issue} Reintentando una vez…`);
     try {
       const repaired = await attempt(basePrompt + buildSelfRepairSuffix(sectionIndex, review.issue || ''));
       const repairedReview = reviewFundanteSection(sectionIndex, repaired);
@@ -1893,7 +1893,7 @@ async function generateFundanteSection(
       }
     } catch (e) {
       if (e instanceof GenerationCancelledError) throw e;
-      console.warn(`[CIP] El reintento del apartado ${meta.number} tampoco funcionó.`);
+      console.warn(`[Centro de Innovación] El reintento del apartado ${meta.number} tampoco funcionó.`);
     }
   }
 

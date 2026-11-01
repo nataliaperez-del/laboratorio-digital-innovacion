@@ -30,16 +30,16 @@ export interface InstitutionalSession {
 }
 
 /**
- * Qué escribió el equipo de zona en la casilla del nombre. Un CIP suele nombrarse antes
+ * Qué escribió el equipo de zona en la casilla del nombre. Un Centro de Innovación suele nombrarse antes
  * de tener diagnóstico, y muchas zonas escriben ahí el tema que prevén trabajar en lugar
  * de un nombre: declararlo cambia cómo se usa ese texto (rótulo o hipótesis de enfoque).
  */
 export type CipNameKind = 'nombre' | 'tema';
 
 export interface Prompt0Data {
-  cipName: string;
+  labName: string;
   /** Fichas guardadas antes de existir este campo se leen como `nombre`. */
-  cipNameKind: CipNameKind;
+  labNameKind: CipNameKind;
   zonaUNAD: string;
   municipality: string;
   department: string;
@@ -154,7 +154,7 @@ interface AppState {
   documentData: string;
   setDocumentData: (data: string) => void;
   /**
-   * Estado de cada uno de los 13 apartados del documento fundante tras la
+   * Estado de cada uno de los 13 apartados del proyecto de innovación tras la
    * autoevaluación. Permite regenerar un apartado suelto sin rehacer el documento.
    */
   fundanteSections: FundanteSectionResult[];
@@ -176,8 +176,39 @@ interface AppState {
   /** Reemplaza una parte de la propuesta y vuelve a ensamblar el Markdown. */
   replaceVocationSection: (index: number, section: VocationPartResult) => void;
   /** 0, 1 o 2 = opción elegida; null = aún no confirmada */
-  selectedCipThemeIndex: number | null;
-  setSelectedCipThemeIndex: (n: number | null) => void;
+  selectedLabThemeIndex: number | null;
+  setSelectedLabThemeIndex: (n: number | null) => void;
+  /** Tema estratégico seleccionado en Ideación Estratégica (alimenta Árbol de Innovación y Prototipado). */
+  selectedStrategicTheme: string;
+  setSelectedStrategicTheme: (theme: string) => void;
+  /** Frutos seleccionados del Árbol de Innovación para alimentar el módulo de Prototipado. */
+  selectedTreeFruits: Array<{
+    id: string;
+    code: string;
+    name: string;
+    type: 'proyecto' | 'servicio' | 'prototipo';
+    solution: string;
+    impact: string;
+    evidence?: string;
+  }>;
+  setSelectedTreeFruits: (fruits: Array<{
+    id: string;
+    code: string;
+    name: string;
+    type: 'proyecto' | 'servicio' | 'prototipo';
+    solution: string;
+    impact: string;
+    evidence?: string;
+  }>) => void;
+  addTreeFruitToPrototypes: (fruit: {
+    id: string;
+    code: string;
+    name: string;
+    type: 'proyecto' | 'servicio' | 'prototipo';
+    solution: string;
+    impact: string;
+    evidence?: string;
+  }) => void;
   innovationTreeMarkdown: string;
   setInnovationTreeMarkdown: (s: string) => void;
   /** Estado de cada una de las 5 partes del árbol de innovación tras autoevaluación. */
@@ -211,8 +242,8 @@ interface AppState {
 }
 
 const INITIAL_PROMPT0: Prompt0Data = {
-  cipName: '',
-  cipNameKind: 'nombre',
+  labName: '',
+  labNameKind: 'nombre',
   zonaUNAD: '',
   municipality: '',
   department: '',
@@ -295,8 +326,18 @@ export const useStore = create<AppState>()(
             themeProposalMarkdown: assembleVocationDocument(sections),
           };
         }),
-      selectedCipThemeIndex: null,
-      setSelectedCipThemeIndex: (n) => set({ selectedCipThemeIndex: n }),
+      selectedLabThemeIndex: null,
+      setSelectedLabThemeIndex: (n) => set({ selectedLabThemeIndex: n }),
+      selectedStrategicTheme: 'Biotecnología Aplicada y Valorización de Biomasa Agropecuaria',
+      setSelectedStrategicTheme: (theme) => set({ selectedStrategicTheme: theme }),
+      selectedTreeFruits: [],
+      setSelectedTreeFruits: (fruits) => set({ selectedTreeFruits: fruits }),
+      addTreeFruitToPrototypes: (fruit) =>
+        set((state) => ({
+          selectedTreeFruits: state.selectedTreeFruits.some((f) => f.id === fruit.id || f.code === fruit.code)
+            ? state.selectedTreeFruits
+            : [...state.selectedTreeFruits, fruit],
+        })),
       innovationTreeMarkdown: '',
       setInnovationTreeMarkdown: (s) =>
         set((state) => ({
@@ -317,7 +358,7 @@ export const useStore = create<AppState>()(
         set({
           themeProposalMarkdown: '',
           vocationSections: [],
-          selectedCipThemeIndex: null,
+          selectedLabThemeIndex: null,
           innovationTreeMarkdown: '',
           innovationTreeSections: [],
           documentData: '',
@@ -334,7 +375,7 @@ export const useStore = create<AppState>()(
           containerProcedencia: null,
           themeProposalMarkdown: '',
           vocationSections: [],
-          selectedCipThemeIndex: null,
+          selectedLabThemeIndex: null,
           innovationTreeMarkdown: '',
           innovationTreeSections: [],
           documentData: '',
@@ -372,7 +413,7 @@ export const useStore = create<AppState>()(
       setUnadGeminiBearer: (token) => set({ unadGeminiBearer: token }),
     }),
     {
-      name: 'cip-app-state',
+      name: 'lab-app-state',
       version: 2,
       migrate: (persisted, version) => {
         const state = persisted as {
@@ -417,7 +458,7 @@ export const useStore = create<AppState>()(
         sigiipSnapshot: state.sigiipSnapshot,
         themeProposalMarkdown: state.themeProposalMarkdown,
         vocationSections: state.vocationSections,
-        selectedCipThemeIndex: state.selectedCipThemeIndex,
+        selectedLabThemeIndex: state.selectedLabThemeIndex,
         innovationTreeMarkdown: state.innovationTreeMarkdown,
         innovationTreeSections: state.innovationTreeSections,
         aiProvider: state.aiProvider,
@@ -437,7 +478,7 @@ export const useStore = create<AppState>()(
  * borran al cerrarla. Sin esto, cada recarga dejaba las claves vacías y la siguiente
  * generación fallaba con 401 «faltan credenciales».
  */
-const SESSION_CREDENTIALS_KEY = 'cip-session-credentials';
+const SESSION_CREDENTIALS_KEY = 'lab-session-credentials';
 
 try {
   const saved = sessionStorage.getItem(SESSION_CREDENTIALS_KEY);
