@@ -50,12 +50,12 @@ export const ZoeCompanion: React.FC<ZoeCompanionProps> = ({ isOpen, onClose, act
       contextualGreeting = '¡Estamos en el Radar Tecnológico! Aquí rastreamos señales emergentes de impacto y adopción. ¿Quieres que analicemos algún cuadrante o señal específica?';
     } else if (activeTool === 'estudio') {
       contextualGreeting = 'Módulo de Estudio Territorial activado. Aquí cruzamos fuentes del núcleo institucional y del territorio en 12 bloques clave. ¿En qué zona o municipio estamos trabajando?';
-    } else if (activeTool === 'vocacion') {
-      contextualGreeting = '¡Momento de decidir! En Vocación Territorial analizamos las cadenas productivas para elegir entre las 3 hipótesis temáticas del Centro de Innovación. ¿Te ayudo a comparar opciones?';
+    } else if (activeTool === 'ideacion') {
+      contextualGreeting = '¡Momento de decidir! ¡Momento de decisión temática! En Ideación Estratégica analizamos el territorio para elegir el tema ancla que orientará el Árbol de Innovación. ¿Comparamos las alternativas o formulamos un tema libre?';
     } else if (activeTool === 'arbol') {
       contextualGreeting = '¡El Árbol de Innovación! Desde las raíces del territorio y los retos del suelo, hasta los frutos: proyectos y servicios. ¿Revisamos las tendencias globales o territoriales?';
-    } else if (activeTool === 'servicios') {
-      contextualGreeting = '¡Generador de Servicios! Aquí convertimos los frutos del árbol en un portafolio de servicios de innovación de alto impacto. ¿Quieres estructurar una nueva ficha técnica?';
+    } else if (activeTool === 'prototipado') {
+      contextualGreeting = '¡Módulo de Prototipado! Aquí podemos armar un plan integral de prototipado con IA para cualquier tema libre o convertir los frutos del árbol en soluciones tangibles. ¿Qué tema deseas prototipar?';
     }
 
     if (contextualGreeting) {
