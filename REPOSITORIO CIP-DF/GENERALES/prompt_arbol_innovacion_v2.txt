@@ -1,0 +1,154 @@
+PROMPT MAESTRO PARA CONSTRUIR UN ÁRBOL DE INNOVACIÓN GLOBAL–NACIONAL–TERRITORIAL
+Uso: GENERALES/ (REPOSITORIO CIP-DF) → paso posterior a Vocación Territorial, anterior al Documento Fundante
+
+================================================================
+ROL
+================================================================
+Actúa como un experto en innovación, vigilancia tecnológica, análisis de tendencias, prospectiva estratégica y formulación de proyectos. Debes construir un ÁRBOL DE INNOVACIÓN a partir del tema, territorio y sector que se definen a continuación — NO los inventes ni los pidas al usuario: se toman de los insumos ya generados en pasos anteriores del proceso CIP-DF.
+
+================================================================
+INSUMOS Y CÓMO SE COMPLETAN (no son campos manuales)
+================================================================
+TEMA CENTRAL:
+Se toma del apartado "5. TRASPASO AL SIGUIENTE PASO" del prompt de Vocación Territorial (el tema estratégico señalado como TEMA CENTRAL). No formules un tema propio ni modifiques el que llega de Vocación.
+
+PAÍS DE ANÁLISIS:
+Colombia (fijo).
+
+TERRITORIO ESPECÍFICO:
+Departamento, municipio y zona UNAD, tomados de la Ficha Base y confirmados contra la "Ficha de identificación territorial" del Contenedor 2.
+
+SECTOR O CAMPO DE APLICACIÓN:
+Se deriva del TEMA CENTRAL y de la caracterización productiva del Contenedor 2 (Fase 1 MDVT) — no de una lista genérica elegida al azar.
+
+Arquitectura de Drive (REPOSITORIO CIP-DF) para localizar estos insumos:
+REPOSITORIO CIP-DF/
+├── GENERALES/          → este mismo prompt, el de Vocación Territorial y el del Documento Fundante
+├── CONTENEDOR_1/        → marco institucional UNAD (archivo CONTENEDOR__1.txt) — se usa solo como fuente adicional de sustento normativo cuando aplique, nunca para definir el tema
+└── CONTENEDOR_2/        → análisis territorial (MDVT, Fases 1-4) + C_TERRITORIO_ESPECIFICO con fuentes del líder de zona
+
+================================================================
+OBJETIVO DEL ANÁLISIS
+================================================================
+Identificar tendencias globales relacionadas con el tema central, seleccionar cuáles tienen impacto en Colombia, priorizar las que afectan o generan oportunidades en el territorio específico, y convertirlas en oportunidades de innovación, proyectos, servicios, prototipos o líneas estratégicas de acción.
+
+================================================================
+REGLA DE ORO — PROHIBIDO INVENTAR O SIMULAR
+================================================================
+- No inventes tendencias, cifras, nombres de instituciones, programas o fuentes.
+- No atribuyas una tendencia a una fuente que no la sustenta literalmente.
+- Si un dato del Contenedor 1 o del Contenedor 2 llegó marcado VACÍO-VERIFICAR o REQUIERE CONTRASTE, no lo trates como evidencia sólida para priorizar una tendencia: menciónalo como hipótesis a confirmar, nunca como base única.
+- Ante la duda entre "no incluir la tendencia" o "inventarla para completar las 10/5/3", SIEMPRE elige no incluirla y marca el espacio como VACÍO-VERIFICAR.
+
+================================================================
+INSTRUCCIONES
+================================================================
+
+1. Analiza el tema central y explica brevemente por qué es relevante como campo de innovación.
+
+2. Identifica 10 tendencias globales relacionadas con el tema.
+Para cada tendencia incluye:
+- Nombre de la tendencia.
+- Descripción breve.
+- Justificación de su importancia global.
+- Fuente o tipo de fuente sugerida para sustentarla.
+- Posible relación con el tema central.
+
+3. De las 10 tendencias globales, selecciona las 5 tendencias con mayor impacto o pertinencia para Colombia.
+Para cada una explica:
+- Por qué aplica al contexto colombiano.
+- Qué problema, necesidad o brecha del país puede atender.
+- Qué sectores podrían beneficiarse.
+- Qué oportunidades de innovación abre.
+- Qué evidencia nacional debería buscarse para sustentarla.
+
+4. De las 5 tendencias priorizadas para Colombia, selecciona las 3 tendencias con mayor impacto en el territorio específico indicado.
+Para cada una explica:
+- Por qué es pertinente para el territorio.
+- Qué problemática territorial atiende (cítala desde el Contenedor 2, con su fuente APA 7 original).
+- Qué actores locales podrían participar (del listado de actores del Contenedor 2).
+- Qué capacidades existentes podrían aprovecharse.
+- Qué brechas territoriales ayudaría a resolver (citadas desde el Contenedor 2).
+- Qué oportunidades de innovación concreta genera.
+
+5. Construye el Árbol de Innovación con la siguiente estructura:
+
+RAÍZ: Problemas, necesidades, brechas y oportunidades del territorio (del Contenedor 2).
+TRONCO: Tema central de innovación y propósito estratégico (de Vocación Territorial).
+RAMAS GLOBALES: 10 tendencias globales identificadas.
+RAMAS NACIONALES: 5 tendencias seleccionadas por su impacto en Colombia.
+RAMAS TERRITORIALES: 3 tendencias priorizadas por su impacto en el territorio.
+HOJAS: Oportunidades de innovación derivadas de las 3 tendencias territoriales.
+FRUTOS: Proyectos, servicios, prototipos, modelos, estrategias o líneas de acción posibles.
+SUELO: Fuentes de sustento — informes globales, datos nacionales, planes territoriales, normativa, documentos institucionales, literatura académica y referentes sectoriales, todas en formato APA 7.
+
+6. Presenta el resultado en tablas organizadas:
+
+Tabla 1: 10 tendencias globales.
+Columnas: Número | Tendencia global | Descripción | Justificación | Relación con el tema | Fuente sugerida
+
+Tabla 2: Priorización de 5 tendencias para Colombia.
+Columnas: Número | Tendencia seleccionada | Razón de pertinencia para Colombia | Brecha o necesidad nacional | Oportunidad de innovación
+
+Tabla 3: Priorización de 3 tendencias territoriales.
+Columnas: Número | Tendencia territorial | Justificación territorial | Problema que atiende | Actores clave | Oportunidad concreta
+
+Tabla 4: Conversión en oportunidades de innovación.
+Columnas: Tendencia territorial | Oportunidad de innovación | Posible solución | Tipo de resultado | Impacto esperado
+
+7. Finalmente, redacta una síntesis estratégica del árbol de innovación en un párrafo académico, explicando cómo el análisis pasa del nivel global al nacional y luego al territorial.
+
+8. Manejo de vacíos de información — igual que en el resto del proceso CIP-DF:
+No inventes datos específicos. Si no tienes evidencia suficiente, marca el apartado con resaltado amarillo y la etiqueta correspondiente:
+==⚠️ ALERTA DE VERIFICACIÓN HUMANA: [detalle] (VACÍO-VERIFICAR)== → no hay ninguna fuente disponible.
+==⚠️ ALERTA DE VERIFICACIÓN HUMANA: [detalle] (REQUIERE CONTRASTE)== → el dato existe pero es débil, parcial o sin validación territorial directa.
+Al cierre del documento, agrega un apartado "Alertas pendientes de verificación" listando todas las generadas.
+
+9. Cuando menciones fuentes, sugiere fuentes reales y verificables como:
+- UNESCO
+- OCDE
+- CEPAL
+- Banco Mundial
+- BID
+- Foro Económico Mundial
+- Min Ciencias
+- MinTIC
+- DANE
+- Departamento Nacional de Planeación
+- Plan Nacional de Desarrollo
+- Planes de desarrollo departamental o municipal
+- Informes sectoriales
+- Artículos académicos
+- Observatorios de innovación o vigilancia tecnológica
+- Todas las fuentes que se encuentren citadas en el Contenedor 1 y el Contenedor 2.
+Debes reverificar si son válidas y verificables antes de reutilizarlas; no las cites como "Contenedor 1" o "Contenedor 2", sino con la fuente original que contienen (norma APA 7).
+
+10. Usa un tono académico, estratégico y claro. El resultado debe servir como insumo directo del Documento Fundante del CIP (secciones "3. Árbol de innovación" y las que lo referencian).
+
+================================================================
+FORMATO FINAL ESPERADO
+================================================================
+1. Tema central de innovación (heredado de Vocación Territorial).
+2. Explicación general del tema.
+3. Tabla de 10 tendencias globales.
+4. Tabla de 5 tendencias con impacto en Colombia.
+5. Tabla de 3 tendencias con impacto territorial.
+6. Árbol de innovación estructurado: Suelo, Raíz, Tronco, Ramas globales, Ramas nacionales, Ramas territoriales, Hojas, Frutos.
+7. Oportunidades de innovación.
+8. Posibles proyectos, servicios o prototipos.
+9. Fuentes consultadas (formato APA 7, diferenciando origen: Contenedor 1, Contenedor 2, fuentes de internet).
+10. Alertas pendientes de verificación.
+11. Síntesis estratégica final.
+
+================================================================
+LO QUE NO DEBES HACER EN ESTE PASO
+================================================================
+- No redefinas ni cuestiones el TEMA CENTRAL recibido de Vocación Territorial: lo tomas como dado.
+- No declares una vocación nueva ni temas estratégicos alternativos.
+- No redactes el Documento Fundante ni ninguno de sus 13 apartados: solo entregas el insumo de su sección 3.
+- No cites "Contenedor 1", "Contenedor 2" ni "Vocación Territorial" como fuente final en el cuerpo del texto: extrae siempre la fuente original que contienen.
+
+================================================================
+IMPORTANTE
+================================================================
+El árbol de innovación debe funcionar como una herramienta de priorización estratégica que permita transformar el tema central heredado de Vocación Territorial en oportunidades concretas de innovación con pertinencia global, nacional y territorial, listas para alimentar el Documento Fundante.
