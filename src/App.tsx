@@ -181,37 +181,42 @@ export const App: React.FC = () => {
         request={zoeRequest}
       />}
 
-      {/* Footer Oficial InnovaHub360 & Créditos Institucionales */}
+      {/* Footer Oficial: Firma de Desarrolladores, UNAD y VIEM */}
       {/* Margen final: ZOE nunca deja contenido fuera de alcance al llegar al final de la página. */}
-      <footer className="relative z-20 box-border w-full px-4 sm:px-6 md:px-8 xl:px-12 2xl:px-16 pt-8 pb-52 md:pb-80 border-t border-white/10 mt-12 flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-brand-textMuted">
-        <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 text-center sm:text-left">
-          <span className="font-bold text-white sy tracking-wide text-sm">InnovaHub360</span>
-          <span className="hidden sm:inline">·</span>
-          <span>Observatorio de Innovación</span>
-          <span className="hidden sm:inline">·</span>
-          <span className="text-[#5EC2DD] font-semibold">Laboratorio de Innovación en Línea</span>
-        </div>
-
-        {/* Créditos Oficiales de Desarrollo y Logo Institucional UNAD Acreditada */}
-        <div className="flex flex-col sm:flex-row items-center md:items-end text-center md:text-right gap-3.5">
-          <div className="flex flex-col items-center md:items-end text-center md:text-right gap-1">
-            <div className="text-white/90 font-medium">
-              Desarrollado por <span className="text-white font-semibold">Natalia Elizabeth Pérez</span> y <span className="text-white font-semibold">Camilo Esteban Lozano</span>
+      <footer className="relative z-20 box-border w-full px-4 sm:px-6 md:px-8 xl:px-12 2xl:px-16 pt-8 pb-52 md:pb-80 border-t border-white/10 mt-12 flex items-center justify-start">
+        {/* Firma Oficial de Desarrollo Institucional: Desarrolladores · UNAD · VIEM */}
+        <div className="flex flex-col sm:flex-row items-center gap-5 sm:gap-7 text-left">
+          {/* Bloque de Nombres */}
+          <div className="flex flex-col text-left">
+            <div className="flex items-center gap-1.5 text-xs text-white/70 font-medium">
+              <span className="w-0.5 h-3.5 bg-white/70 inline-block rounded-full" />
+              <span>Desarrollado por</span>
             </div>
-            <div className="text-[11px] text-[#A8C63C] font-semibold tracking-wide">
-              Vicerrectoría de Innovación y Emprendimiento — VIEM
+            <div className="text-sm font-semibold text-white tracking-tight mt-0.5 leading-snug">
+              Natalia Elizabeth Perez
             </div>
-            <div className="text-[10px] text-brand-textMuted m">
-              Universidad Nacional Abierta y a Distancia (UNAD)
+            <div className="text-sm font-semibold text-white tracking-tight leading-snug">
+              Camilo Esteban Lozano
             </div>
           </div>
-          {/* Sello Oficial UNAD Acreditada en Alta Calidad */}
-          <div className="flex items-center justify-center p-1.5 bg-white/95 rounded-2xl border border-[#F29F05]/30 shadow-[0_4px_16px_rgba(0,0,0,0.35)] shrink-0 transition-transform hover:scale-105">
+
+          {/* Logo PNG Oficial UNAD Acreditada en Alta Calidad (Fondo transparente) */}
+          <div className="flex items-center shrink-0">
             <img
               src="/assets/unad_acreditada.png"
-              alt="UNAD - Universidad Nacional Abierta y a Distancia · Acreditada en Alta Calidad"
-              className="w-14 h-14 md:w-16 md:h-16 object-contain"
-              title="Universidad Nacional Abierta y a Distancia - Acreditada en Alta Calidad"
+              alt="Universidad Nacional Abierta y a Distancia · Acreditada en Alta Calidad"
+              className="h-14 sm:h-16 w-auto object-contain transition-transform hover:scale-105 filter drop-shadow-[0_2px_8px_rgba(255,255,255,0.35)]"
+              title="UNAD - Acreditada en Alta Calidad"
+            />
+          </div>
+
+          {/* Logo PNG Oficial VIEM (Fondo transparente) */}
+          <div className="flex items-center shrink-0">
+            <img
+              src="/assets/viem_logo.png"
+              alt="VIEM · Vicerrectoría de Innovación y Emprendimiento"
+              className="h-12 sm:h-14 w-auto object-contain transition-transform hover:scale-105 filter drop-shadow-[0_2px_8px_rgba(255,255,255,0.35)]"
+              title="Vicerrectoría de Innovación y Emprendimiento (VIEM)"
             />
           </div>
         </div>
