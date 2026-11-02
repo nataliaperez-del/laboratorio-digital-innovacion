@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { AiSettings } from '@/components/lab/AiSettings';
-import { Sparkles, Sun, Moon, Search, Layers, Compass, Trees, BrainCircuit, Rocket } from 'lucide-react';
+import { Sparkles, Sun, Moon, Search, Layers, Compass, Trees, BrainCircuit, Rocket, Menu, X, Bot } from 'lucide-react';
 
 export type ToolId = 'portal' | 'radar' | 'estudio' | 'ideacion' | 'arbol' | 'prototipado';
 export const TOOL_IDS: readonly ToolId[] = ['portal', 'radar', 'estudio', 'ideacion', 'arbol', 'prototipado'];
@@ -24,6 +24,21 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleZoe,
   zoeState,
 }) => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Cerrar menú al hacer clic afuera
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+    if (isMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isMenuOpen]);
   return (
     <header className="relative z-40 w-full box-border px-4 sm:px-6 md:px-8 xl:px-12 2xl:px-16 pt-6 pb-4">
       {/* Hidden SVGs for Logo Symbol */}
@@ -146,39 +161,89 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         </nav>
 
-        {/* Action Controls: ZOE trigger + Theme toggle + Institutional Access */}
-        <div className="flex items-center gap-2.5">
-          <AiSettings />
-
-          {/* ZOE Interactive Trigger */}
+        {/* Menú Hamburguesa Superior Derecho: Funciones de IA, ZOE y Tema Claro/Oscuro */}
+        <div className="relative" ref={menuRef}>
           <button
             type="button"
-            onClick={onToggleZoe}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-full border transition-all cursor-pointer ${
-              isZoeOpen
-                ? 'bg-[#27DCFF]/20 border-[#27DCFF] text-[#27DCFF] shadow-[0_0_20px_rgba(39,220,255,0.4)]'
-                : 'g2 border-white/15 text-[#27DCFF] hover:border-[#27DCFF]/50'
+            onClick={() => setIsMenuOpen((prev) => !prev)}
+            className={`p-2.5 rounded-full g2 border transition-all cursor-pointer flex items-center justify-center ${
+              isMenuOpen
+                ? 'border-[#27DCFF] text-[#27DCFF] shadow-[0_0_15px_rgba(39,220,255,0.4)] bg-[#0C5E78]/50'
+                : 'border-white/15 text-brand-textSecondary hover:text-white hover:border-[#27DCFF]/40 hover:bg-white/5'
             }`}
-            title={isZoeOpen ? 'Guardar a ZOE' : 'Llamar a ZOE'}
-            aria-pressed={isZoeOpen}
+            title="Menú de funciones: IA, ZOE y Tema"
+            aria-label="Abrir menú de funciones"
+            aria-expanded={isMenuOpen}
           >
-            <Sparkles className="w-4 h-4 animate-spin text-[#27DCFF]" style={{ animationDuration: '6s' }} />
-            <span className="text-xs font-bold sy tracking-wide">ZOE</span>
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#27DCFF] opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#27DCFF]"></span>
-            </span>
+            {isMenuOpen ? <X className="w-5 h-5 text-[#27DCFF]" /> : <Menu className="w-5 h-5" />}
           </button>
 
-          {/* Theme Switcher */}
-          <button
-            type="button"
-            onClick={onToggleTheme}
-            className="g2 p-2.5 rounded-full text-brand-textSecondary hover:text-white cursor-pointer transition-colors"
-            title={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
-          >
-            {theme === 'dark' ? <Sun className="w-4 h-4 text-[#F3C26B]" /> : <Moon className="w-4 h-4 text-[#5EC2DD]" />}
-          </button>
+          {/* Menú Desplegable Flotante Elegante Glassmorphism */}
+          {isMenuOpen && (
+            <div className="absolute right-0 top-full mt-3 w-72 g2 rounded-2xl border border-white/20 shadow-[0_16px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl p-4 z-50 animate-in fade-in slide-in-from-top-2 duration-150 space-y-3.5">
+              <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-brand-textMuted sy">
+                  Ajustes y Asistentes
+                </span>
+                <span className="text-[10px] m text-[#5EC2DD]">InnovaHub360</span>
+              </div>
+
+              {/* 1. Selector de Proveedor / Configuración IA */}
+              <div className="space-y-1.5">
+                <span className="text-xs text-white/80 font-medium block">Inteligencia Artificial</span>
+                <div className="w-full">
+                  <AiSettings />
+                </div>
+              </div>
+
+              {/* 2. Control de ZOE */}
+              <div className="space-y-1.5 pt-1">
+                <span className="text-xs text-white/80 font-medium block">Asistente ZOE</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onToggleZoe();
+                  }}
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border transition-all cursor-pointer ${
+                    isZoeOpen
+                      ? 'bg-[#27DCFF]/20 border-[#27DCFF] text-[#27DCFF] shadow-[0_0_15px_rgba(39,220,255,0.25)]'
+                      : 'bg-white/5 border-white/10 text-white/90 hover:border-[#27DCFF]/40 hover:bg-white/10'
+                  }`}
+                  aria-pressed={isZoeOpen}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Sparkles className="w-4 h-4 text-[#27DCFF] animate-spin" style={{ animationDuration: '6s' }} />
+                    <span className="text-xs font-bold sy tracking-wide">ZOE 3D</span>
+                  </div>
+                  <span className="text-[11px] font-semibold text-[#A8C63C]">
+                    {isZoeOpen ? 'Activo en pantalla' : 'Activar ZOE'}
+                  </span>
+                </button>
+              </div>
+
+              {/* 3. Modo Claro / Oscuro */}
+              <div className="space-y-1.5 pt-1 border-t border-white/10">
+                <span className="text-xs text-white/80 font-medium block">Apariencia</span>
+                <button
+                  type="button"
+                  onClick={onToggleTheme}
+                  className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/90 hover:bg-white/10 transition-colors cursor-pointer"
+                >
+                  <div className="flex items-center gap-2.5">
+                    {theme === 'dark' ? (
+                      <Moon className="w-4 h-4 text-[#5EC2DD]" />
+                    ) : (
+                      <Sun className="w-4 h-4 text-[#F3C26B]" />
+                    )}
+                    <span className="text-xs font-medium">Tema Visual</span>
+                  </div>
+                  <span className="text-xs font-bold capitalize text-[#F3C26B]">
+                    Modo {theme === 'dark' ? 'Oscuro' : 'Claro'}
+                  </span>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

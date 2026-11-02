@@ -65,7 +65,13 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-screen w-full min-w-full overflow-x-hidden flex flex-col justify-between">
+    <div
+      className={
+        currentTool === 'portal'
+          ? 'relative h-screen w-full min-w-full overflow-hidden flex flex-col justify-between'
+          : 'relative min-h-screen w-full min-w-full overflow-x-hidden flex flex-col justify-between'
+      }
+    >
       {/* Background Animated Halos (Fidelidad Oficial InnovaHub360) */}
       <div
         className="halo pointer-events-none"
@@ -149,7 +155,13 @@ export const App: React.FC = () => {
       />
 
       {/* Main Dynamic View Content (Fluid Full-Width Layout) */}
-      <main className="relative z-10 flex-1 box-border w-full px-4 sm:px-6 md:px-8 xl:px-12 2xl:px-16 pt-6 pb-10">
+      <main
+        className={
+          currentTool === 'portal'
+            ? 'relative z-10 flex-1 box-border w-full px-4 sm:px-6 md:px-8 xl:px-12 2xl:px-16 py-1 overflow-hidden flex items-center justify-center'
+            : 'relative z-10 flex-1 box-border w-full px-4 sm:px-6 md:px-8 xl:px-12 2xl:px-16 pt-6 pb-10'
+        }
+      >
         {currentTool === 'portal' && (
           <PortalCatalog
             onSelectTool={setCurrentTool}
@@ -171,31 +183,37 @@ export const App: React.FC = () => {
         </Suspense>
       )}
 
-      {!introOpen && <ZoeFreePresence
-        currentTool={currentTool}
-        onSelectTool={setCurrentTool}
-        theme={theme}
-        onToggleTheme={toggleTheme}
-        isOpen={isZoeOpen}
-        onToggleOpen={() => setIsZoeOpen((prev) => !prev)}
-        request={zoeRequest}
-      />}
+      {!introOpen && (
+        <ZoeFreePresence
+          currentTool={currentTool}
+          onSelectTool={setCurrentTool}
+          theme={theme}
+          onToggleTheme={toggleTheme}
+          isOpen={isZoeOpen}
+          onToggleOpen={() => setIsZoeOpen((prev) => !prev)}
+          request={zoeRequest}
+        />
+      )}
 
-      {/* Footer Oficial: Firma de Desarrolladores, UNAD y VIEM */}
-      {/* Margen final: ZOE nunca deja contenido fuera de alcance al llegar al final de la página. */}
-      <footer className="relative z-20 box-border w-full px-4 sm:px-6 md:px-8 xl:px-12 2xl:px-16 pt-8 pb-52 md:pb-80 border-t border-white/10 mt-12 flex items-center justify-start">
-        {/* Firma Oficial de Desarrollo Institucional: Desarrolladores · UNAD · VIEM */}
-        <div className="flex flex-col sm:flex-row items-center gap-5 sm:gap-7 text-left">
+      {/* Footer Oficial: Firma sutil justificada en la esquina inferior derecha */}
+      <footer
+        className={
+          currentTool === 'portal'
+            ? 'relative z-20 box-border w-full px-4 sm:px-6 md:px-8 xl:px-12 2xl:px-16 py-2.5 border-t border-white/10 flex items-center justify-end'
+            : 'relative z-20 box-border w-full px-4 sm:px-6 md:px-8 xl:px-12 2xl:px-16 pt-8 pb-52 md:pb-80 border-t border-white/10 mt-12 flex items-center justify-end'
+        }
+      >
+        <div className="flex items-center gap-4 sm:gap-5 justify-end">
           {/* Bloque de Nombres */}
-          <div className="flex flex-col text-left">
-            <div className="flex items-center gap-1.5 text-xs text-white/70 font-medium">
-              <span className="w-0.5 h-3.5 bg-white/70 inline-block rounded-full" />
+          <div className="flex flex-col text-right">
+            <div className="flex items-center justify-end gap-1.5 text-[11px] text-white/60 font-medium">
               <span>Desarrollado por</span>
+              <span className="w-0.5 h-3 bg-[#27DCFF]/70 inline-block rounded-full" />
             </div>
-            <div className="text-sm font-semibold text-white tracking-tight mt-0.5 leading-snug">
+            <div className="text-xs font-semibold text-white tracking-tight mt-0.5 leading-snug">
               Natalia Elizabeth Perez
             </div>
-            <div className="text-sm font-semibold text-white tracking-tight leading-snug">
+            <div className="text-xs font-semibold text-white tracking-tight leading-snug">
               Camilo Esteban Lozano
             </div>
           </div>
@@ -205,7 +223,7 @@ export const App: React.FC = () => {
             <img
               src="/assets/unad_acreditada.png"
               alt="Universidad Nacional Abierta y a Distancia · Acreditada en Alta Calidad"
-              className="h-14 sm:h-16 w-auto object-contain transition-transform hover:scale-105 filter drop-shadow-[0_2px_8px_rgba(255,255,255,0.35)]"
+              className="h-10 sm:h-12 w-auto object-contain transition-transform hover:scale-105 filter drop-shadow-[0_2px_6px_rgba(255,255,255,0.35)]"
               title="UNAD - Acreditada en Alta Calidad"
             />
           </div>
@@ -215,7 +233,7 @@ export const App: React.FC = () => {
             <img
               src="/assets/viem_logo.png"
               alt="VIEM · Vicerrectoría de Innovación y Emprendimiento"
-              className="h-12 sm:h-14 w-auto object-contain transition-transform hover:scale-105 filter drop-shadow-[0_2px_8px_rgba(255,255,255,0.35)]"
+              className="h-9 sm:h-11 w-auto object-contain transition-transform hover:scale-105 filter drop-shadow-[0_2px_6px_rgba(255,255,255,0.35)]"
               title="Vicerrectoría de Innovación y Emprendimiento (VIEM)"
             />
           </div>
