@@ -195,29 +195,28 @@ export const App: React.FC = () => {
         />
       )}
 
-      {/* Footer Oficial: Desarrolladores a la izquierda y Logos Institucionales a la derecha */}
+      {/* Footer Oficial: Desarrolladores justificados a la derecha junto al Logo UNAD */}
       <footer
         className={
           currentTool === 'portal'
-            ? 'relative z-20 box-border w-full px-4 sm:px-6 md:px-8 xl:px-12 2xl:px-16 py-2.5 border-t border-white/10 flex items-center justify-between'
-            : 'relative z-20 box-border w-full px-4 sm:px-6 md:px-8 xl:px-12 2xl:px-16 pt-8 pb-52 md:pb-80 border-t border-white/10 mt-12 flex items-center justify-between'
+            ? 'relative z-20 box-border w-full px-4 sm:px-6 md:px-8 xl:px-12 2xl:px-16 py-2.5 border-t border-white/10 flex items-center justify-end'
+            : 'relative z-20 box-border w-full px-4 sm:px-6 md:px-8 xl:px-12 2xl:px-16 pt-8 pb-52 md:pb-80 border-t border-white/10 mt-12 flex items-center justify-end'
         }
       >
-        {/* Bloque de Desarrolladores sutil, pequeño, justificado al borde izquierdo con nombres en cursiva */}
-        <div className="flex flex-col text-left leading-tight">
-          <span className="text-[8.5px] uppercase tracking-wider text-white/40 font-medium">
-            Desarrollado por
-          </span>
-          <span className="text-[9.5px] italic text-white/55 tracking-tight mt-0.5 font-light">
-            Natalia Elizabeth Perez
-          </span>
-          <span className="text-[9.5px] italic text-white/55 tracking-tight font-light">
-            Camilo Esteban Lozano
-          </span>
-        </div>
+        <div className="flex items-center gap-3.5 sm:gap-4 justify-end">
+          {/* Bloque de Desarrolladores justificado hacia la derecha, junto al logo UNAD */}
+          <div className="flex flex-col text-right leading-tight">
+            <span className="text-[7.5px] uppercase tracking-wider text-[#F29F05]/75 font-semibold">
+              Desarrollado por
+            </span>
+            <span className="text-[10px] italic text-white/60 tracking-tight mt-0.5 font-light">
+              Natalia Elizabeth Perez
+            </span>
+            <span className="text-[10px] italic text-white/60 tracking-tight font-light">
+              Camilo Esteban Lozano
+            </span>
+          </div>
 
-        {/* Logos Institucionales UNAD y VIEM en tonalidad natural */}
-        <div className="flex items-center gap-3.5 sm:gap-4 shrink-0">
           {/* Logo PNG Oficial UNAD Acreditada - Tonalidad natural sin resplandor agresivo */}
           <div className="flex items-center shrink-0">
             <img
