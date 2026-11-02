@@ -1,4 +1,12 @@
-@import "tailwindcss";
+@import "tailwindcss" source(none);
+/* Solo el código fuente: escanear el resto del proyecto recargaba la página al editar documentos. */
+@source "../src";
+
+/* Colores de marca usados como utilidades (text-brand-textMuted…): sin esto Tailwind 4 no las genera. */
+@theme {
+  --color-brand-textSecondary: var(--text-secondary);
+  --color-brand-textMuted: var(--text-muted);
+}
 
 @layer base {
   :root {
@@ -309,3 +317,71 @@
   animation: shimmerGlow 12s ease infinite;
 }
 
+
+/* ═══════════ Componentes del Laboratorio (claro y oscuro) ═══════════ */
+:root {
+  --lab-surface: rgba(255, 255, 255, 0.06);
+  --lab-surface-2: rgba(4, 34, 43, 0.72);
+  --lab-border: rgba(255, 255, 255, 0.14);
+  --lab-input: #04222B;
+}
+[data-theme="light"] {
+  --lab-surface: rgba(255, 255, 255, 0.82);
+  --lab-surface-2: rgba(255, 255, 255, 0.92);
+  --lab-border: rgba(4, 47, 60, 0.16);
+  --lab-input: #FFFFFF;
+}
+.lab-panel { background: var(--lab-surface); border: 1px solid var(--lab-border); border-radius: 18px; padding: 20px; backdrop-filter: blur(12px); }
+.lab-card { background: var(--lab-surface-2); border: 1px solid var(--lab-border); border-radius: 14px; padding: 14px; transition: border-color .15s ease; min-width: 0; }
+button.lab-card { cursor: pointer; }
+button.lab-card:hover { border-color: var(--brand-teal-text); }
+.lab-card.is-selected { border-color: var(--brand-teal-text); box-shadow: 0 0 0 1px var(--brand-teal-text) inset; }
+.lab-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
+.lab-input { width: 100%; background: var(--lab-input); color: var(--text-primary); border: 1px solid var(--lab-border); border-radius: 10px; padding: 9px 12px; font-size: 14px; outline: none; }
+.lab-input:focus { border-color: var(--brand-teal-text); }
+.lab-input:disabled { opacity: .5; }
+.lab-input option { background: var(--lab-input); color: var(--text-primary); }
+.lab-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 14px; border-radius: 999px; font-size: 12px; font-weight: 600; color: var(--text-primary); background: var(--lab-surface); border: 1px solid var(--lab-border); cursor: pointer; transition: border-color .15s ease; text-decoration: none; }
+.lab-btn:hover:not(:disabled) { border-color: var(--brand-teal-text); }
+.lab-btn:disabled, .metal:disabled { opacity: .45; cursor: not-allowed; }
+.lab-btn-sm { padding: 4px 10px; font-size: 11px; }
+.metal { cursor: pointer; }
+.lab-seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: 12px; background: var(--lab-surface-2); border: 1px solid var(--lab-border); }
+.lab-seg button { padding: 5px 11px; border-radius: 9px; font-size: 12px; font-weight: 500; color: var(--text-muted); cursor: pointer; }
+.lab-seg button[aria-pressed="true"] { background: var(--brand-teal); color: #fff; font-weight: 600; }
+.lab-seg button:disabled { opacity: .4; cursor: not-allowed; }
+.lab-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 999px; font-size: 11px; color: var(--text-secondary); background: var(--lab-surface-2); border: 1px solid var(--lab-border); }
+.chip { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; }
+.lab-chip-btn { cursor: pointer; }
+.lab-chip-btn:hover { border-color: var(--brand-teal-text); color: var(--text-primary); }
+.lab-error { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 12px; font-size: 13px; color: #FBD5D5; background: rgba(136, 19, 55, .25); border: 1px solid rgba(244, 63, 94, .4); }
+[data-theme="light"] .lab-error { color: #881337; background: #FFF1F2; }
+.lab-callout { display: flex; gap: 8px; align-items: flex-start; padding: 10px 12px; border-radius: 10px; font-size: 13px; line-height: 1.45; color: #F3C26B; background: rgba(242, 159, 5, .1); border: 1px solid rgba(242, 159, 5, .35); }
+[data-theme="light"] .lab-callout { color: #6B4700; }
+.lab-alert-inline { background: rgba(242, 159, 5, .22); color: inherit; padding: 0 3px; border-radius: 3px; }
+.lab-code { font-family: 'IBM Plex Mono', monospace; background: var(--lab-surface-2); padding: 1px 4px; border-radius: 4px; }
+.lab-table-wrap { overflow-x: auto; border: 1px solid var(--lab-border); border-radius: 12px; }
+.lab-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.lab-table th { text-align: left; padding: 8px 10px; font-weight: 600; color: var(--text-primary); background: var(--lab-surface-2); white-space: nowrap; }
+.lab-table td { padding: 8px 10px; color: var(--text-secondary); border-top: 1px solid var(--lab-border); vertical-align: top; min-width: 90px; }
+.lab-disclosure { border: 1px solid var(--lab-border); border-radius: 12px; background: var(--lab-surface); }
+.lab-disclosure-head { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; text-align: left; color: var(--text-primary); cursor: pointer; }
+.lab-disclosure-body { padding: 2px 14px 14px; }
+.lab-drop { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 24px; text-align: center; border: 2px dashed var(--lab-border); border-radius: 14px; cursor: pointer; }
+.lab-drop:hover { border-color: var(--brand-teal-text); }
+.lab-popover { position: absolute; right: 0; top: calc(100% + 8px); width: min(92vw, 26rem); padding: 18px; border-radius: 16px; z-index: 60; background: var(--bg-page); border: 1px solid var(--lab-border); box-shadow: 0 24px 60px rgba(0, 0, 0, .45); }
+.lab-navitem { display: flex; width: 100%; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 10px; font-size: 12.5px; color: var(--text-secondary); border: 1px solid transparent; cursor: pointer; }
+.lab-navitem:hover { background: var(--lab-surface); }
+.lab-navitem.is-active { background: var(--lab-surface-2); border-color: var(--brand-teal-text); color: var(--text-primary); font-weight: 600; }
+.lab-hero { display: flex; gap: 14px; align-items: flex-start; }
+.lab-hero-icon { display: flex; width: 42px; height: 42px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 12px; color: #F3C26B; background: rgba(242, 159, 5, .14); border: 1px solid rgba(242, 159, 5, .35); }
+.lab-tabs { display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid var(--lab-border); padding-bottom: 8px; }
+.lab-tabs button { padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; color: var(--text-muted); cursor: pointer; }
+.lab-tabs button.is-active { background: var(--lab-surface-2); color: var(--text-primary); }
+.lab-timeline { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.lab-timeline button { width: 100%; height: 100%; text-align: left; padding: 10px 12px; border-radius: 10px; color: var(--text-secondary); background: var(--lab-surface-2); border: 1px solid var(--lab-border); border-top: 3px solid var(--lab-border); cursor: pointer; }
+.lab-timeline button.is-active { border-top-color: var(--brand-teal-text); color: var(--text-primary); }
+/* El árbol trae su propia placa oscura, igual que en Boletines: se lee igual en ambos temas. */
+.lab-tree-canvas { background: #021219; border: 1px solid rgba(94, 194, 221, .28); border-radius: 16px; overflow: auto; min-width: 0; }
+.lab-tree-canvas svg.arbol-svg { display: block; width: 100%; min-width: 820px; height: auto; }
+:focus-visible { outline: 2px solid var(--brand-teal-text); outline-offset: 2px; }

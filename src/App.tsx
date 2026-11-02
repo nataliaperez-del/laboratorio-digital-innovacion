@@ -1,20 +1,35 @@
 import React, { useState, useEffect } from 'react';
-import { Header, ToolId } from './components/layout/Header';
+import { Header, ToolId, TOOL_IDS } from './components/layout/Header';
 import { PortalCatalog } from './components/portal/PortalCatalog';
 import { RadarView } from './components/tools/RadarView';
 import { EstudioTerritorialView } from './components/tools/EstudioTerritorialView';
 import { IdeacionEstrategicaView } from './components/tools/IdeacionEstrategicaView';
 import { ArbolInnovacionView } from './components/tools/ArbolInnovacionView';
 import { PrototipadoView } from './components/tools/PrototipadoView';
-import { ZoeCompanion } from './components/zoe/ZoeCompanion';
+import { ZoeFreePresence } from './components/zoe/ZoeFreePresence';
 
 export const App: React.FC = () => {
-  const [currentTool, setCurrentTool] = useState<ToolId>('portal');
+  // La herramienta vive en el hash: permite enlazarla desde el Observatorio y usar «Atrás».
+  const readHash = (): ToolId => {
+    const id = window.location.hash.replace(/^#\/?/, '') as ToolId;
+    return TOOL_IDS.includes(id) ? id : 'portal';
+  };
+  const [currentTool, setTool] = useState<ToolId>(readHash);
+  const setCurrentTool = (tool: ToolId) => {
+    window.location.hash = `/${tool}`;
+    setTool(tool);
+    window.scrollTo({ top: 0 });
+  };
+  useEffect(() => {
+    const onHash = () => setTool(readHash());
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     return (localStorage.getItem('innovahub_theme') as 'dark' | 'light') || 'dark';
   });
   const [isZoeOpen, setIsZoeOpen] = useState<boolean>(true);
-  const [zoeState, setZoeState] = useState<string>('idle');
+  const zoeState = 'idle';
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -117,40 +132,44 @@ export const App: React.FC = () => {
             onOpenZoe={() => setIsZoeOpen(true)}
           />
         )}
-        {currentTool === 'radar' && <RadarView />}
-        {currentTool === 'estudio' && <EstudioTerritorialView />}
-        {currentTool === 'ideacion' && (
-          <IdeacionEstrategicaView onNavigateToTree={() => setCurrentTool('arbol')} />
-        )}
-        {currentTool === 'arbol' && (
-          <ArbolInnovacionView onNavigateToPrototyping={() => setCurrentTool('prototipado')} />
-        )}
-        {currentTool === 'prototipado' && <PrototipadoView />}
+        {currentTool === 'radar' && <RadarView onNavigate={setCurrentTool} />}
+        {currentTool === 'estudio' && <EstudioTerritorialView onNavigate={setCurrentTool} />}
+        {currentTool === 'ideacion' && <IdeacionEstrategicaView onNavigate={setCurrentTool} />}
+        {currentTool === 'arbol' && <ArbolInnovacionView onNavigate={setCurrentTool} />}
+        {currentTool === 'prototipado' && <PrototipadoView onNavigate={setCurrentTool} />}
       </main>
 
-      {/* ZOE Interactive Sidecar Companion */}
-      <ZoeCompanion
+      {/* ZOE: Alma de Innovación 3D - Presencia Libre por su Casa */}
+      <ZoeFreePresence
+        currentTool={currentTool}
+        onSelectTool={setCurrentTool}
+        theme={theme}
+        onToggleTheme={toggleTheme}
         isOpen={isZoeOpen}
-        onClose={() => setIsZoeOpen(false)}
-        activeTool={currentTool}
+        onToggleOpen={() => setIsZoeOpen((prev) => !prev)}
       />
 
-      {/* Footer Oficial InnovaHub360 */}
-      <footer className="relative z-20 box-border w-full px-4 sm:px-6 md:px-8 xl:px-12 2xl:px-16 py-8 border-t border-white/10 mt-12 flex flex-wrap items-center justify-between gap-4 text-xs text-brand-textMuted">
-        <div className="flex items-center gap-3">
-          <span className="font-bold text-white sy">InnovaHub360</span>
-          <span>·</span>
-          <span>Universidad Nacional Abierta y a Distancia (UNAD)</span>
-          <span>·</span>
-          <span>Laboratorio Digital de Innovación 2026</span>
+      {/* Footer Oficial InnovaHub360 & Créditos Institucionales */}
+      <footer className="relative z-20 box-border w-full px-4 sm:px-6 md:px-8 xl:px-12 2xl:px-16 py-8 border-t border-white/10 mt-12 flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-brand-textMuted">
+        <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 text-center sm:text-left">
+          <span className="font-bold text-white sy tracking-wide text-sm">InnovaHub360</span>
+          <span className="hidden sm:inline">·</span>
+          <span>Observatorio de Innovación</span>
+          <span className="hidden sm:inline">·</span>
+          <span className="text-[#5EC2DD] font-semibold">Laboratorio de Innovación en Línea</span>
         </div>
 
-        <div className="flex items-center gap-4 m">
-          <span>Accesibilidad WCAG 2.1 AA</span>
-          <span>·</span>
-          <span>Google Gemini Institucional Activo</span>
-          <span>·</span>
-          <span className="text-[#27DCFF]">ZOE Holographic Assistant v2.0</span>
+        {/* Créditos Oficiales de Desarrollo */}
+        <div className="flex flex-col items-center md:items-end text-center md:text-right gap-1">
+          <div className="text-white/90 font-medium">
+            Desarrollado por <span className="text-white font-semibold">Natalia Elizabeth Pérez</span> y <span className="text-white font-semibold">Camilo Esteban Lozano</span>
+          </div>
+          <div className="text-[11px] text-[#A8C63C] font-semibold tracking-wide">
+            Vicerrectoría de Innovación y Emprendimiento — VIEM
+          </div>
+          <div className="text-[10px] text-brand-textMuted m">
+            Universidad Nacional Abierta y a Distancia (UNAD)
+          </div>
         </div>
       </footer>
     </div>

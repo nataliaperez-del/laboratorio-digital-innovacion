@@ -8,12 +8,6 @@ function openaiCombinedCharsForModel(modelId: string): number {
   return 120_000;
 }
 
-function openaiDocumentCharsForModel(modelId: string): number {
-  const m = modelId.toLowerCase();
-  if (m.startsWith('o1') || m.startsWith('o3')) return 65_000;
-  return 150_000;
-}
-
 /**
  * Límite aproximado de caracteres del texto institucional de Google Drive en `generateContainer` (Fase 2),
  * para no exceder el contexto del modelo (p. ej. OpenAI 128k tokens).
@@ -40,59 +34,6 @@ export function getMaxCombinedSourceChars(provider: AIProvider): number {
       return 80_000;
     default:
       return 150_000;
-  }
-}
-
-/**
- * Texto bruto adicional de Google Drive que se reenvía en Fase 3 junto al contenedor,
- * para que el proyecto de innovación pueda desarrollar detalle que el Contenedor 2 resumió.
- */
-export function getMaxSupplementaryDocumentChars(provider: AIProvider): number {
-  const raw = import.meta.env.VITE_MAX_DOCUMENT_SUPPLEMENTARY_CHARS?.trim();
-  if (raw) {
-    const n = Number(raw);
-    if (Number.isFinite(n) && n >= 5_000) return Math.min(Math.floor(n), 1_500_000);
-  }
-  switch (provider) {
-    case 'openai':
-      return 120_000;
-    case 'anthropic':
-      return 90_000;
-    /** Bajo, porque este bloque se suma al contenedor + instrucción en cada uno de los 13 apartados. */
-    case 'unadGemini':
-      return 80_000;
-    case 'gemini':
-      return 500_000;
-    case 'ollama':
-      return 50_000;
-    default:
-      return 80_000;
-  }
-}
-
-/** Límite para el bloque CONTENEDOR en generateDocument (Fase 3). */
-export function getMaxDocumentContainerChars(provider: AIProvider): number {
-  const raw = import.meta.env.VITE_MAX_DOCUMENT_CONTAINER_CHARS?.trim();
-  if (raw) {
-    const n = Number(raw);
-    if (Number.isFinite(n) && n >= 20_000) return Math.min(Math.floor(n), 2_000_000);
-  }
-  switch (provider) {
-    case 'openai': {
-      const model = (useStore.getState().openaiModel || 'gpt-4o').trim() || 'gpt-4o';
-      return openaiDocumentCharsForModel(model);
-    }
-    case 'anthropic':
-      return 450_000;
-    /** Coherente con el tope de Fase 2: el proxy UNAD devuelve 500 con prompts muy grandes. */
-    case 'unadGemini':
-      return 120_000;
-    case 'gemini':
-      return 1_000_000;
-    case 'ollama':
-      return 100_000;
-    default:
-      return 180_000;
   }
 }
 
@@ -137,32 +78,6 @@ export function getMaxC2TerritorialPromptDocCharsForContainer(provider: AIProvid
   const cap = getMaxC2TerritorialPromptDocChars();
   if (provider === 'unadGemini') return Math.min(cap, 48_000);
   return cap;
-}
-
-/**
- * Tope de caracteres del TXT `instruccion_documento_fundante_CIP_actualizada.txt` embebido en cada apartado del fundante.
- * Override: `VITE_MAX_INSTRUCCION_FUNDANTE_CHARS`.
- */
-export function getMaxInstruccionFundantePromptChars(): number {
-  const raw = import.meta.env.VITE_MAX_INSTRUCCION_FUNDANTE_CHARS?.trim();
-  if (raw) {
-    const n = Number(raw);
-    if (Number.isFinite(n) && n >= 8_000) return Math.min(Math.floor(n), 600_000);
-  }
-  return 180_000;
-}
-
-/**
- * Caracteres máximos de la **cola** del documento ya generado que se reenvían en cada apartado (Fase 3),
- * para coherencia sin inflar demasiado el prompt. Override: `VITE_MAX_FUNDANTE_PREV_CONTEXT_CHARS`.
- */
-export function getMaxFundantePreviousContextChars(): number {
-  const raw = import.meta.env.VITE_MAX_FUNDANTE_PREV_CONTEXT_CHARS?.trim();
-  if (raw) {
-    const n = Number(raw);
-    if (Number.isFinite(n) && n >= 2_000) return Math.min(Math.floor(n), 250_000);
-  }
-  return 18_000;
 }
 
 /**

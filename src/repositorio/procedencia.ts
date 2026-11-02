@@ -1,5 +1,5 @@
 /**
- * Contrato de procedencia hacia el generador del Contenedor 2 (§5).
+ * Contrato de procedencia hacia el generador del Estudio Territorial.
  *
  * Es la fuente de verdad para tres consumidores: la interfaz, los metadatos que se
  * guardan junto al contenedor y el prompt del modelo (declaración de trazabilidad, §6).
@@ -83,11 +83,11 @@ export function construirProcedencia(args: {
 export function notaTrazabilidadSinFuentes(version: string): string {
   const v = version || 's. v.';
   return (
-    'Nota de trazabilidad documental. Para la construcción de este Contenedor 2 no se incorporaron ' +
+    'Nota de trazabilidad documental. Para la construcción de este estudio territorial no se incorporaron ' +
     'fuentes primarias propias del territorio. El repositorio de fuentes propias no fue habilitado por el ' +
     'equipo responsable en el momento de la generación. En consecuencia, el contenido territorial de este ' +
     'documento proviene exclusivamente de fuentes secundarias públicas y del núcleo metodológico institucional ' +
-    `(Contenedor 1, versión ${v}). Todo dato territorial aquí registrado debe entenderse como candidato ` +
+    `(versión ${v}). Todo dato territorial aquí registrado debe entenderse como candidato ` +
     'pendiente de verificación y no puede ser citado en documentos oficiales sin contraste previo con fuente primaria.'
   );
 }

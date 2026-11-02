@@ -7,7 +7,7 @@
 import { sanitizeCredential } from '@/lib/sanitizeCredential';
 
 /** Modelo por defecto: mejor equilibrio calidad/velocidad que flash-lite para contenedores y documentos largos. */
-export const DEFAULT_UNAD_GEMINI_MODEL = 'gemini-2.5-flash';
+export const DEFAULT_UNAD_GEMINI_MODEL = 'gemini-3.5-flash';
 
 export type UnadGeminiGenerateResponse = {
   candidates?: Array<{
@@ -24,7 +24,7 @@ export type UnadGeminiGenerateResult = {
 };
 
 /**
- * gemini-2.5-* son modelos «pensantes»: sus tokens de razonamiento interno descuentan
+ * Los modelos Gemini son «pensantes»: sus tokens de razonamiento interno descuentan
  * del mismo maxOutputTokens. Sin límite, un tope de 8192 puede agotarse pensando y devolver
  * texto cortado o vacío; pero con 0 (pensamiento desactivado) el modelo degenera en prompts
  * largos (bucles de «---»). 1024 equilibra coherencia y presupuesto de salida.
@@ -40,17 +40,13 @@ function resolveThinkingBudget(): number {
 }
 
 function resolveModelAndCredentials(opts: {
+  model?: string;
   xApiKeyUi?: string;
   bearerUi?: string;
 }): { model: string; xApiKey: string; bearer: string } {
-  const model = import.meta.env.VITE_UNAD_GEMINI_MODEL?.trim() || DEFAULT_UNAD_GEMINI_MODEL;
-  const xApiKey = sanitizeCredential(
-    opts.xApiKeyUi || import.meta.env.VITE_UNAD_GEMINI_X_API_KEY,
-  );
-  const bearer = sanitizeCredential(
-    opts.bearerUi || import.meta.env.VITE_UNAD_GEMINI_BEARER,
-  );
-  return { model, xApiKey, bearer };
+  const model = opts.model?.trim() || import.meta.env.VITE_UNAD_GEMINI_MODEL?.trim() || DEFAULT_UNAD_GEMINI_MODEL;
+  // Las credenciales del servidor las pone el proxy; aquí solo viajan las escritas en el panel de IA.
+  return { model, xApiKey: sanitizeCredential(opts.xApiKeyUi), bearer: sanitizeCredential(opts.bearerUi) };
 }
 
 function formatApiErrorField(value: unknown): string {
@@ -84,13 +80,13 @@ function parseProxyResponse(rawText: string, status: number): UnadGeminiGenerate
         '(sin mensaje)';
       const hint =
         status === 500
-          ? ' Suele deberse a **prompt demasiado grande** para el proxy UNAD. En Vercel prueba: `VITE_MAX_COMBINED_SOURCE_CHARS=60000`, `VITE_MAX_C2_PROMPT_DOC_CHARS=48000`. Si usas Fase 3: baja también `VITE_MAX_DOCUMENT_CONTAINER_CHARS`.'
+          ? ' Suele deberse a un prompt demasiado grande para el proxy UNAD: reduce `VITE_MAX_COMBINED_SOURCE_CHARS` y `VITE_MAX_C2_PROMPT_DOC_CHARS`.'
           : status === 404
-            ? ' La ruta /api/unad-gemini no existe en el servidor: en Vercel debe existir api/unad-gemini.ts y redeploy tras merge.'
+            ? ' La ruta /api/unad-gemini no existe en el servidor: revisa el .htaccess y includes/gemini_proxy.php.'
             : status === 401 || status === 403
-              ? ' Ingresa la x-api-key y el Bearer token en «Configuración de IA» (botón IA, arriba a la derecha). Para no reingresarlos tras cada recarga, defínelos en .env.local (VITE_UNAD_GEMINI_X_API_KEY y VITE_UNAD_GEMINI_BEARER) y reinicia `npm run dev`.'
+              ? ' Revisa las credenciales: define UNAD_GEMINI_X_API_KEY y UNAD_GEMINI_BEARER en el servidor o escríbelas en el botón «IA» de la cabecera.'
               : '';
-      throw new Error(`UNAD Gemini (${status}): ${msg}.${hint}`);
+      throw new Error(`UNAD Gemini (${status}): ${msg}${hint}`);
     } catch (e) {
       if (e instanceof Error && e.message.startsWith('UNAD Gemini')) throw e;
       throw new Error(`UNAD Gemini (${status}): ${rawText.slice(0, 400)}`);
@@ -120,6 +116,7 @@ export async function generateContentUnadGemini(
   prompt: string,
   options?: {
     maxOutputTokens?: number;
+    model?: string;
     xApiKey?: string;
     bearer?: string;
     /** Búsqueda web (Google Search grounding); si el proxy la rechaza se reintenta sin ella. */
@@ -129,6 +126,7 @@ export async function generateContentUnadGemini(
   },
 ): Promise<UnadGeminiGenerateResult> {
   const { model, xApiKey, bearer } = resolveModelAndCredentials({
+    model: options?.model,
     xApiKeyUi: options?.xApiKey,
     bearerUi: options?.bearer,
   });

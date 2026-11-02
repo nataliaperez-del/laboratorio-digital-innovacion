@@ -1,14 +1,5 @@
 import type { Worker as TesseractWorker } from 'tesseract.js';
-import {
-  DRIVE_REFERENCE_CONTENEDOR_1_CANDIDATES,
-  DRIVE_REFERENCE_PROMPT_ARBOL_INNOVACION_CANDIDATES,
-  DRIVE_REFERENCE_PROMPT_VOCACION_CIP_CANDIDATES,
-  DRIVE_REFERENCE_PROMPTS_FUENTES_C2_TERRITORIAL_CANDIDATES,
-  DRIVE_REFERENCE_INSTRUCCION_FUNDANTE_CANDIDATES,
-} from '@/constants/cipDocumentReferences';
 import { getCachedDriveFile, pruneDriveCache, setCachedDriveFile } from '@/lib/driveCache';
-import { useStore } from '@/store/useStore';
-import { DEMO_DRIVE_RESULT } from '@/constants/demoData';
 
 /**
  * Carpeta institucional UNAD (Fase 2 · Contenedor 1).
@@ -275,15 +266,11 @@ export function requestDriveReadonlyToken(): Promise<string> {
       ),
     );
   }
-  // Con sesión institucional activa, la renovación se pide a la misma cuenta y sin
-  // pantallas de selección: Google auto-aprueba porque el permiso ya fue otorgado al ingresar.
-  const sessionEmail = useStore.getState().session?.email;
   const epochAtRequest = tokenEpoch;
   pendingTokenRequest = new Promise<string>((resolve, reject) => {
     const client = window.google!.accounts.oauth2.initTokenClient({
       client_id: clientId,
       scope: 'https://www.googleapis.com/auth/drive.readonly',
-      ...(sessionEmail ? { prompt: '', login_hint: sessionEmail } : {}),
       callback: (resp: {
         access_token?: string;
         expires_in?: number;
@@ -637,11 +624,6 @@ function territoryFolderNamesFromPaths(folderPaths: string[]): string[] {
 export async function loadInstitutionalDocumentsFromDrive(
   folderId: string = INSTITUTIONAL_DRIVE_FOLDER_ID,
 ): Promise<LoadInstitutionalDriveResult> {
-  // MODO DEMOSTRACIÓN: devuelve fuentes de ejemplo sin abrir la ventana de Google.
-  if (useStore.getState().demoMode) {
-    await new Promise((r) => setTimeout(r, 1600));
-    return DEMO_DRIVE_RESULT;
-  }
   await loadGoogleIdentityScript();
   const token = await requestDriveReadonlyToken();
 
@@ -797,11 +779,6 @@ export async function connectOwnSourcesFolder(folderId: string): Promise<{
   status: 'CONECTADA' | 'VACIA';
   result: LoadInstitutionalDriveResult;
 }> {
-  const demo = useStore.getState().demoMode;
-  if (demo) {
-    await new Promise((r) => setTimeout(r, 500));
-    return { status: 'CONECTADA', result: DEMO_DRIVE_RESULT };
-  }
   await loadGoogleIdentityScript();
   let token: string;
     try {
@@ -867,13 +844,12 @@ function fileKey(name: string): string {
 /**
  * Palabras que no identifican a un archivo concreto del repositorio: aparecen en
  * varios nombres o son ruido de versionado («prompt», «v2», «actualizada», «copia»).
- * Se descartan al comparar por términos, para que `prompt_documento_fundante.txt`
- * reconozca también a `fundante_v3` o a `proyecto de innovación (1)`.
+ * Se descartan al comparar por términos.
  */
 const GENERIC_NAME_TOKENS = new Set([
   'PROMPT', 'PROMPTS', 'INSTRUCCION', 'INSTRUCCIONES', 'DOCUMENTO', 'DOCUMENTOS',
   'ARCHIVO', 'FORMATO', 'VERSION', 'ACTUALIZADA', 'ACTUALIZADO', 'ACTUALIZACION',
-  'FINAL', 'COPIA', 'COPY', 'V1', 'V2', 'V3', 'V4', 'Centro de Innovación', 'UNAD',
+  'FINAL', 'COPIA', 'COPY', 'V1', 'V2', 'V3', 'V4', 'UNAD',
   'DE', 'DEL', 'LA', 'EL', 'LOS', 'LAS', 'Y', 'PARA',
 ]);
 
@@ -1101,115 +1077,10 @@ function stripDriveExtractHeader(chunk: string): string {
   return chunk.replace(/^\s*[\r\n]*---[\s\S]*?---\s*[\r\n]*/, '').trim();
 }
 
-/**
- * Descarga y extrae texto de un archivo por nombre exacto (sin distinguir mayúsculas) dentro de la carpeta
- * institucional (recursivo). Acepta varios nombres candidatos y usa el primero que exista.
- * Útil cuando el bundle completo no está cargado o el archivo quedó fuera del truncado.
- */
-export async function fetchInstitutionalDriveFileByName(
-  fileName: string | string[],
-  folderId: string = INSTITUTIONAL_DRIVE_FOLDER_ID,
-): Promise<string | null> {
-  await loadGoogleIdentityScript();
-  const token = await requestDriveReadonlyToken();
-  const candidates: DriveFileMeta[] = [];
-  const collectErrors: string[] = [];
-  await collectSupportedFilesRecursive(folderId, token, 0, candidates, collectErrors);
-  if (collectErrors.length) console.warn(collectErrors.join('\n'));
-  const wantedNames = Array.isArray(fileName) ? fileName : [fileName];
-  // Nombre literal primero; si no, la regla común de emparejamiento (sin extensión ni
-  // tildes, tolerante a sufijos de versión), que es la misma del aviso de la Fase 2.
-  const meta =
-    candidates.find((f) =>
-      wantedNames.some((want) => f.name.trim().toLowerCase() === want.trim().toLowerCase()),
-    ) ?? findByReferenceName(candidates, (f) => f.name, wantedNames);
-  if (!meta) {
-    console.warn(
-      `[Drive] No se encontró «${wantedNames[0]}» entre los ${candidates.length} archivos legibles del repositorio: ${candidates
-        .map((f) => f.name)
-        .join(', ')}`,
-    );
-    return null;
-  }
-  if (meta.name.trim().toLowerCase() !== wantedNames[0]?.trim().toLowerCase()) {
-    console.info(`[Drive] «${wantedNames[0]}» se resolvió al archivo «${meta.name}».`);
-  }
-
-  const ocrState: { worker: TesseractWorker | null } = { worker: null };
-  try {
-    const { text, error } = await extractOneFileCached(meta, token, ocrState);
-    if (error) console.warn(error);
-    if (!text?.trim()) return null;
-    return stripDriveExtractHeader(text);
-  } finally {
-    if (ocrState.worker) {
-      await ocrState.worker.terminate();
-      ocrState.worker = null;
-    }
-  }
-}
-
-/** Texto del prompt maestro del árbol de innovación en Drive (misma carpeta institucional). */
-export async function fetchInnovationTreePromptFromDrive(
-  folderId: string = INSTITUTIONAL_DRIVE_FOLDER_ID,
-): Promise<string | null> {
-  return fetchInstitutionalDriveFileByName(DRIVE_REFERENCE_PROMPT_ARBOL_INNOVACION_CANDIDATES, folderId);
-}
-
-/** Instrucción oficial de redacción del proyecto de innovación (Fase 3, cada apartado). */
-export async function fetchInstruccionFundanteFromDrive(
-  folderId: string = INSTITUTIONAL_DRIVE_FOLDER_ID,
-): Promise<string | null> {
-  return fetchInstitutionalDriveFileByName(DRIVE_REFERENCE_INSTRUCCION_FUNDANTE_CANDIDATES, folderId);
-}
-
-/**
- * Contenedor 1 completo (CONTENEDOR_1/). Se descarga aparte porque su Parte IV —el
- * registro de proyectos SIGIIP— queda fuera del texto institucional combinado cuando
- * este se recorta por límite de contexto, y ese registro es la fuente de los nombres
- * textuales de los proyectos en el apartado de experiencias previas.
- */
-export async function fetchContenedor1FromDrive(
-  folderId: string = INSTITUTIONAL_DRIVE_FOLDER_ID,
-): Promise<string | null> {
-  return fetchInstitutionalDriveFileByName(DRIVE_REFERENCE_CONTENEDOR_1_CANDIDATES, folderId);
-}
-
-/** Prompt de vocación + tres temas Centro de Innovación (GENERALES/, Fase 3); acepta nombre vigente e histórico. */
-export async function fetchVocacionCipPromptFromDrive(
-  folderId: string = INSTITUTIONAL_DRIVE_FOLDER_ID,
-): Promise<string | null> {
-  return fetchInstitutionalDriveFileByName(DRIVE_REFERENCE_PROMPT_VOCACION_CIP_CANDIDATES, folderId);
-}
-
-/** Instrucción de ejecución del Contenedor 2 (CONTENEDOR_2/, Fase 2); acepta nombre vigente e histórico. */
-export async function fetchContenedor2TerritorialPromptsDocFromDrive(
-  folderId: string = INSTITUTIONAL_DRIVE_FOLDER_ID,
-): Promise<string | null> {
-  return fetchInstitutionalDriveFileByName(DRIVE_REFERENCE_PROMPTS_FUENTES_C2_TERRITORIAL_CANDIDATES, folderId);
-}
-
+/** API de Google Identity Services, cargada bajo demanda por `loadGoogleIdentityScript`. */
 declare global {
   interface Window {
-    google?: {
-      accounts: {
-        oauth2: {
-          initTokenClient: (config: {
-            client_id: string;
-            scope: string;
-            prompt?: string;
-            login_hint?: string;
-            callback: (resp: {
-              access_token?: string;
-              expires_in?: number;
-              error?: string;
-              error_description?: string;
-            }) => void;
-            error_callback?: (err: { type?: string; message?: string }) => void;
-          }) => { requestAccessToken: () => void };
-          revoke: (token: string, callback?: () => void) => void;
-        };
-      };
-    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    google?: any;
   }
 }

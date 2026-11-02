@@ -102,14 +102,14 @@ function coverHtml(meta: DocumentMeta): string {
   return `<section class="cover">
     <p class="cover-institution">UNIVERSIDAD NACIONAL ABIERTA Y A DISTANCIA</p>
     <p class="cover-unit">Vicerrectoría de Innovación y Emprendimiento</p>
-    <p class="cover-title">proyecto de innovación</p>
-    <p class="cover-subtitle">Centro de Innovación</p>
-    <p class="cover-lab">${escapeHtml(meta.labName?.trim() || 'Centro de Innovación (nombre pendiente de confirmación)')}</p>
+    <p class="cover-unit">Observatorio InnovaHub360 · Laboratorio de Innovación en Línea</p>
+    <p class="cover-title">${escapeHtml(meta.reportType)}</p>
+    <p class="cover-lab">${escapeHtml(meta.title)}</p>
+    ${meta.subtitle?.trim() ? `<p class="cover-subtitle">${escapeHtml(meta.subtitle.trim())}</p>` : ''}
     ${meta.zonaUNAD?.trim() ? `<p class="cover-line">${escapeHtml(meta.zonaUNAD.trim())}</p>` : ''}
     ${territory ? `<p class="cover-line">${escapeHtml(territory)}</p>` : ''}
-    <p class="cover-disclaimer">Versión preliminar. Los objetivos, la misión, la visión, el diseño organizacional, los indicadores, los macroservicios y la ruta de maduración son formulaciones propuestas y quedan sujetas a validación institucional.</p>
+    <p class="cover-disclaimer">${escapeHtml(meta.disclaimer)}</p>
     <p class="cover-line">${escapeHtml(formatSpanishDate(meta.generatedAt))}</p>
-    ${meta.generatedBy?.trim() ? `<p class="cover-by">Generado por ${escapeHtml(meta.generatedBy.trim())}</p>` : ''}
   </section>`;
 }
 
@@ -168,7 +168,7 @@ const PRINT_CSS = `
   .cover p { text-align: center; margin: 0 0 10px; }
   .cover-institution { font-size: 19px; font-weight: 700; color: #005883; letter-spacing: .4px; }
   .cover-unit { font-size: 14px; }
-  .cover-title { font-size: 40px; font-weight: 700; color: #005883; margin-top: 34px !important; letter-spacing: 1px; }
+  .cover-title { font-size: 32px; font-weight: 700; color: #005883; margin-top: 34px !important; letter-spacing: 1px; }
   .cover-subtitle { font-size: 16px; }
   .cover-lab { font-size: 22px; font-weight: 700; margin-top: 10px !important; }
   .cover-line { font-size: 14px; }
@@ -184,7 +184,7 @@ const PRINT_CSS = `
 
 /** Documento HTML completo para abrir en la ventana de impresión del navegador. */
 export function buildPrintHtml(plan: DocumentPlan, meta: DocumentMeta): string {
-  const title = `Ecosistema de Innovación — ${meta.labName?.trim() || 'Centro de Innovación'}`;
+  const title = `${meta.reportType} — ${meta.title}`;
   const body = plan.blocks.map(blockToHtml).join('\n');
   return `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><title>${escapeHtml(title)}</title><style>${PRINT_CSS}</style></head><body>${coverHtml(
     meta,

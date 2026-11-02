@@ -7,8 +7,7 @@
 
 import { marked, type Token, type Tokens } from 'marked';
 import { normalizeAsciiDiagrams } from '@/lib/formatMarkdownDoc';
-import { buildMaturityFigure, buildPillarsFigure, buildSigiipFigures, type FigureSpec } from '@/lib/figures';
-import type { SigiipSnapshot } from '@/store/useStore';
+import type { FigureSpec } from '@/lib/figures';
 
 export interface InlineNode {
   text: string;
@@ -54,14 +53,24 @@ export interface DocumentPlan {
 }
 
 export interface DocumentMeta {
-  labName: string;
-  zonaUNAD: string;
-  municipality: string;
-  department: string;
-  country: string;
-  /** Persona que generó el documento (correo o nombre de la sesión institucional). */
-  generatedBy?: string;
+  /** Portada: tipo de informe en mayúsculas («Árbol de Innovación»). */
+  reportType: string;
+  /** Portada: título principal (el tema o el nombre del plan). */
+  title: string;
+  subtitle?: string;
+  /** Portada: alcance de la versión; se escribe en cursiva. */
+  disclaimer: string;
+  zonaUNAD?: string;
+  municipality?: string;
+  department?: string;
+  country?: string;
   generatedAt: Date;
+}
+
+/** Figura que se inserta justo después del encabezado cuyo texto cumple `afterHeading`. */
+export interface PlannedFigure {
+  spec: FigureSpec;
+  afterHeading?: RegExp;
 }
 
 const ALERT_PATTERN = /==([^=]+)==/g;
@@ -160,6 +169,10 @@ function flattenInline(tokens: readonly Token[] | undefined, base: InlineNode = 
         out.push({ ...base, text: (token as Tokens.Image).text || '' });
         break;
       case 'html':
+        if (/^<br\s*\/?>$/i.test((token as Tokens.HTML).raw.trim())) {
+          out.push({ ...base, text: '', lineBreak: true });
+          break;
+        }
         // El Markdown de la IA no debe traer HTML; si llega, se conserva el texto sin etiquetas.
         out.push(...splitHighlights(decodeEntities((token as Tokens.HTML).raw.replace(/<[^>]*>/g, '')), base));
         break;
@@ -290,17 +303,10 @@ function tableToBlock(token: Tokens.Table, number: number, title: string): PlanB
 }
 
 /**
- * Construye el plan del documento. Inserta infografías y figuras en sus
- * apartados temáticos correspondientes:
- *   · Apartado 5: Pilares estratégicos del Centro de Innovación (infografía)
- *   · Apartado 6: Figuras de datos del registro SIGIIP (zonas, tipos en donut, escuelas)
- *   · Apartado 11: Ruta de maduración del Centro de Innovación (línea de tiempo)
+ * Construye el plan del documento: numera tablas y figuras y coloca cada figura tras su
+ * encabezado (o al final, si el encabezado no aparece).
  */
-export function buildDocumentPlan(
-  markdown: string,
-  snapshot: SigiipSnapshot | null = null,
-  zoneLabel: string = '',
-): DocumentPlan {
+export function buildDocumentPlan(markdown: string, plannedFigures: readonly PlannedFigure[] = []): DocumentPlan {
   const tokens = marked.lexer(normalizeAsciiDiagrams(markdown));
   const blocks: PlanBlock[] = [];
   const tables: Array<{ number: number; title: string }> = [];
@@ -308,21 +314,11 @@ export function buildDocumentPlan(
   let sectionTitle = '';
   let tableNumber = 0;
 
-  const sectionEndIndices: Record<number, number> = {};
-  let currentSectionNum: number | null = null;
 
   for (const token of tokens) {
     if (token.type === 'heading') {
       const heading = token as Tokens.Heading;
-      if (heading.depth <= 2) {
-        const text = inlineToPlainText(flattenInline(heading.tokens));
-        sectionTitle = text;
-        if (currentSectionNum !== null) {
-          sectionEndIndices[currentSectionNum] = blocks.length;
-        }
-        const match = text.trim().match(/^(\d+)\b/);
-        currentSectionNum = match ? parseInt(match[1], 10) : null;
-      }
+      if (heading.depth <= 2) sectionTitle = inlineToPlainText(flattenInline(heading.tokens));
     }
 
     if (token.type === 'table') {
@@ -345,48 +341,16 @@ export function buildDocumentPlan(
     blocks.push(...tokenToBlocks(token));
   }
 
-  if (currentSectionNum !== null) {
-    sectionEndIndices[currentSectionNum] = blocks.length;
-  }
-
-  // Ubicación de figuras según apartados temáticos
-  const insertions: Array<{ index: number; specs: FigureSpec[] }> = [];
-  const hasSec5 = typeof sectionEndIndices[5] === 'number';
-  const hasSec6 = typeof sectionEndIndices[6] === 'number';
-  const hasSec11 = typeof sectionEndIndices[11] === 'number';
-
-  const sigiipSpecs = buildSigiipFigures(snapshot, zoneLabel);
-  const pillarsSpec = buildPillarsFigure();
-  const maturitySpec = buildMaturityFigure();
-
-  if (hasSec5) {
-    insertions.push({ index: sectionEndIndices[5], specs: [pillarsSpec] });
-  }
-  if (hasSec6 && sigiipSpecs.length > 0) {
-    insertions.push({ index: sectionEndIndices[6], specs: sigiipSpecs });
-  }
-  if (hasSec11) {
-    insertions.push({ index: sectionEndIndices[11], specs: [maturitySpec] });
-  }
-
-  // Fallback para documentos sin numeración estándar de secciones
-  if (!hasSec5 && !hasSec6 && !hasSec11) {
-    const fallbackSpecs = [...(sigiipSpecs.length > 0 ? sigiipSpecs : []), pillarsSpec, maturitySpec];
-    if (fallbackSpecs.length > 0) {
-      insertions.push({ index: blocks.length, specs: fallbackSpecs });
-    }
-  }
-
-  // Insertar en orden descendente de índice para no alterar posiciones
-  insertions.sort((a, b) => b.index - a.index);
-  for (const ins of insertions) {
-    const figureBlocks: PlanBlock[] = ins.specs.map((spec) => ({
-      kind: 'figure',
-      number: 0, // Se numera correlativamente abajo
-      spec,
-    }));
-    blocks.splice(ins.index, 0, ...figureBlocks);
-  }
+  // De atrás hacia adelante para no alterar las posiciones de las figuras pendientes.
+  const located = plannedFigures.map((figure) => {
+    const index = figure.afterHeading
+      ? blocks.findIndex((b) => b.kind === 'heading' && figure.afterHeading!.test(b.plainText))
+      : -1;
+    return { figure, at: index >= 0 ? index + 1 : blocks.length };
+  });
+  [...located].sort((a, b) => b.at - a.at).forEach(({ figure, at }) => {
+    blocks.splice(at, 0, { kind: 'figure', number: 0, spec: figure.spec });
+  });
 
   // Asignar numeración consecutiva a todas las figuras presentes
   const figures: Array<{ number: number; title: string; spec: FigureSpec }> = [];

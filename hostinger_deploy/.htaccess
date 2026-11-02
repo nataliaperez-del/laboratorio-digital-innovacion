@@ -47,8 +47,14 @@ ServerSignature Off
     # Enrutamiento para Proxy Gemini
     RewriteRule ^api/unad-gemini$ includes/gemini_proxy.php [L,QSA]
 
+    # Lectura del Radar del Observatorio
+    RewriteRule ^api/observatorio/radar$ includes/observatorio.php [L,QSA]
+
     # Enrutamiento para API REST
     RewriteRule ^api/data$ includes/api.php [L,QSA]
+
+    # La configuración del servidor nunca se sirve por web
+    RewriteRule ^config/ - [F,L]
 
     # SPA Routing: Si el archivo o carpeta física no existe, enviar a index.html (o index.php)
     RewriteCond %{REQUEST_FILENAME} !-f

@@ -1,10 +1,4 @@
-/**
- * Escuelas de la UNAD con su nombre oficial completo.
- *
- * El proyecto de innovación debe nombrarlas sin siglas: en el apartado 8.4 se proyecta
- * el aporte de cada una al Centro de Innovación, y las siglas dificultan la lectura del documento
- * por parte de actores externos al metasistema.
- */
+/** Escuelas de la UNAD con su nombre oficial completo: se nombran sin siglas para lectores externos. */
 export const UNAD_ESCUELAS: readonly string[] = [
   'Escuela de Ciencias Administrativas, Contables, Económicas y de Negocios',
   'Escuela de Ciencias Agrícolas, Pecuarias y del Medio Ambiente',
@@ -30,7 +24,7 @@ export const UNAD_ESCUELA_BY_SIGLA: Readonly<Record<string, string>> = {
   ECISA: 'Escuela codificada como ECISA (denominación completa pendiente de verificación institucional)',
 };
 
-/** Lista en viñetas para insertar en el prompt del proyecto de innovación. */
+/** Lista en viñetas para insertar en un prompt. */
 export function formatEscuelasForPrompt(): string {
   return UNAD_ESCUELAS.map((e) => `- ${e}`).join('\n');
 }

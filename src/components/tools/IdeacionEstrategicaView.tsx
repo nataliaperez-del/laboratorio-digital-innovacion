@@ -1,323 +1,305 @@
-import React, { useState } from 'react';
-import {
-  BrainCircuit,
-  CheckCircle2,
-  ChevronRight,
-  Sparkles,
-  FileText,
-  Compass,
-  ArrowRight,
-  Layers,
-  Edit3,
-  Check,
-  AlertCircle
-} from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ArrowRight, BrainCircuit, CheckCircle2, Lightbulb, Rocket, Sparkles, Target, Trees } from 'lucide-react';
 import { useStore } from '@/store/useStore';
+import { GenerationCancelledError } from '@/services/ai';
+import { generateThemeVocationAndOptions, regenerateVocationSection } from '@/services/ideation';
+import { signalAsInput, type RadarSignal } from '@/services/observatorio';
+import { parseThemeProposal, type ParsedTheme } from '@/lib/themeProposal';
+import { ideacionReport } from '@/lib/labReports';
+import { buildDocumentPlan, inlineToPlainText } from '@/lib/documentPlan';
+import { parseAlerts } from '@/lib/territorialInsights';
+import { VOCATION_PARTS, type InputSource } from '@/prompts/themeAndInnovationPrompts';
+import { Disclosure, RichDocument } from '@/components/lab/RichDocument';
+import { EmptyState, ErrorNotice, FileDrop, GenerationProgress, ReportActions, SectionReview, SegmentedControl, ToolHeader, type ProgressState } from '@/components/lab/common';
+import { ObservatorioPicker } from '@/components/lab/ObservatorioPicker';
+import type { ToolId } from '@/components/layout/Header';
 
-interface ThemeAlternative {
-  id: string;
-  title: string;
-  shortTag: string;
-  focus: string;
-  description: string;
-  strengths: string[];
-  impactScore: number;
-  feasibilityScore: number;
+type InputMode = 'texto' | 'archivo' | 'estudio' | 'observatorio';
+
+/** Titular de la vocación: la frase «El territorio presenta una vocación…» o el primer enunciado. */
+function vocationHeadline(markdown: string): string {
+  const paragraphs = buildDocumentPlan(markdown)
+    .blocks.filter((b) => b.kind === 'paragraph')
+    .map((b) => (b.kind === 'paragraph' ? inlineToPlainText(b.inline) : ''));
+  const formula = paragraphs.find((p) => /vocaci[oó]n\s+(orientada|de\s+servicio|hacia|en)\b/i.test(p));
+  const text = formula ?? paragraphs[0] ?? '';
+  const sentence = text.split(/(?<=[.;])\s/)[0] || text;
+  return sentence.length > 260 ? `${sentence.slice(0, 259).trimEnd()}…` : sentence;
 }
 
-interface IdeacionEstrategicaViewProps {
-  onNavigateToTree?: () => void;
+/** Brechas y oportunidades de un tema, según las viñetas que exige el prompt. */
+function themeFacets(body: string): { brechas: string; oportunidades: string; resto: string; alertas: string[] } {
+  const alertas = parseAlerts(body).map((a) => a.detail);
+  const clean = (s: string) => s.replace(/==[^=]+==/g, '').replace(/[*_]/g, '').replace(/\s+([.,;])/g, '$1').replace(/\.{2,}/g, '.').trim();
+  const grab = (label: RegExp) => clean(body.match(new RegExp(`${label.source}[^:]*:\\**\\s*([^\\n]+)`, 'i'))?.[1] ?? '');
+  const resto = body
+    .split('\n')
+    .filter((l) => !/brechas que atiende|oportunidades que aprovecha/i.test(l))
+    .join('\n')
+    .trim();
+  return { brechas: grab(/brechas que atiende/), oportunidades: grab(/oportunidades que aprovecha/), resto, alertas };
 }
 
-export const IdeacionEstrategicaView: React.FC<IdeacionEstrategicaViewProps> = ({ onNavigateToTree }) => {
-  const containerData = useStore((state) => state.containerData);
-  const selectedStrategicTheme = useStore((state) => state.selectedStrategicTheme);
-  const setSelectedStrategicTheme = useStore((state) => state.setSelectedStrategicTheme);
-  const prompt0Data = useStore((state) => state.prompt0Data);
-
-  const [selectedThemeId, setSelectedThemeId] = useState<string>('tema-1');
-  const [customThemeText, setCustomThemeText] = useState<string>('');
-  const [isEditingCustom, setIsEditingCustom] = useState<boolean>(false);
-  const [showTerritoryDetails, setShowTerritoryDetails] = useState<boolean>(false);
-
-  const defaultTerritoryExcerpt =
-    containerData.trim() ||
-    `Diagnóstico Territorial Integrado: Zona ${prompt0Data.zonaUNAD || 'Cundinamarca / Sabana Centro - Soacha'}
-El territorio presenta una vocación agroproductiva, manufacturera y de servicios en transición hacia la economía circular y la digitalización. Principales brechas identificadas: dependencia de insumos químicos de alto costo, intermediación comercial excesiva en la cadena alimentaria, y necesidad de microrredes energéticas descentralizadas para acopio y poscosecha.`;
-
-  const themes: ThemeAlternative[] = [
-    {
-      id: 'tema-1',
-      title: 'Biotecnología Aplicada y Valorización de Biomasa Agropecuaria',
-      shortTag: 'Bioeconomía y Agricultura Regenerativa',
-      focus: 'Aprovechamiento de residuos de cosechas, biofertilizantes y bioplaguicidas para sustituir químicos.',
-      description: 'Ancla el laboratorio en la capacidad científica de ECAPMA y la necesidad regional de reducir costos de insumos, restaurar suelos degradados y promover agricultura regenerativa.',
-      strengths: [
-        'Resuelve la principal brecha de rentabilidad campesina y salud del suelo',
-        'Alta disponibilidad de biomasa residual en la cuenca territorial',
-        'Grupos de investigación UNAD con laboratorios biológicos especializados',
-      ],
-      impactScore: 92,
-      feasibilityScore: 88,
-    },
-    {
-      id: 'tema-2',
-      title: 'Tecnologías Digitales, IA y Trazabilidad para Cadenas Cortas',
-      shortTag: 'Agrotech, Logística y Comercio Justo',
-      focus: 'Plataformas de trazabilidad, monitoreo microclimático IoT y comercialización directa con blockchain.',
-      description: 'Conecta la producción campesina directamente con mercados institucionales y consumidores urbanos, eliminando intermediación abusiva y garantizando origen.',
-      strengths: [
-        'Demanda creciente de alimentos con certificación de origen y precio justo',
-        'Capacidades de la Escuela de Ciencias Básicas, Tecnología e Ingeniería (ECBTI)',
-        'Rápida adopción por cooperativas juveniles rurales y organizaciones comunitarias',
-      ],
-      impactScore: 89,
-      feasibilityScore: 85,
-    },
-    {
-      id: 'tema-3',
-      title: 'Comunidades Energéticas y Soluciones Solares Descentralizadas',
-      shortTag: 'Transición Energética Justa y Sostenible',
-      focus: 'Generación fotovoltaica distribuida para bombeo de agua, refrigeración y centros de acopio rurales.',
-      description: 'Supera la vulnerabilidad de la red eléctrica en zonas dispersas mediante microrredes gestionadas cooperativamente por las asociaciones locales.',
-      strengths: [
-        'Alineación prioritaria con el Plan Nacional de Desarrollo y transición energética',
-        'Reduce costos energéticos en poscosecha, bombeo y cadena de frío',
-        'Aumenta la resiliencia climática ante sequías y eventos climáticos extremos',
-      ],
-      impactScore: 86,
-      feasibilityScore: 80,
-    },
-  ];
-
-  const handleSelectTheme = (theme: ThemeAlternative) => {
-    setSelectedThemeId(theme.id);
-    setIsEditingCustom(false);
-    setSelectedStrategicTheme(theme.title);
-  };
-
-  const handleApplyCustomTheme = () => {
-    if (!customThemeText.trim()) return;
-    setSelectedThemeId('custom');
-    setSelectedStrategicTheme(customThemeText.trim());
-    setIsEditingCustom(false);
-  };
-
-  const activeTheme =
-    selectedThemeId === 'custom'
-      ? {
-          id: 'custom',
-          title: customThemeText || selectedStrategicTheme,
-          shortTag: 'Tema Estratégico Personalizado',
-          focus: 'Enfoque temático adaptado a las condiciones singulares del territorio.',
-          description: 'Tema formulado directamente por el equipo territorial según el diagnóstico específico.',
-          strengths: ['Alineado con el contexto local', 'Definido por el equipo del proyecto'],
-          impactScore: 90,
-          feasibilityScore: 85,
-        }
-      : themes.find((t) => t.id === selectedThemeId) || themes[0];
-
+const ThemeCard: React.FC<{ theme: ParsedTheme; index: number; selected: boolean; dimmed: boolean; onChoose: () => void }> = ({ theme, index, selected, dimmed, onChoose }) => {
+  const { brechas, oportunidades, resto, alertas } = useMemo(() => themeFacets(theme.body), [theme.body]);
   return (
-    <div className="w-full space-y-6">
-      {/* Title Row */}
-      <div className="flex flex-wrap items-end justify-between gap-4">
+    <div className={`lab-card flex flex-col gap-3 ${selected ? 'is-selected' : ''} ${dimmed ? 'opacity-70' : ''}`}>
+      <div className="flex items-center justify-between">
+        <span className="lab-chip">Opción {index + 1}</span>
+        {selected && <span className="text-xs text-[var(--brand-olive)] font-semibold flex items-center gap-1"><CheckCircle2 className="w-4 h-4" aria-hidden="true" /> Tema elegido</span>}
+      </div>
+      <h3 className="text-base font-bold text-white sy leading-snug">{theme.title}</h3>
+      {brechas && (
         <div>
-          <nav className="m text-xs text-brand-textMuted mb-2" aria-label="Migas de pan">
-            <span>Inicio</span> <span className="opacity-40">/</span> <span>Herramientas</span> <span className="opacity-40">/</span>{' '}
-            <span className="text-white">Ideación Estratégica y Elección del Tema</span>
-          </nav>
-          <h1 className="h2 text-3xl md:text-4xl text-white font-bold tracking-tight">
-            Ideación Estratégica y Elección del Tema
-          </h1>
-          <p className="bd text-sm text-brand-textSecondary mt-1 max-w-3xl">
-            Herramienta 3 · Análisis deliberado de las vocaciones territoriales para seleccionar o formular el tema ancla que orientará el Árbol de Innovación y los Prototipos.
-          </p>
+          <span className="text-[11px] font-semibold text-[#F3C26B] block">Brechas que atiende</span>
+          <p className="text-xs text-brand-textSecondary leading-relaxed">{brechas}</p>
         </div>
-
-        <div className="flex items-center gap-2 g2 px-4 py-2 rounded-full text-xs text-[#A8C63C]">
-          <CheckCircle2 className="w-4 h-4 text-[#A8C63C]" />
-          <span>Diagnóstico Territorial Integrado</span>
+      )}
+      {oportunidades && (
+        <div>
+          <span className="text-[11px] font-semibold text-[var(--brand-teal-text)] block">Oportunidades que aprovecha</span>
+          <p className="text-xs text-brand-textSecondary leading-relaxed">{oportunidades}</p>
         </div>
-      </div>
-
-      {/* Connected Territorial Document Synthesis */}
-      <div className="g p-6 rounded-2xl border border-white/15 bg-gradient-to-r from-[#0C5E78]/30 via-transparent to-[#2E9CBA]/10">
-        <div className="flex items-center justify-between gap-4 mb-3">
-          <div className="flex items-center gap-2.5">
-            <Layers className="w-4 h-4 text-[#5EC2DD]" />
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-brand-textMuted l">
-              Documento del Territorio Conectado (Estudio Territorial)
-            </h3>
-          </div>
-          <button
-            type="button"
-            onClick={() => setShowTerritoryDetails(!showTerritoryDetails)}
-            className="text-xs text-[#5EC2DD] hover:underline flex items-center gap-1"
-          >
-            {showTerritoryDetails ? 'Ocultar texto completo' : 'Ver texto del diagnóstico'}
-          </button>
-        </div>
-
-        <p className="text-sm md:text-base text-white sy font-medium leading-relaxed">
-          "El territorio diagnosticado presenta una vocación agroproductiva, manufacturera y comunitaria de alta prioridad, con necesidad de soluciones en bioinsumos, trazabilidad tecnológica y transición energética descentralizada."
-        </p>
-
-        {showTerritoryDetails && (
-          <div className="mt-4 p-4 rounded-xl bg-black/40 border border-white/10 text-xs text-brand-textSecondary font-mono max-h-48 overflow-y-auto whitespace-pre-wrap">
-            {defaultTerritoryExcerpt}
-          </div>
-        )}
-      </div>
-
-      {/* Theme Selection Section */}
-      <div className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-bold text-white sy">Selección del Tema Estratégico</h2>
-            <p className="text-xs text-brand-textSecondary">
-              Elige una de las 3 alternativas generadas a partir del territorio o define un tema personalizado:
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setIsEditingCustom(true)}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 g2 rounded-full text-xs text-[#F3C26B] hover:text-white border border-[#F29F05]/30 hover:border-[#F29F05] transition-all"
-          >
-            <Edit3 className="w-3.5 h-3.5" />
-            <span>Formular tema personalizado</span>
-          </button>
-        </div>
-
-        {/* Custom Theme Editor Form if open */}
-        {isEditingCustom && (
-          <div className="g p-5 rounded-2xl border border-[#F29F05]/40 bg-black/30 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#F3C26B] uppercase tracking-wider">
-                Definir Tema Estratégico Personalizado
-              </span>
-              <button
-                type="button"
-                onClick={() => setIsEditingCustom(false)}
-                className="text-xs text-brand-textMuted hover:text-white"
-              >
-                Cancelar
-              </button>
-            </div>
-            <textarea
-              value={customThemeText}
-              onChange={(e) => setCustomThemeText(e.target.value)}
-              placeholder="Escribe o pega aquí el tema estratégico personalizado para el laboratorio (ej. Economía Circular y Gestión Comunitaria del Agua)..."
-              className="w-full p-3 rounded-xl bg-black/50 border border-white/20 text-white text-sm focus:outline-none focus:border-[#F29F05] transition-colors"
-              rows={3}
-            />
-            <div className="flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={handleApplyCustomTheme}
-                disabled={!customThemeText.trim()}
-                className="metal px-4 py-2 text-xs font-semibold text-white flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-              >
-                <Check className="w-3.5 h-3.5" />
-                <span>Aplicar este tema estratégico</span>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* The 3 Pre-calculated Alternative Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {themes.map((theme) => {
-            const isSelected = selectedThemeId === theme.id;
-            return (
-              <div
-                key={theme.id}
-                onClick={() => handleSelectTheme(theme)}
-                className={`g p-6 rounded-2xl cursor-pointer transition-all flex flex-col justify-between border ${
-                  isSelected
-                    ? 'border-[#5EC2DD] shadow-[0_0_30px_rgba(46,156,186,0.35)] bg-gradient-to-b from-white/10 to-transparent'
-                    : 'border-white/10 hover:border-white/30 hover:bg-white/5'
-                }`}
-              >
-                <div>
-                  <div className="flex items-center justify-between gap-2 mb-3">
-                    <span className="text-[11px] font-bold text-[#5EC2DD] uppercase tracking-wider m">
-                      {theme.shortTag}
-                    </span>
-                    <span
-                      className={`w-6 h-6 rounded-full flex items-center justify-center text-xs transition-colors ${
-                        isSelected ? 'bg-[#5EC2DD] text-black font-bold' : 'border border-white/20 text-transparent'
-                      }`}
-                    >
-                      ✓
-                    </span>
-                  </div>
-
-                  <h3 className="text-base font-bold text-white sy leading-snug mb-2">{theme.title}</h3>
-
-                  <p className="text-xs text-brand-textSecondary leading-relaxed mb-4">{theme.description}</p>
-
-                  <div className="space-y-1.5 mb-4">
-                    <span className="text-[10px] font-bold text-brand-textMuted uppercase tracking-wider block">
-                      Fortalezas Territoriales:
-                    </span>
-                    {theme.strengths.map((str, idx) => (
-                      <div key={idx} className="flex items-start gap-1.5 text-xs text-brand-textSecondary">
-                        <span className="text-[#A8C63C]">•</span>
-                        <span>{str}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t border-white/10 flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-3">
-                    <div>
-                      <span className="text-[10px] text-brand-textMuted block">Impacto</span>
-                      <span className="font-bold text-white m">{theme.impactScore}%</span>
-                    </div>
-                    <div>
-                      <span className="text-[10px] text-brand-textMuted block">Factibilidad</span>
-                      <span className="font-bold text-[#A8C63C] m">{theme.feasibilityScore}%</span>
-                    </div>
-                  </div>
-
-                  <span className={`text-xs font-semibold ${isSelected ? 'text-[#5EC2DD]' : 'text-brand-textMuted'}`}>
-                    {isSelected ? 'Seleccionado' : 'Elegir'}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Confirmation and Next Step Action Bar */}
-      <div className="g p-6 rounded-2xl border border-white/15 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#5EC2DD]/20 border border-[#5EC2DD]/40 flex items-center justify-center text-[#5EC2DD]">
-            <BrainCircuit className="w-5 h-5" />
-          </div>
-          <div>
-            <span className="text-xs text-brand-textMuted uppercase tracking-wider block">Tema Activo para el Laboratorio:</span>
-            <span className="text-base font-bold text-white sy">{activeTheme.title}</span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          {onNavigateToTree && (
-            <button
-              type="button"
-              onClick={onNavigateToTree}
-              className="metal px-6 py-3 text-sm font-semibold text-white flex items-center gap-2 cursor-pointer shadow-lg hover:shadow-cyan-500/20"
-            >
-              <span>Continuar al Árbol de Innovación con este Tema</span>
-              <ArrowRight className="w-4 h-4 text-[#5EC2DD]" />
-            </button>
-          )}
-        </div>
-      </div>
+      )}
+      {alertas.map((a, k) => (
+        <div key={k} className="lab-callout" role="note"><span className="text-xs">Por verificar: {a}</span></div>
+      ))}
+      {resto && (
+        <Disclosure title={<span className="text-xs font-semibold text-brand-textSecondary">Justificación</span>}>
+          <RichDocument markdown={resto} />
+        </Disclosure>
+      )}
+      <button type="button" className={`mt-auto ${selected ? 'lab-btn' : 'metal px-4 py-2 text-xs font-bold'}`} onClick={onChoose} aria-pressed={selected}>
+        {selected ? 'Elegido' : 'Elegir este tema'}
+      </button>
     </div>
   );
 };
+
+interface Props {
+  onNavigate: (tool: ToolId) => void;
+}
+
+export const IdeacionEstrategicaView: React.FC<Props> = ({ onNavigate }) => {
+  const {
+    containerData,
+    prompt0Data,
+    ideationSource,
+    themeProposalMarkdown,
+    vocationSections,
+    setIdeationResult,
+    replaceVocationSection,
+    selectedLabThemeIndex,
+    setSelectedLabThemeIndex,
+    setTreeSeed,
+    setPrototypeSeed,
+  } = useStore();
+
+  const [mode, setMode] = useState<InputMode>(ideationSource?.kind === 'estudio' ? 'estudio' : 'texto');
+  const [text, setText] = useState('');
+  const [file, setFile] = useState<{ name: string; text: string } | null>(null);
+  const [signal, setSignal] = useState<RadarSignal | null>(null);
+  const [progress, setProgress] = useState<ProgressState | null>(null);
+  const [busyIndex, setBusyIndex] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  // El Radar deja aquí su señal: la herramienta la recibe como insumo listo para generar.
+  useEffect(() => {
+    if (ideationSource?.kind === 'observatorio' && !themeProposalMarkdown) {
+      setMode('observatorio');
+    } else if (ideationSource?.kind === 'estudio' && !themeProposalMarkdown) {
+      setMode('estudio');
+    }
+  }, [ideationSource, themeProposalMarkdown]);
+
+  const busy = progress !== null || busyIndex !== null;
+  const hasStudy = Boolean(containerData.trim());
+
+  const source: InputSource | null = useMemo(() => {
+    if (mode === 'texto') return text.trim() ? { kind: 'texto', label: text.trim().slice(0, 80), text: text.trim() } : null;
+    if (mode === 'archivo') return file ? { kind: 'archivo', label: file.name, text: file.text } : null;
+    if (mode === 'estudio') return hasStudy ? { kind: 'estudio', label: `Estudio Territorial de ${prompt0Data.municipality}`, text: containerData } : null;
+    if (signal) return { kind: 'observatorio', label: signal.nombre, text: signalAsInput(signal) };
+    return ideationSource?.kind === 'observatorio' ? ideationSource : null;
+  }, [mode, text, file, hasStudy, containerData, prompt0Data.municipality, signal, ideationSource]);
+
+  const proposal = useMemo(() => parseThemeProposal(themeProposalMarkdown), [themeProposalMarkdown]);
+  const hasResult = Boolean(themeProposalMarkdown.trim());
+
+  /** Secciones posteriores a las opciones: alineación, fuentes y alertas. */
+  const closing = useMemo(() => {
+    const match = themeProposalMarkdown.match(/^##\s+Verificaci[oó]n de alineaci[oó]n[\s\S]*$/im);
+    return match?.[0] ?? '';
+  }, [themeProposalMarkdown]);
+
+  const generate = async () => {
+    if (busy || !source) return;
+    if (hasResult && !window.confirm('Esto reemplaza la vocación y los temas actuales. ¿Continuar?')) return;
+    setError(null);
+    setProgress({ current: 1, total: VOCATION_PARTS.length, title: 'Preparando' });
+    try {
+      const result = await generateThemeVocationAndOptions(source, (p) => setProgress({ current: p.currentPart, total: p.totalParts, title: p.partTitle }));
+      if (!result.markdown.trim()) throw new Error(result.sections.find((s) => s.issue)?.issue || 'La IA no generó contenido.');
+      setIdeationResult(source, result.markdown, result.sections);
+    } catch (e) {
+      if (!(e instanceof GenerationCancelledError)) setError(e instanceof Error ? e.message : 'Error al generar la ideación.');
+    } finally {
+      setProgress(null);
+    }
+  };
+
+  const regenerate = async (index: number) => {
+    if (busy || !ideationSource) return;
+    setBusyIndex(index);
+    setError(null);
+    try {
+      const result = await regenerateVocationSection(ideationSource, index, vocationSections);
+      replaceVocationSection(index, result);
+      if (result.status === 'failed') setError(`La parte «${result.title}» volvió a fallar: ${result.issue || 'sin detalle'}`);
+    } catch (e) {
+      if (!(e instanceof GenerationCancelledError)) setError(e instanceof Error ? e.message : 'Error al rehacer la parte.');
+    } finally {
+      setBusyIndex(null);
+    }
+  };
+
+  const chosen = proposal && selectedLabThemeIndex !== null ? proposal.themes[selectedLabThemeIndex] : null;
+
+  const toTree = () => {
+    if (!chosen) return;
+    setTreeSeed({ theme: chosen.title, explanation: chosen.body });
+    onNavigate('arbol');
+  };
+  const toPrototype = () => {
+    if (!chosen) return;
+    setPrototypeSeed({ origin: { kind: 'ideacion', label: 'Tema elegido en Ideación' }, topic: chosen.title, context: chosen.body });
+    onNavigate('prototipado');
+  };
+
+  return (
+    <div className="w-full space-y-6">
+      <ToolHeader
+        title="Ideación"
+        description="Construye la vocación y tres alternativas de tema con el mismo proceso de la vocación territorial: identifica dinámicas, cruza brechas y oportunidades, y deja la decisión al equipo. Parte de un tema, un archivo, una señal del Observatorio o el Estudio Territorial."
+      >
+        {hasResult && <ReportActions disabled={busy} getReport={() => ideacionReport(prompt0Data, themeProposalMarkdown, ideationSource?.label || 'Ideación')} />}
+      </ToolHeader>
+
+      <ErrorNotice message={error} onClose={() => setError(null)} />
+
+      <section className="lab-panel space-y-4" aria-label="Insumo de la ideación">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-sm font-bold text-white sy flex items-center gap-2">
+            <BrainCircuit className="w-4 h-4 text-[var(--brand-teal-text)]" aria-hidden="true" /> ¿De qué partimos?
+          </h2>
+          <SegmentedControl<InputMode>
+            label="Tipo de insumo"
+            value={mode}
+            onChange={setMode}
+            options={[
+              { value: 'texto', label: 'Un tema' },
+              { value: 'archivo', label: 'Un archivo' },
+              { value: 'observatorio', label: 'Señal del Observatorio' },
+              { value: 'estudio', label: 'Estudio Territorial', disabled: !hasStudy },
+            ]}
+          />
+        </div>
+
+        {mode === 'texto' && (
+          <textarea className="lab-input" rows={4} value={text} onChange={(e) => setText(e.target.value)} placeholder="Una palabra, un reto o varios párrafos. Ej: aprovechamiento de residuos de café en pequeños productores" aria-label="Tema o reto" />
+        )}
+        {mode === 'archivo' && (
+          <FileDrop fileName={file?.name ?? null} onLoaded={(name, content) => setFile({ name, text: content })} onError={setError} />
+        )}
+        {mode === 'observatorio' && (
+          <>
+            <ObservatorioPicker selectedId={signal?.id ?? null} onPick={setSignal} />
+            {!signal && ideationSource?.kind === 'observatorio' && <p className="text-xs text-[var(--brand-olive)]">Señal recibida del Radar: {ideationSource.label}</p>}
+          </>
+        )}
+        {mode === 'estudio' && <p className="text-sm text-brand-textSecondary">Se usará el Estudio Territorial de <strong className="text-white">{prompt0Data.municipality}</strong>, con su matriz FODA como insumo principal.</p>}
+
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-[11px] text-brand-textMuted max-w-xl">
+            {mode === 'estudio'
+              ? 'La IA trabaja solo con lo que consta en el estudio y arrastra sus alertas.'
+              : 'Sin diagnóstico previo, la IA complementa con fuentes públicas citadas y marca lo que deba verificarse.'}
+          </p>
+          <button type="button" className="metal px-6 py-2.5 text-xs font-bold flex items-center gap-2 disabled:opacity-40" disabled={busy || !source} onClick={() => void generate()}>
+            <Sparkles className="w-4 h-4" aria-hidden="true" /> {hasResult ? 'Generar de nuevo' : 'Generar vocación y 3 temas'}
+          </button>
+        </div>
+      </section>
+
+      <GenerationProgress progress={progress} label="Parte" />
+
+      {hasResult ? (
+        <>
+          <SectionReview title="Revisión automática" sections={vocationSections} busyIndex={busyIndex} disabled={busy} onRegenerate={(i) => void regenerate(i)} />
+
+          {proposal ? (
+            <>
+              <section className="lab-panel lab-hero" aria-label="Vocación">
+                <span className="lab-hero-icon"><Lightbulb className="w-5 h-5" aria-hidden="true" /></span>
+                <div className="min-w-0 flex-1 space-y-2">
+                  <span className="text-[11px] font-semibold text-[var(--brand-teal-text)]">Vocación · {ideationSource?.label}</span>
+                  <p className="text-lg font-bold text-white sy leading-snug">{vocationHeadline(proposal.vocationMarkdown)}</p>
+                  <Disclosure title={<span className="text-xs font-semibold text-brand-textSecondary">Ver análisis y justificación completa</span>}>
+                    <RichDocument markdown={proposal.vocationMarkdown} dropTitle />
+                  </Disclosure>
+                </div>
+              </section>
+
+              <section className="space-y-3" aria-label="Alternativas de tema">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h2 className="text-sm font-bold text-white sy flex items-center gap-2">
+                    <Target className="w-4 h-4 text-[#F3C26B]" aria-hidden="true" /> Decisión del equipo: elige un tema
+                  </h2>
+                  {!chosen && <span className="text-xs text-[#F3C26B]">Aún no hay un tema elegido.</span>}
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
+                  {proposal.themes.slice(0, 3).map((theme, i) => (
+                    <ThemeCard key={i} theme={theme} index={i} selected={selectedLabThemeIndex === i} dimmed={selectedLabThemeIndex !== null && selectedLabThemeIndex !== i} onChoose={() => setSelectedLabThemeIndex(i)} />
+                  ))}
+                </div>
+              </section>
+
+              {closing && (
+                <Disclosure title={<span className="text-sm font-semibold text-white sy">Alineación institucional, fuentes y alertas</span>}>
+                  <RichDocument markdown={closing} />
+                </Disclosure>
+              )}
+
+              {chosen && (
+                <div className="lab-panel flex flex-wrap items-center justify-between gap-3">
+                  <p className="text-sm text-brand-textSecondary min-w-0">Tema elegido: <strong className="text-white">{chosen.title}</strong></p>
+                  <div className="flex flex-wrap gap-2">
+                    <button type="button" className="metal px-4 py-2 text-xs font-bold flex items-center gap-2" onClick={toTree}>
+                      <Trees className="w-4 h-4" aria-hidden="true" /> Construir su Árbol <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
+                    </button>
+                    <button type="button" className="lab-btn" onClick={toPrototype}>
+                      <Rocket className="w-4 h-4" aria-hidden="true" /> Prototiparlo
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="lab-panel space-y-3">
+              <p className="text-sm text-[#F3C26B]">La respuesta no trae las tres opciones en el formato esperado; así se ve completa. Usa «Rehacer» en la parte de temas.</p>
+              <RichDocument markdown={themeProposalMarkdown} />
+            </div>
+          )}
+        </>
+      ) : (
+        !progress && (
+          <EmptyState title="Aún no hay ideas">
+            Elige de qué partir y genera. Verás la vocación declarada y tres temas con las brechas y oportunidades de cada uno, listos para decidir.
+          </EmptyState>
+        )
+      )}
+    </div>
+  );
+};
+
 export default IdeacionEstrategicaView;

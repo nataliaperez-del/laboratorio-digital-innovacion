@@ -1,7 +1,9 @@
 import React from 'react';
-import { Sparkles, Sun, Moon, Search, Layers, Compass, Trees, BrainCircuit, Rocket, ShieldCheck } from 'lucide-react';
+import { AiSettings } from '@/components/lab/AiSettings';
+import { Sparkles, Sun, Moon, Search, Layers, Compass, Trees, BrainCircuit, Rocket } from 'lucide-react';
 
 export type ToolId = 'portal' | 'radar' | 'estudio' | 'ideacion' | 'arbol' | 'prototipado';
+export const TOOL_IDS: readonly ToolId[] = ['portal', 'radar', 'estudio', 'ideacion', 'arbol', 'prototipado'];
 
 interface HeaderProps {
   currentTool: ToolId;
@@ -70,7 +72,7 @@ export const Header: React.FC<HeaderProps> = ({
               Observatorio
             </span>
             <span className="text-xs text-[#5EC2DD] font-bold sy tracking-wide">
-              Laboratorio de Innovación
+              Laboratorio de Innovación en Línea
             </span>
           </div>
         </button>
@@ -85,7 +87,7 @@ export const Header: React.FC<HeaderProps> = ({
                 : 'text-brand-textSecondary hover:text-white hover:bg-white/5'
             }`}
           >
-            Inicio Observatorio
+            Inicio
           </button>
           <button
             onClick={() => onSelectTool('radar')}
@@ -96,7 +98,7 @@ export const Header: React.FC<HeaderProps> = ({
             }`}
           >
             <Compass className="w-3.5 h-3.5 text-[#5EC2DD]" />
-            Radar de Innovación
+            Radar del Observatorio
           </button>
           <button
             onClick={() => onSelectTool('estudio')}
@@ -118,7 +120,7 @@ export const Header: React.FC<HeaderProps> = ({
             }`}
           >
             <BrainCircuit className="w-3.5 h-3.5 text-[#F3C26B]" />
-            Ideación Estratégica
+            Ideación
           </button>
           <button
             onClick={() => onSelectTool('arbol')}
@@ -146,7 +148,9 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Action Controls: ZOE trigger + Theme toggle + Institutional Access */}
         <div className="flex items-center gap-2.5">
-          {/* ZOE Interactive Sidecar Trigger */}
+          <AiSettings />
+
+          {/* ZOE Interactive Trigger */}
           <button
             type="button"
             onClick={onToggleZoe}
@@ -155,15 +159,10 @@ export const Header: React.FC<HeaderProps> = ({
                 ? 'bg-[#27DCFF]/20 border-[#27DCFF] text-[#27DCFF] shadow-[0_0_20px_rgba(39,220,255,0.4)]'
                 : 'g2 border-white/15 text-[#27DCFF] hover:border-[#27DCFF]/50'
             }`}
-            title="Abrir asistente holográfico ZOE (Transversal en todo el Observatorio y Laboratorio)"
+            title="Abrir ZOE 3D"
           >
             <Sparkles className="w-4 h-4 animate-spin text-[#27DCFF]" style={{ animationDuration: '6s' }} />
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs font-semibold sy tracking-wide">ZOE</span>
-              <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-full bg-[#27DCFF]/20 text-[#27DCFF] border border-[#27DCFF]/30 hidden md:inline-block">
-                Transversal
-              </span>
-            </div>
+            <span className="text-xs font-bold sy tracking-wide">ZOE</span>
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#27DCFF] opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-[#27DCFF]"></span>
@@ -179,12 +178,6 @@ export const Header: React.FC<HeaderProps> = ({
           >
             {theme === 'dark' ? <Sun className="w-4 h-4 text-[#F3C26B]" /> : <Moon className="w-4 h-4 text-[#5EC2DD]" />}
           </button>
-
-          {/* Institutional Badge */}
-          <div className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 g2 rounded-full text-xs text-brand-textMuted m">
-            <ShieldCheck className="w-4 h-4 text-[#A8C63C]" />
-            <span>UNAD · VIEM</span>
-          </div>
         </div>
       </div>
 
@@ -198,7 +191,7 @@ export const Header: React.FC<HeaderProps> = ({
               : 'text-brand-textSecondary hover:text-white hover:bg-white/5'
           }`}
         >
-          Inicio Observatorio
+          Inicio
         </button>
         <button
           onClick={() => onSelectTool('radar')}

@@ -1,31 +1,25 @@
 PROMPT MAESTRO PARA CONSTRUIR UN ÁRBOL DE INNOVACIÓN GLOBAL–NACIONAL–TERRITORIAL
-Uso: GENERALES/ (REPOSITORIO Centro de Innovación-DF) → paso posterior a Vocación Territorial, anterior al Documento Fundante
+Uso: herramienta Árbol de Innovación del Laboratorio de Innovación en Línea
 
 ================================================================
 ROL
 ================================================================
-Actúa como un experto en innovación, vigilancia tecnológica, análisis de tendencias, prospectiva estratégica y formulación de proyectos. Debes construir un ÁRBOL DE INNOVACIÓN a partir del tema, territorio y sector que se definen a continuación — NO los inventes ni los pidas al usuario: se toman de los insumos ya generados en pasos anteriores del proceso Centro de Innovación-DF.
+Actúa como un experto en innovación, vigilancia tecnológica, análisis de tendencias, prospectiva estratégica y formulación de proyectos. Debes construir un ÁRBOL DE INNOVACIÓN a partir del tema, territorio y sector que se definen a continuación — NO los inventes ni los pidas al usuario: se toman de los insumos que entrega el Laboratorio.
 
 ================================================================
 INSUMOS Y CÓMO SE COMPLETAN (no son campos manuales)
 ================================================================
 TEMA CENTRAL:
-Se toma del apartado "5. TRASPASO AL SIGUIENTE PASO" del prompt de Vocación Territorial (el tema estratégico señalado como TEMA CENTRAL). No formules un tema propio ni modifiques el que llega de Vocación.
+Es el tema que entrega el Laboratorio (escrito por el usuario, elegido en Ideación o tomado de un archivo). No formules un tema propio ni lo modifiques.
 
 PAÍS DE ANÁLISIS:
 Colombia (fijo).
 
 TERRITORIO ESPECÍFICO:
-Departamento, municipio y zona UNAD, tomados de la Ficha Base y confirmados contra la "Ficha de identificación territorial" del Contenedor 2.
+El territorio indicado por el usuario o por la Ficha Base. Si no se indicó ninguno, analiza el nivel "territorial" como regiones colombianas donde el tema tiene mayor pertinencia, y dilo expresamente.
 
 SECTOR O CAMPO DE APLICACIÓN:
 Se deriva del TEMA CENTRAL y de la caracterización productiva del Contenedor 2 (Fase 1 MDVT) — no de una lista genérica elegida al azar.
-
-Arquitectura de Drive (REPOSITORIO Centro de Innovación-DF) para localizar estos insumos:
-REPOSITORIO Centro de Innovación-DF/
-├── GENERALES/          → este mismo prompt, el de Vocación Territorial y el del Documento Fundante
-├── CONTENEDOR_1/        → marco institucional UNAD (archivo CONTENEDOR__1.txt) — se usa solo como fuente adicional de sustento normativo cuando aplique, nunca para definir el tema
-└── CONTENEDOR_2/        → análisis territorial (MDVT, Fases 1-4) + C_TERRITORIO_ESPECIFICO con fuentes del líder de zona
 
 ================================================================
 OBJETIVO DEL ANÁLISIS
@@ -74,7 +68,7 @@ Para cada una explica:
 5. Construye el Árbol de Innovación con la siguiente estructura:
 
 RAÍZ: Problemas, necesidades, brechas y oportunidades del territorio (del Contenedor 2).
-TRONCO: Tema central de innovación y propósito estratégico (de Vocación Territorial).
+TRONCO: Tema central de innovación y propósito estratégico .
 RAMAS GLOBALES: 10 tendencias globales identificadas.
 RAMAS NACIONALES: 5 tendencias seleccionadas por su impacto en Colombia.
 RAMAS TERRITORIALES: 3 tendencias priorizadas por su impacto en el territorio.
@@ -98,7 +92,7 @@ Columnas: Tendencia territorial | Oportunidad de innovación | Posible solución
 
 7. Finalmente, redacta una síntesis estratégica del árbol de innovación en un párrafo académico, explicando cómo el análisis pasa del nivel global al nacional y luego al territorial.
 
-8. Manejo de vacíos de información — igual que en el resto del proceso Centro de Innovación-DF:
+8. Manejo de vacíos de información — igual que en el resto del Laboratorio:
 No inventes datos específicos. Si no tienes evidencia suficiente, marca el apartado con resaltado amarillo y la etiqueta correspondiente:
 ==⚠️ ALERTA DE VERIFICACIÓN HUMANA: [detalle] (VACÍO-VERIFICAR)== → no hay ninguna fuente disponible.
 ==⚠️ ALERTA DE VERIFICACIÓN HUMANA: [detalle] (REQUIERE CONTRASTE)== → el dato existe pero es débil, parcial o sin validación territorial directa.
@@ -123,12 +117,12 @@ Al cierre del documento, agrega un apartado "Alertas pendientes de verificación
 - Todas las fuentes que se encuentren citadas en el Contenedor 1 y el Contenedor 2.
 Debes reverificar si son válidas y verificables antes de reutilizarlas; no las cites como "Contenedor 1" o "Contenedor 2", sino con la fuente original que contienen (norma APA 7).
 
-10. Usa un tono académico, estratégico y claro. El resultado debe servir como insumo directo del Documento Fundante del Centro de Innovación (secciones "3. Árbol de innovación" y las que lo referencian).
+10. Usa un tono académico, estratégico y claro. El resultado debe sostener un informe académico formal y alimentar el prototipado de soluciones.
 
 ================================================================
 FORMATO FINAL ESPERADO
 ================================================================
-1. Tema central de innovación (heredado de Vocación Territorial).
+1. Tema central de innovación .
 2. Explicación general del tema.
 3. Tabla de 10 tendencias globales.
 4. Tabla de 5 tendencias con impacto en Colombia.
@@ -143,12 +137,11 @@ FORMATO FINAL ESPERADO
 ================================================================
 LO QUE NO DEBES HACER EN ESTE PASO
 ================================================================
-- No redefinas ni cuestiones el TEMA CENTRAL recibido de Vocación Territorial: lo tomas como dado.
+- No redefinas ni cuestiones el TEMA CENTRAL recibido: lo tomas como dado.
 - No declares una vocación nueva ni temas estratégicos alternativos.
-- No redactes el Documento Fundante ni ninguno de sus 13 apartados: solo entregas el insumo de su sección 3.
 - No cites "Contenedor 1", "Contenedor 2" ni "Vocación Territorial" como fuente final en el cuerpo del texto: extrae siempre la fuente original que contienen.
 
 ================================================================
 IMPORTANTE
 ================================================================
-El árbol de innovación debe funcionar como una herramienta de priorización estratégica que permita transformar el tema central heredado de Vocación Territorial en oportunidades concretas de innovación con pertinencia global, nacional y territorial, listas para alimentar el Documento Fundante.
+El árbol de innovación debe funcionar como una herramienta de priorización estratégica que permita transformar el tema central en oportunidades concretas de innovación con pertinencia global, nacional y territorial.

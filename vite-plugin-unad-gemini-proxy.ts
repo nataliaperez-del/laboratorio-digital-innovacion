@@ -2,8 +2,11 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { Plugin, PreviewServer, ViteDevServer } from 'vite';
 
 const DEFAULT_BASE = 'https://chatbot-ia-360.unad.edu.co/api-proxy/v1';
-const ALLOWED_MODELS = new Set(['gemini-2.5-flash', 'gemini-2.5-flash-lite']);
+/** Modelos que acepta hoy la pasarela IA 360; si cambian, la pasarela responde con la lista vigente. */
+const ALLOWED_MODELS = new Set(['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.6-flash', 'gemini-3.7-flash', 'gemini-3.8-flash', 'gemini-3.1-pro-preview']);
 const MAX_BODY_BYTES = 12 * 1024 * 1024;
+const RADAR_URL = 'https://observatorio.innovahub360.net/index.php?route=%2Fradar';
+const RADAR_TTL_MS = 6 * 60 * 60 * 1000;
 
 function sanitizeCredential(value: string | undefined | null): string {
   if (value == null) return '';
@@ -46,19 +49,32 @@ type UnadProxyBody = {
   credentials?: { xApiKey?: string; bearer?: string };
 };
 
+/** Cuerpo que entiende la API de Gemini: nunca reenvía el modelo ni las credenciales del cliente. */
+function buildUpstreamBody(body: UnadProxyBody): Record<string, unknown> {
+  const out: Record<string, unknown> = { contents: body.contents };
+  if (body.generationConfig && typeof body.generationConfig === 'object') {
+    out.generationConfig = body.generationConfig;
+  }
+  if (Array.isArray(body.tools)) out.tools = body.tools;
+  return out;
+}
+
+async function pipeUpstream(res: ServerResponse, url: string, headers: Record<string, string>, body: unknown) {
+  const upstream = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) });
+  const text = await upstream.text();
+  res.statusCode = upstream.status;
+  res.setHeader('Content-Type', upstream.headers.get('content-type') || 'application/json');
+  res.end(text);
+}
+
+/** Espejo en desarrollo de `hostinger_deploy/includes/gemini_proxy.php` y `observatorio.php`. */
 export function unadGeminiProxyPlugin(env: Record<string, string>): Plugin {
-  const serverEnvX = sanitizeCredential(
-    env.VITE_UNAD_GEMINI_X_API_KEY || env.UNAD_GEMINI_X_API_KEY,
-  );
-  const serverEnvBearer = sanitizeCredential(
-    env.VITE_UNAD_GEMINI_BEARER || env.UNAD_GEMINI_BEARER,
-  );
-  const serverBase = (env.VITE_UNAD_GEMINI_BASE_URL?.trim() || DEFAULT_BASE).replace(/\/$/, '');
-  const serverModelDefault =
-    env.VITE_UNAD_GEMINI_MODEL?.trim() || env.UNAD_GEMINI_MODEL?.trim() || 'gemini-2.5-flash';
-  const geminiDirectKey = sanitizeCredential(
-    env.VITE_GEMINI_API_KEY || env.GEMINI_API_KEY,
-  );
+  const serverEnvX = sanitizeCredential(env.UNAD_GEMINI_X_API_KEY);
+  const serverEnvBearer = sanitizeCredential(env.UNAD_GEMINI_BEARER);
+  const serverBase = (env.UNAD_GEMINI_BASE_URL?.trim() || DEFAULT_BASE).replace(/\/$/, '');
+  const serverModelDefault = env.UNAD_GEMINI_MODEL?.trim() || 'gemini-3.5-flash';
+  const geminiDirectKey = sanitizeCredential(env.GEMINI_API_KEY);
+  let radarCache: { at: number; body: string } | null = null;
 
   async function handleUnadProxy(req: IncomingMessage, res: ServerResponse) {
     if (req.method !== 'POST') {
@@ -85,7 +101,7 @@ export function unadGeminiProxyPlugin(env: Record<string, string>): Plugin {
     const modelRaw = (body.model || serverModelDefault).trim();
     if (!ALLOWED_MODELS.has(modelRaw)) {
       sendJson(res, 400, {
-        error: `Modelo no permitido: ${modelRaw}. Use gemini-2.5-flash o gemini-2.5-flash-lite.`,
+        error: `Modelo no permitido: ${modelRaw}. Use uno de: ${[...ALLOWED_MODELS].join(', ')}.`,
       });
       return;
     }
@@ -97,136 +113,64 @@ export function unadGeminiProxyPlugin(env: Record<string, string>): Plugin {
 
     const xApiKey = sanitizeCredential(body.credentials?.xApiKey) || serverEnvX;
     const bearer = sanitizeCredential(body.credentials?.bearer) || serverEnvBearer;
+    const upstreamBody = buildUpstreamBody(body);
 
-    // Si cuenta con credenciales institucionales UNAD:
-    if (xApiKey && bearer) {
-      const upstreamUrl = `${serverBase}/models/${encodeURIComponent(modelRaw)}:generateContent`;
-      const forwardBody: Record<string, unknown> = {
-        contents: body.contents,
-      };
-      if (body.generationConfig && typeof body.generationConfig === 'object') {
-        forwardBody.generationConfig = body.generationConfig;
-      }
-      if (Array.isArray(body.tools)) {
-        forwardBody.tools = body.tools;
-      }
-
-      try {
-        const upstream = await fetch(upstreamUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': xApiKey,
-            Authorization: `Bearer ${bearer}`,
-          },
-          body: JSON.stringify(forwardBody),
-        });
-
-        const text = await upstream.text();
-        res.statusCode = upstream.status;
-        res.setHeader('Content-Type', upstream.headers.get('content-type') || 'application/json');
-        res.end(text);
+    try {
+      if (xApiKey && bearer) {
+        await pipeUpstream(
+          res,
+          `${serverBase}/models/${encodeURIComponent(modelRaw)}:generateContent`,
+          { 'Content-Type': 'application/json', 'x-api-key': xApiKey, Authorization: `Bearer ${bearer}` },
+          upstreamBody,
+        );
         return;
-      } catch (e) {
-        console.warn('[unad-gemini-proxy] Error llamando a proxy UNAD, evaluando alternativas...');
       }
+      if (geminiDirectKey) {
+        await pipeUpstream(
+          res,
+          `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelRaw)}:generateContent`,
+          { 'Content-Type': 'application/json', 'x-goog-api-key': geminiDirectKey },
+          upstreamBody,
+        );
+        return;
+      }
+    } catch (e) {
+      sendJson(res, 502, { error: `No se pudo contactar el servicio de IA: ${e instanceof Error ? e.message : e}` });
+      return;
     }
 
-    // Si cuenta con API key directa de Gemini:
-    if (geminiDirectKey) {
-      try {
-        const directUrl = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelRaw)}:generateContent?key=${geminiDirectKey}`;
-        const directResp = await fetch(directUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: body.contents }),
-        });
-        const text = await directResp.text();
-        res.statusCode = directResp.status;
-        res.setHeader('Content-Type', 'application/json');
-        res.end(text);
-        return;
-      } catch (e) {
-        console.warn('[gemini-proxy] Error en llamada directa a Google Gemini');
-      }
-    }
-
-    // Modo Autónomo Inteligente: Procesa la solicitud y genera la respuesta estructurada
-    // garantizando que el usuario NUNCA quede bloqueado por falta de red externa o credenciales.
-    const userPrompt = JSON.stringify(body.contents);
-    const extractTopic = () => {
-      const match = userPrompt.match(/tema[^\":]*[\":]+([^\"\n\\]+)/i) || userPrompt.match(/idea[^\":]*[\":]+([^\"\n\\]+)/i);
-      return match ? match[1].trim() : 'Innovación Territorial y Solución Sostenible';
-    };
-    const topic = extractTopic();
-
-    sendJson(res, 200, {
-      candidates: [
-        {
-          content: {
-            parts: [
-              {
-                text: JSON.stringify(
-                  {
-                    name: `Prototipo de ${topic}`,
-                    tagline: `Solución técnica y validación en campo para ${topic}`,
-                    category: 'Prototipo Tecnológico',
-                    trlTarget: 'TRL 5 (Validación en entorno relevante)',
-                    durationWeeks: 8,
-                    unadSchool: 'ECBTI & ECAPMA',
-                    targetAudience: 'Productores, comunidades organizadas y entidades del territorio.',
-                    problemSolved: `Brechas de tecnificación, altos costos y falta de herramientas apropiadas en torno a ${topic}.`,
-                    hypothesis: `Se valida que mediante la implementación de este prototipo se optimiza un 30% la eficiencia operativa y se reduce la dependencia de intermediarios o insumos externos en el territorio.`,
-                    solutionArchitecture: {
-                      hardware: 'Módulos físicos de bajo costo con componentes locales o microcontroladores de código abierto.',
-                      software: 'Interfaz web/móvil progresiva con sincronización offline para captura de datos y monitoreo.',
-                      methodology: 'Protocolo de validación participativa y apropiación social del conocimiento con la comunidad.',
-                    },
-                    phases: [
-                      {
-                        fase: 'Fase 1: Diseño Conceptual y Especificación Técnica',
-                        semanas: 'Semanas 1-2',
-                        actividades: 'Levantamiento de requerimientos con actores locales, arquitectura de componentes y selección de insumos.',
-                        entregables: ['Documento de arquitectura técnica', 'Diagrama funcional de bloques'],
-                      },
-                      {
-                        fase: 'Fase 2: Construcción del Prototipo Alfa / MVP',
-                        semanas: 'Semanas 3-4',
-                        actividades: 'Ensamblaje del modelo físico o despliegue del software base en entorno controlado de laboratorio UNAD.',
-                        entregables: ['Prototipo alfa operativo', 'Pruebas de banco en laboratorio'],
-                      },
-                      {
-                        fase: 'Fase 3: Pruebas Piloto y Validación con Usuarios en Territorio',
-                        semanas: 'Semanas 5-6',
-                        actividades: 'Prueba de campo con 15-20 usuarios reales, recolección de métricas de desempeño y retroalimentación directa.',
-                        entregables: ['Bitácora de pruebas en campo', 'Matriz de usabilidad y ajustes'],
-                      },
-                      {
-                        fase: 'Fase 4: Evaluación de KPIs, Ajustes Finales y Hoja de Escalamiento',
-                        semanas: 'Semanas 7-8',
-                        actividades: 'Consolidación de métricas de éxito, refinamiento de la versión Beta y plan de transferencia al territorio.',
-                        entregables: ['Reporte final de validación TRL', 'Hoja de ruta para escalamiento comercial'],
-                      },
-                    ],
-                    validationMetrics: [
-                      'Eficacia técnica superior al 85% en condiciones normales de operación',
-                      'Tasa de adopción y satisfacción comunitaria > 80%',
-                      'Reducción estimada del 25% en costos frente a alternativas convencionales',
-                    ],
-                    risks: [
-                      { riesgo: 'Resistencia inicial al cambio tecnológico', mitigacion: 'Talleres de co-diseño con líderes comunitarios.' },
-                      { riesgo: 'Fallas por intermitencia eléctrica o conectividad', mitigacion: 'Operación híbrida offline y respaldo fotovoltaico.' },
-                    ],
-                  },
-                  null,
-                  2,
-                ),
-              },
-            ],
-          },
-        },
-      ],
+    // Sin credenciales se informa el error: el Laboratorio nunca presenta datos inventados como resultado de IA.
+    sendJson(res, 503, {
+      code: 'IA_NO_CONFIGURADA',
+      error:
+        'La IA no está configurada. Define UNAD_GEMINI_X_API_KEY y UNAD_GEMINI_BEARER (o GEMINI_API_KEY) en .env.local, o elige otro proveedor en el botón «IA» de la cabecera.',
     });
+  }
+
+  /** Radar del Observatorio: solo lectura, leído de su página pública con caché de 6 horas. */
+  async function handleRadar(res: ServerResponse) {
+    if (radarCache && Date.now() - radarCache.at < RADAR_TTL_MS) {
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(radarCache.body);
+      return;
+    }
+    try {
+      const page = await fetch(RADAR_URL, { headers: { 'User-Agent': 'InnovaHub360-Laboratorio/1.0 (solo lectura)' } });
+      if (!page.ok) throw new Error(`HTTP ${page.status}`);
+      const match = (await page.text()).match(/const EMBED_TENDENCIAS = (\[[\s\S]*?\]);\s*\n/);
+      if (!match) throw new Error('El radar del Observatorio cambió de formato.');
+      const payload = JSON.stringify({ consultadoEn: new Date().toISOString(), fuente: RADAR_URL, senales: JSON.parse(match[1]) });
+      radarCache = { at: Date.now(), body: payload };
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(payload);
+    } catch (e) {
+      if (radarCache) {
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(radarCache.body);
+        return;
+      }
+      sendJson(res, 502, { error: `No se pudo leer el Radar del Observatorio: ${e instanceof Error ? e.message : e}` });
+    }
   }
 
   function attach(server: ViteDevServer | PreviewServer) {
@@ -234,6 +178,10 @@ export function unadGeminiProxyPlugin(env: Record<string, string>): Plugin {
       const url = req.url?.split('?')[0];
       if (url === '/api/unad-gemini' || url === '/api/unad-gemini/') {
         void handleUnadProxy(req, res);
+        return;
+      }
+      if (url === '/api/observatorio/radar') {
+        void handleRadar(res);
         return;
       }
       next();

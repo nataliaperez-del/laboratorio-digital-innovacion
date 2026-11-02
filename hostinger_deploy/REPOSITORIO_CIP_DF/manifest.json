@@ -1,12 +1,12 @@
 {
-  "generadoEn": "2026-11-01T08:04:47.828Z",
-  "version": "1.0.1",
-  "hash": "sha256-85536377b635653ff4769b78fbaa472691e7d33bf5987f227c4231ccfd18a2a6",
+  "generadoEn": "2026-11-01T23:32:50.056Z",
+  "version": "1.1.0",
+  "hash": "sha256-47c5760893165ba4a1be10025c45713e2c07f45bc294e960fa60511254c5a416",
   "repoDir": "REPOSITORIO_CIP_DF",
   "totales": {
-    "recursos": 7,
-    "caracteres": 1066921,
-    "tokensEstimados": 266734
+    "recursos": 6,
+    "caracteres": 1013411,
+    "tokensEstimados": 253355
   },
   "grupos": {
     "CONTENEDOR_1": [
@@ -52,10 +52,10 @@
         "version": 1,
         "vigente": true,
         "aceptaFuentesPropias": true,
-        "bytes": 20235,
-        "caracteres": 19821,
-        "tokensEstimados": 4956,
-        "hash": "sha256-ec2cbe5b85344902a777528967cad84d515c8800cefee192e24298b34c3c75b7"
+        "bytes": 19481,
+        "caracteres": 19088,
+        "tokensEstimados": 4772,
+        "hash": "sha256-2446b7eced4fcaa6de85b3075aee9c69612eb62c2e8f8c216488985c36722ee0"
       },
       {
         "id": "contenedor_2.prompts_fuentes_consulta_contenedor2_territorial 1",
@@ -84,25 +84,10 @@
         "version": 2,
         "vigente": true,
         "aceptaFuentesPropias": false,
-        "bytes": 10029,
-        "caracteres": 9826,
-        "tokensEstimados": 2457,
-        "hash": "sha256-196bb14d6af57ac2ac5bc192fcf7ee2df810b30ec335e44e8e872e6866553fa1"
-      },
-      {
-        "id": "generales.documento_fundante",
-        "ruta": "GENERALES/prompt_documento_fundante_v2.md",
-        "grupo": "GENERALES",
-        "familia": "documento_fundante",
-        "tipo": "prompt",
-        "orden": 50,
-        "version": 2,
-        "vigente": true,
-        "aceptaFuentesPropias": false,
-        "bytes": 52351,
-        "caracteres": 51231,
-        "tokensEstimados": 12808,
-        "hash": "sha256-f7d1fcccaece5b454638ac589e772ccb1ee630743e068ced2c541f036cd88721"
+        "bytes": 8867,
+        "caracteres": 8707,
+        "tokensEstimados": 2177,
+        "hash": "sha256-27255b934fdae0aad8a1b26de524719f74b1f3389cc029ef9bcd35058df82ad3"
       },
       {
         "id": "generales.vocacion_cip",
@@ -110,14 +95,14 @@
         "grupo": "GENERALES",
         "familia": "vocacion_cip",
         "tipo": "prompt",
-        "orden": 60,
+        "orden": 50,
         "version": 2,
         "vigente": true,
         "aceptaFuentesPropias": false,
-        "bytes": 8879,
-        "caracteres": 8682,
-        "tokensEstimados": 2171,
-        "hash": "sha256-17e1cdff37ba7ddc1d192b46e829dcf98b890430ff0c35add3e007a3955566a7"
+        "bytes": 8443,
+        "caracteres": 8255,
+        "tokensEstimados": 2064,
+        "hash": "sha256-782e122b6437fa12fcbc005bbb53c2ac4abba33ce2f9b14d1ad01320c9d2bcf1"
       }
     ]
   },

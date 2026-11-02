@@ -113,7 +113,13 @@ Visitar en el navegador:
 
 ---
 
-## 4. Reutilización Segura de Gemini Institucional
+## 4. Credenciales de la IA y Radar del Observatorio
+1. Copiar `config/ia.example.php` como `config/ia.php` y completar `UNAD_GEMINI_X_API_KEY` y `UNAD_GEMINI_BEARER`. Ese archivo no se sube a Git y `.htaccess` bloquea `config/` desde la web.
+2. Sin credenciales, `/api/unad-gemini` responde 503 y la aplicación lo informa: nunca muestra resultados inventados.
+3. `includes/observatorio.php` lee el Radar público del Observatorio con caché de 6 horas (ruta `/api/observatorio/radar`). Si el módulo se instala dentro del sitio, puede leer directamente la tabla MySQL conservando la misma respuesta.
+4. Para actualizar este paquete después de cambios en el código: `npm run deploy:package`.
+
+## 5. Reutilización Segura de Gemini Institucional
 El archivo `includes/gemini_proxy.php` actúa como un intermediario seguro entre el frontend y el endpoint institucional:
 - Las llamadas desde el navegador se dirigen a `/api/unad-gemini`.
 - El servidor PHP valida la solicitud, aplica el token institucional o credencial autorizada en el encabezado `Authorization: Bearer`, y reenvía a `https://chatbot-ia-360.unad.edu.co/api-proxy/v1`.

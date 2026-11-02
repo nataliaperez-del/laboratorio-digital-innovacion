@@ -1,5 +1,4 @@
-import { cipTitleLabel } from '@/lib/cipIdentity';
-import { tailForCoherence } from '@/prompts/fundantePhase3Sections';
+import { LAB_SCOPE_RULES, scopeIssue, tailForCoherence } from '@/prompts/labGuardrails';
 import { buildTrazabilidadAppendix, type Procedencia } from '@/repositorio/procedencia';
 
 /**
@@ -76,7 +75,7 @@ export function sanitizeContenedor2SectionMarkdown(markdown: string): string {
 
 /**
  * Autoevaluación local de un bloque del Contenedor 2 recién redactado:
- * Aplica el mismo rigor que el Ecosistema de Innovación para detectar si quedó vacío,
+ * Detecta si quedó vacío,
  * sin encabezado, cortado, con marcadores de relleno o con "rayas" (líneas divisorias,
  * cajas ASCII o tablas rotas). No consume llamadas al modelo.
  */
@@ -108,6 +107,9 @@ export function reviewContenedor2Section(
       issue: `Falta el encabezado oficial «${contenedor2Heading(point)}».`,
     };
   }
+
+  const outOfScope = scopeIssue(text);
+  if (outOfScope) return { status: 'warning', issue: outOfScope };
 
   const placeholders = text.match(/\[(?:completar|tbd|rellenar|insertar|lorem|ipsum)[^\]]*\]/gi);
   if (placeholders) {
@@ -225,7 +227,7 @@ export function assembleContenedor2Document(
 
 /** Frase de cierre obligatoria del Contenedor 2, literal y sin variantes. */
 export const CONTENEDOR2_CLOSING_STATEMENT =
-  'Este contenedor entrega un diagnóstico territorial verificable. No declara la vocación de servicio del territorio ni los temas estratégicos del Centro de Innovación; esa definición corresponde al paso de Vocación Territorial.';
+  'Este estudio entrega un diagnóstico territorial verificable. No declara la vocación de servicio del territorio ni sus temas estratégicos; esa definición corresponde a la herramienta de Ideación del Laboratorio.';
 
 /**
  * Los **doce puntos de entrega** del Contenedor 2, en el orden y con los títulos que
@@ -271,7 +273,7 @@ export const CONTENEDOR2_SECTIONS: readonly Contenedor2Point[] = [
     phase: 'Fase 2 — Lectura sistémica de competitividad',
     kind: 'ai',
     parts: [
-      'Un subapartado por cada uno de los cinco pilares: (1) gobierno e instituciones, (2) desarrollo económico, (3) infraestructura productiva, (4) capital humano y (5) eficiencia empresarial. Los cinco deben abordarse, aun si alguno queda con vacío de información declarado. Cierra cada pilar indicando su **nivel de evidencia** (alto, medio, bajo o sin evidencia).',
+      'Un subapartado por cada uno de los cinco pilares: (1) gobierno e instituciones, (2) desarrollo económico, (3) infraestructura productiva, (4) capital humano y (5) eficiencia empresarial. Los cinco deben abordarse, aun si alguno queda con vacío de información declarado. Cierra cada pilar con esta línea literal, eligiendo un valor: `Nivel de evidencia: alto`, `medio`, `bajo` o `sin evidencia`.',
     ],
   },
   {
@@ -473,7 +475,7 @@ export function buildContenedor2AppPoint(point: AppPoint, documentSoFar: string)
       '',
       'No se registró ninguna alerta de verificación humana en los apartados anteriores.',
       '',
-      '==⚠️ ALERTA DE VERIFICACIÓN HUMANA: un diagnóstico territorial sin ningún vacío declarado es inusual. Antes de dar por validado este contenedor, revisa que los datos de cada apartado tengan fuente real y que no se hayan completado por inferencia (REQUIERE CONTRASTE).==',
+      '==⚠️ ALERTA DE VERIFICACIÓN HUMANA: un diagnóstico territorial sin ningún vacío declarado es inusual. Antes de dar por validado este estudio, revisa que los datos de cada apartado tengan fuente real y que no se hayan completado por inferencia (REQUIERE CONTRASTE).==',
     ].join('\n');
   }
 
@@ -484,13 +486,13 @@ export function buildContenedor2AppPoint(point: AppPoint, documentSoFar: string)
   return [
     heading,
     '',
-    `Alertas generadas en este contenedor: **${alerts.length}** (${counts.join(' · ')}).`,
+    `Alertas generadas en este estudio: **${alerts.length}** (${counts.join(' · ')}).`,
     '',
     '| Apartado | Etiqueta | Qué falta confirmar |',
     '|---|---|---|',
     ...alerts.map((a) => `| ${a.section} | ${a.label} | ${a.detail.replace(/\|/g, '\\|')} |`),
     '',
-    'Esta consolidación la extrae la aplicación de las alertas realmente presentes en los apartados anteriores; el paso de Vocación Territorial hereda estas mismas etiquetas.',
+    'Esta consolidación la extrae la aplicación de las alertas realmente presentes en los apartados anteriores; la herramienta de Ideación hereda estas mismas etiquetas.',
   ].join('\n');
 }
 
@@ -523,11 +525,13 @@ ${prev}
     ? `- Este bloque **continúa** el apartado «${point.title}», que ya está abierto. **No** repitas su encabezado ni ningún otro: empieza directamente con el contenido.`
     : `- Tu salida debe **empezar** con el encabezado de nivel 2: \`${contenedor2Heading(point)}\`${
         point.number === 1
-          ? `\n- Antes de ese encabezado, la **primera línea** de tu salida debe ser el título de nivel 1:\n  # Contenedor 2 — Contexto territorial del ${cipTitleLabel(labName)}`
+          ? `\n- Antes de ese encabezado, la **primera línea** de tu salida debe ser el título de nivel 1:\n  # Estudio Territorial${labName.trim() ? ` — ${labName.trim()}` : ''}`
           : ''
       }`;
 
   return `
+${LAB_SCOPE_RULES}
+
 ${sharedContext}
 ${prevBlock}
 ══════════════════════════════════════════════════

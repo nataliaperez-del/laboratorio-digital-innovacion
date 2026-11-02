@@ -8,6 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "tsc --noEmit",
+    "test": "vitest run",
+    "deploy:package": "npm run build && node scripts/empaquetar-hostinger.mjs",
     "sellar": "node scripts/sellar-repositorio.mjs",
     "predev": "node scripts/sellar-repositorio.mjs",
     "prebuild": "node scripts/sellar-repositorio.mjs"
@@ -38,6 +40,7 @@
     "@vercel/node": "^5.3.0",
     "autoprefixer": "^10.4.21",
     "tailwindcss": "^4.1.14",
-    "typescript": "~5.8.2"
+    "typescript": "~5.8.2",
+    "vitest": "^3.2.7"
   }
 }

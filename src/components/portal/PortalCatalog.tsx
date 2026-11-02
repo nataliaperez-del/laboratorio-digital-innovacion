@@ -35,42 +35,42 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
     {
       id: 0,
       eyebrow: 'MÓDULO ESTRATÉGICO · OBSERVATORIO INNOVAHUB360',
-      title: 'Laboratorio de Innovación',
-      subtitle: 'Del Radar y el Diagnóstico Zonal al Prototipado Rápido con IA',
+      title: 'Laboratorio de Innovación en Línea',
+      subtitle: 'Del diagnóstico territorial al prototipado, con la IA como mediadora',
       description:
-        'Espacio neurálgico del Observatorio para la vigilancia prospectiva, caracterización territorial en 12 bloques, ideación estratégica, visualización holográfica en árbol y prototipado rápido de soluciones, con asistencia cognitiva transversal de ZOE.',
-      badge: '5 Herramientas Integradas',
+        'Un módulo del Observatorio InnovaHub360 que se alimenta de sus señales. Cuatro herramientas que funcionan solas o encadenadas: Estudio Territorial, Ideación, Árbol de Innovación y Prototipado.',
+      badge: '4 Herramientas Modulares',
       badgeColor: '#2E9CBA',
-      ctaText: 'Entrar al Laboratorio de Innovación',
-      targetTool: 'radar' as ToolId,
-      statNumber: '05',
-      statLabel: 'Herramientas Conectadas',
+      ctaText: 'Empezar con un Estudio Territorial',
+      targetTool: 'estudio' as ToolId,
+      statNumber: '04',
+      statLabel: 'Herramientas modulares',
       accentGradient: 'from-[#0C5E78]/35 via-transparent to-[#2E9CBA]/20',
       accentColor: '#5EC2DD',
     },
     {
       id: 1,
-      eyebrow: 'HERRAMIENTA 01 · VIGILANCIA TECNOLÓGICA',
-      title: 'Radar de Innovación',
-      subtitle: '31 Señales en Matriz de Impacto vs. Velocidad de Adopción',
+      eyebrow: 'INSUMO DEL OBSERVATORIO',
+      title: 'Radar del Observatorio',
+      subtitle: 'Señales reales en matriz de impacto y velocidad de adopción',
       description:
-        'Mapeo interactivo de macrotendencias globales, nacionales y territoriales sobre cuatro cuadrantes de acción: Tecnologías Críticas, Habilitadores, Modelos Disruptivos y Sostenibilidad Zonal.',
-      badge: '31 Señales Activas',
+        'El Laboratorio lee las señales que publica el Observatorio y permite llevar cualquiera a Ideación, al Árbol de Innovación o a Prototipado.',
+      badge: 'Datos del Observatorio',
       badgeColor: '#5EC2DD',
-      ctaText: 'Explorar Radar de Innovación',
+      ctaText: 'Explorar el Radar',
       targetTool: 'radar' as ToolId,
-      statNumber: '31',
-      statLabel: 'Señales Prospectivas',
+      statNumber: 'En vivo',
+      statLabel: 'Leído del Observatorio',
       accentGradient: 'from-[#0C5E78]/35 via-transparent to-[#5EC2DD]/20',
       accentColor: '#5EC2DD',
     },
     {
       id: 2,
-      eyebrow: 'HERRAMIENTA 02 · CARACTERIZACIÓN REGIONAL',
+      eyebrow: 'HERRAMIENTA 01 · DIAGNÓSTICO',
       title: 'Estudio Territorial',
-      subtitle: 'Diagnóstico en 12 Bloques y Fuentes Oficiales',
+      subtitle: 'Diagnóstico en 12 puntos con la metodología MDVT',
       description:
-        'Cruce riguroso de fuentes del territorio, códigos DIVIPOLA, planes de desarrollo municipal y banco de iniciativas para fundamentar la vocación productiva y social.',
+        'Caracterización productiva, lectura por pilares, matriz FODA y contraste con fuentes propias del territorio, con informe formal en Word y PDF.',
       badge: '12 Bloques Analíticos',
       badgeColor: '#A8C63C',
       ctaText: 'Ver Estudio Territorial',
@@ -82,33 +82,33 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
     },
     {
       id: 3,
-      eyebrow: 'HERRAMIENTAS 03 & 04 · ESTRUCTURACIÓN Y MODELADO',
-      title: 'Ideación Estratégica & Árbol de Innovación',
-      subtitle: 'Elección del Tema Ancla y Circuito Holográfico 10-5-3',
+      eyebrow: 'HERRAMIENTAS 02 Y 03 · IDEACIÓN Y ÁRBOL',
+      title: 'Ideación y Árbol de Innovación',
+      subtitle: 'De una vocación y tres temas al árbol 10-5-3',
       description:
-        'Define el tema central a partir de la deliberación territorial o de forma independiente, y explora la arquitectura viva: actores del suelo, retos en raíces, tronco y ramas de valor.',
-      badge: 'Circuito Holográfico 10-5-3',
+        'Parte de un tema, un archivo o el estudio; declara la vocación y explora en el árbol interactivo las tendencias, oportunidades y frutos que la IA construye.',
+      badge: 'Árbol interactivo 10-5-3',
       badgeColor: '#F29F05',
       ctaText: 'Visualizar Árbol de Innovación',
       targetTool: 'arbol' as ToolId,
-      statNumber: '18',
-      statLabel: 'Ramas en Circuito',
+      statNumber: '10·5·3',
+      statLabel: 'Global, Colombia, territorio',
       accentGradient: 'from-[#6E4202]/35 via-transparent to-[#F29F05]/20',
       accentColor: '#F3C26B',
     },
     {
       id: 4,
-      eyebrow: 'HERRAMIENTA 05 · SOLUCIONES TANGIBLES',
-      title: 'Prototipado Rápido con IA',
-      subtitle: 'Estructuración Integral de Prototipos para Cualquier Tema',
+      eyebrow: 'HERRAMIENTA 04 · SOLUCIONES',
+      title: 'Prototipado',
+      subtitle: 'Un plan completo desde una idea o un fruto del árbol',
       description:
-        'Diseña y valida prototipos tecnológicos o de servicios a partir de los frutos del árbol o desde cualquier tema libre, obteniendo arquitectura técnica, 4 fases y KPIs medibles.',
+        'Hipótesis, arquitectura, fases, métricas y riesgos, con informe formal en Word y PDF.',
       badge: 'Plan con IA Generativa',
       badgeColor: '#A98FD6',
       ctaText: 'Crear Plan de Prototipado',
       targetTool: 'prototipado' as ToolId,
-      statNumber: 'TRL 5',
-      statLabel: 'Madurez Objetivo',
+      statNumber: 'TRL 3–6',
+      statLabel: 'Madurez objetivo a elegir',
       accentGradient: 'from-[#3A225B]/40 via-transparent to-[#A98FD6]/20',
       accentColor: '#A98FD6',
     },
@@ -144,59 +144,44 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
 
   const tools = [
     {
-      id: 'radar' as ToolId,
-      name: 'Radar de Innovación',
-      tagline: 'Vigilancia activa y prospectiva tecnológica territorial',
-      description:
-        'Exploración interactiva de 31 señales y macrotendencias en matriz de impacto versus velocidad de adopción en cuatro cuadrantes de acción.',
-      icon: Compass,
-      color: '#5EC2DD',
-      accentColor: '#2E9CBA',
-      badge: 'Herramienta 1 · 31 Señales',
-    },
-    {
       id: 'estudio' as ToolId,
       name: 'Estudio Territorial',
-      tagline: 'Diagnóstico zonal y caracterización en 12 bloques',
-      description:
-        'Ingesta y procesamiento de fuentes del territorio, códigos DIVIPOLA y banco de iniciativas para generar un diagnóstico contextual riguroso.',
+      tagline: 'Diagnóstico de un territorio en 12 puntos',
+      description: 'Ficha Base, fuentes propias, lectura por pilares, matriz FODA y alertas de verificación con la metodología MDVT.',
       icon: Layers,
       color: '#A8C63C',
       accentColor: '#7A9706',
-      badge: 'Herramienta 2 · 12 Bloques',
+      badge: 'Herramienta 1',
     },
     {
       id: 'ideacion' as ToolId,
-      name: 'Ideación Estratégica y Elección del Tema',
-      tagline: 'Decisión deliberada de vocación y tema ancla',
-      description:
-        'Consecuente con el diagnóstico territorial o de formulación independiente. Evaluación de alternativas y selección del eje estructurador.',
+      name: 'Ideación',
+      tagline: 'Vocación y tres temas para decidir',
+      description: 'El proceso de vocación aplicado a un tema, un archivo, una señal del Observatorio o el Estudio Territorial.',
       icon: BrainCircuit,
       color: '#F3C26B',
       accentColor: '#F29F05',
-      badge: 'Herramienta 3 · Decisión Temática',
+      badge: 'Herramienta 2',
     },
     {
       id: 'arbol' as ToolId,
       name: 'Árbol de Innovación',
-      tagline: 'Estructura holográfica y circuito de valor 10-5-3',
-      description:
-        'Visualización interactiva tipo circuito: suelo (actores), raíces (riesgos), tronco (tema central), ramas (10 globales, 5 nacionales, 3 territoriales) y frutos.',
+      tagline: '10 globales · 5 Colombia · 3 territorio',
+      description: 'Árbol interactivo construido por la IA para cualquier tema: raíces, tronco, ramas, hojas y frutos, con informe formal.',
       icon: Trees,
       color: '#A8C63C',
       accentColor: '#A8C63C',
-      badge: 'Herramienta 4 · Circuito Holográfico',
+      badge: 'Herramienta 3',
     },
     {
       id: 'prototipado' as ToolId,
       name: 'Prototipado',
-      tagline: 'Banco de diseño, especificación y validación rápida',
-      description:
-        'Estructuración de prototipos tecnológicos, servicios de innovación y proyectos territoriales. Funciona a partir de los frutos del árbol o de forma 100% independiente con IA.',
+      tagline: 'De la idea al plan de validación',
+      description: 'Plan completo con hipótesis, arquitectura, fases y métricas, desde una idea libre o un fruto del árbol.',
       icon: Rocket,
       color: '#A98FD6',
       accentColor: '#6B4FA0',
-      badge: 'Herramienta 5 · Banco de Prototipos',
+      badge: 'Herramienta 4',
     },
   ];
 
@@ -302,7 +287,7 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
                 className="g2 px-5 py-3.5 rounded-full text-sm font-semibold text-[#27DCFF] border border-[#27DCFF]/40 hover:bg-[#27DCFF]/15 flex items-center gap-2 cursor-pointer transition-all zoe-glow"
               >
                 <Sparkles className="w-4 h-4 text-[#27DCFF] animate-spin" style={{ animationDuration: '6s' }} />
-                <span>Hablar con ZOE (Transversal)</span>
+                <span>Hablar con ZOE</span>
               </button>
             </div>
           </div>
@@ -352,13 +337,10 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
             </div>
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <h3 className="text-lg font-bold text-white sy">ZOE Companion · Inteligencia Asistente Transversal</h3>
-                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-[#27DCFF]/20 text-[#27DCFF] border border-[#27DCFF]/30">
-                  Transversal en todo el Observatorio
-                </span>
+                <h3 className="text-lg font-bold text-white sy">ZOE</h3>
               </div>
               <p className="text-xs sm:text-sm text-[#CFE0E6] max-w-3xl leading-relaxed">
-                ZOE no está confinada a una sola pantalla. Acompaña de forma transversal cada destino del Observatorio InnovaHub360 y cada fase del Laboratorio de Innovación: responde consultas sobre tendencias, analiza variables territoriales, sugiere ramificaciones para el árbol y estructura planes de prototipado en tiempo real.
+                ZOE no está confinada a una sola pantalla. Acompaña cada destino del Observatorio InnovaHub360 y cada fase del Laboratorio de Innovación: responde consultas sobre tendencias, analiza variables territoriales, sugiere ramificaciones para el árbol y estructura planes de prototipado en tiempo real.
               </p>
             </div>
           </div>
@@ -394,7 +376,7 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
             onClick={onOpenZoe}
             className="px-3 py-1 rounded-full bg-white/5 hover:bg-white/15 text-white/90 border border-white/10 transition-colors cursor-pointer"
           >
-            "Explícame las 31 señales del Radar"
+            "Explícame las señales del Radar"
           </button>
         </div>
       </section>
@@ -410,10 +392,10 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
                 MÓDULO DE LABORATORIO
               </span>
               <span className="text-xs text-brand-textMuted">·</span>
-              <span className="text-xs text-brand-textMuted">5 Herramientas Especializadas</span>
+              <span className="text-xs text-brand-textMuted">4 herramientas modulares</span>
             </div>
             <h2 className="text-2xl md:text-3xl font-bold text-white sy">
-              Herramientas del Laboratorio de Innovación
+              Herramientas del Laboratorio de Innovación en Línea
             </h2>
             <p className="text-xs sm:text-sm text-brand-textSecondary mt-1 max-w-2xl">
               Cada herramienta puede utilizarse de forma 100% independiente con datos propios o encadenada como una ruta metodológica completa.
@@ -424,7 +406,7 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
           {tools.map((tool) => {
             const Icon = tool.icon;
             return (
@@ -479,68 +461,27 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <Workflow className="w-5 h-5 text-[#A8C63C]" />
-            <h3 className="text-lg font-bold text-white sy">Ruta Metodológica Integrada del Laboratorio</h3>
+            <h3 className="text-lg font-bold text-white sy">Una ruta posible: cada herramienta también funciona sola</h3>
           </div>
           <span className="text-xs text-brand-textMuted m hidden md:inline-block">
-            Encadenamiento Opcional o Autónomo
+            Encadenada o autónoma
           </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          <div
-            onClick={() => onSelectTool('radar')}
-            className="g2 p-4 rounded-xl space-y-2 cursor-pointer hover:border-[#5EC2DD]/50 transition-all"
-          >
-            <span className="text-xs font-bold text-[#5EC2DD] m">01 · VIGILANCIA</span>
-            <h4 className="text-sm font-bold text-white sy">Radar de Innovación</h4>
-            <p className="text-xs text-brand-textSecondary">
-              Mapeo de 31 señales y macrotendencias con niveles de impacto y velocidad.
-            </p>
-          </div>
-
-          <div
-            onClick={() => onSelectTool('estudio')}
-            className="g2 p-4 rounded-xl space-y-2 cursor-pointer hover:border-[#A8C63C]/50 transition-all"
-          >
-            <span className="text-xs font-bold text-[#A8C63C] m">02 · TERRITORIO</span>
-            <h4 className="text-sm font-bold text-white sy">Estudio Territorial</h4>
-            <p className="text-xs text-brand-textSecondary">
-              Diagnóstico territorial estructurado en 12 bloques y fuentes primarias.
-            </p>
-          </div>
-
-          <div
-            onClick={() => onSelectTool('ideacion')}
-            className="g2 p-4 rounded-xl space-y-2 cursor-pointer hover:border-[#F3C26B]/50 transition-all"
-          >
-            <span className="text-xs font-bold text-[#F3C26B] m">03 · IDEACIÓN</span>
-            <h4 className="text-sm font-bold text-white sy">Ideación Estratégica</h4>
-            <p className="text-xs text-brand-textSecondary">
-              Elección deliberada del tema ancla a partir de los retos y vocaciones zonales.
-            </p>
-          </div>
-
-          <div
-            onClick={() => onSelectTool('arbol')}
-            className="g2 p-4 rounded-xl space-y-2 cursor-pointer hover:border-[#A8C63C]/50 transition-all"
-          >
-            <span className="text-xs font-bold text-[#A8C63C] m">04 · MODELADO</span>
-            <h4 className="text-sm font-bold text-white sy">Árbol de Innovación</h4>
-            <p className="text-xs text-brand-textSecondary">
-              Estructura holográfica: actores, riesgos, tronco temático y ramas 10-5-3.
-            </p>
-          </div>
-
-          <div
-            onClick={() => onSelectTool('prototipado')}
-            className="g2 p-4 rounded-xl space-y-2 cursor-pointer hover:border-[#A98FD6]/50 transition-all"
-          >
-            <span className="text-xs font-bold text-[#A98FD6] m">05 · SOLUCIONES</span>
-            <h4 className="text-sm font-bold text-white sy">Prototipado</h4>
-            <p className="text-xs text-brand-textSecondary">
-              Especificación técnica, validación rápida y estructuración de proyectos y servicios.
-            </p>
-          </div>
+          {[
+            { tool: 'radar' as ToolId, tag: 'OBSERVATORIO', title: 'Radar', text: 'Señales que el Observatorio ya vigila.', color: '#5EC2DD' },
+            { tool: 'estudio' as ToolId, tag: '01 · TERRITORIO', title: 'Estudio Territorial', text: 'Diagnóstico del territorio en 12 puntos.', color: '#A8C63C' },
+            { tool: 'ideacion' as ToolId, tag: '02 · IDEACIÓN', title: 'Ideación', text: 'Vocación y elección de un tema.', color: '#F3C26B' },
+            { tool: 'arbol' as ToolId, tag: '03 · ÁRBOL', title: 'Árbol de Innovación', text: 'Tendencias 10-5-3, oportunidades y frutos.', color: '#A8C63C' },
+            { tool: 'prototipado' as ToolId, tag: '04 · SOLUCIONES', title: 'Prototipado', text: 'Plan de validación de una idea o un fruto.', color: '#A98FD6' },
+          ].map((step) => (
+            <button key={step.tool} type="button" onClick={() => onSelectTool(step.tool)} className="g2 p-4 rounded-xl space-y-2 text-left transition-all hover:border-white/30">
+              <span className="text-xs font-bold m" style={{ color: step.color }}>{step.tag}</span>
+              <span className="text-sm font-bold text-white sy block">{step.title}</span>
+              <span className="text-xs text-brand-textSecondary block">{step.text}</span>
+            </button>
+          ))}
         </div>
       </section>
 
@@ -554,7 +495,7 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
               Ecosistema Integral del Observatorio InnovaHub360
             </h3>
             <p className="text-xs text-brand-textSecondary mt-0.5">
-              Cómo se articula el módulo de Laboratorio de Innovación con los demás destinos del Observatorio.
+              El Laboratorio es una parte del Observatorio: se alimenta de él y entrega resultados a otros de sus destinos.
             </p>
           </div>
           <span className="chip bg-white/5 border border-white/10 text-brand-textMuted text-[10px] m">
@@ -569,7 +510,7 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
               <span className="text-xs font-bold sy">Vigilancia Prospectiva</span>
             </div>
             <p className="text-xs text-brand-textSecondary leading-relaxed">
-              Alimenta al Radar de Innovación del laboratorio con señales científicas, patentes y macrotendencias globales.
+              Sus señales llegan al Laboratorio por el Radar y sirven de insumo a cada herramienta.
             </p>
           </div>
 
@@ -579,7 +520,7 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
               <span className="text-xs font-bold sy">Mapa de Actores</span>
             </div>
             <p className="text-xs text-brand-textSecondary leading-relaxed">
-              Conecta los actores de la cuádruple hélice con el Suelo del Árbol de Innovación y las redes territoriales.
+              Un destino propio del Observatorio: los actores que el Estudio Territorial identifica se contrastan allí.
             </p>
           </div>
 
@@ -589,7 +530,7 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
               <span className="text-xs font-bold sy">Repositorio de Proyectos</span>
             </div>
             <p className="text-xs text-brand-textSecondary leading-relaxed">
-              Recibe los prototipos validados generados en el módulo para su escalamiento institucional y seguimiento TRL.
+              Destino natural de los planes de prototipado una vez validados por el equipo.
             </p>
           </div>
 

@@ -1,11 +1,11 @@
 /**
- * Exportación a Word real (.docx) del Ecosistema de Innovación: portada, tabla de
- * contenido, índices de tablas y figuras, numeración de páginas y epígrafes APA.
+ * Exportación a Word real (.docx) de los informes del Laboratorio: portada, tabla de
+ * contenido, índices de tablas y figuras, numeración de páginas y epígrafes APA. Es el
+ * mismo armado formal de la app Fase 1, con la portada de cada herramienta.
  *
- * La tabla de contenido y los índices son campos de Word (TOC/SEQ), no listas
- * escritas a mano: se actualizan solos al abrir el archivo y así los números de
- * página corresponden a la paginación real de Word. Se incluyen además entradas
- * en caché para que el documento se lea aunque el usuario no acepte actualizar.
+ * La tabla de contenido y los índices son campos de Word (TOC/SEQ): se actualizan al abrir
+ * el archivo y así los números de página corresponden a la paginación real. Se incluyen
+ * entradas en caché para que el documento se lea aunque no se acepte actualizar.
  */
 
 import {
@@ -35,7 +35,6 @@ import {
   type ParagraphChild,
 } from 'docx';
 import {
-  buildDocumentPlan,
   formatSpanishDate,
   formatTerritory,
   type DocumentMeta,
@@ -316,21 +315,14 @@ function coverChildren(meta: DocumentMeta): Paragraph[] {
   return [
     line('UNIVERSIDAD NACIONAL ABIERTA Y A DISTANCIA', { size: 28, bold: true, before: 1200, color: BRAND }),
     line('Vicerrectoría de Innovación y Emprendimiento', { size: 24 }),
-    line('proyecto de innovación', { size: 52, bold: true, before: 900, color: BRAND }),
-    line('Centro de Innovación', { size: 26 }),
-    line(meta.labName?.trim() || 'Centro de Innovación (nombre pendiente de confirmación)', {
-      size: 32,
-      bold: true,
-      before: 200,
-    }),
+    line('Observatorio InnovaHub360 · Laboratorio de Innovación en Línea', { size: 22 }),
+    line(meta.reportType, { size: 44, bold: true, before: 900, color: BRAND }),
+    line(meta.title, { size: 32, bold: true, before: 200 }),
+    ...(meta.subtitle?.trim() ? [line(meta.subtitle.trim(), { size: 24 })] : []),
     ...(meta.zonaUNAD?.trim() ? [line(meta.zonaUNAD.trim(), { size: 24 })] : []),
     ...(territory ? [line(territory, { size: 24 })] : []),
-    line(
-      'Versión preliminar. Los objetivos, la misión, la visión, el diseño organizacional, los indicadores, los macroservicios y la ruta de maduración son formulaciones propuestas y quedan sujetas a validación institucional.',
-      { size: 20, italics: true, before: 900 },
-    ),
+    line(meta.disclaimer, { size: 20, italics: true, before: 900 }),
     line(formatSpanishDate(meta.generatedAt), { size: 22, before: 600 }),
-    ...(meta.generatedBy?.trim() ? [line(`Generado por ${meta.generatedBy.trim()}`, { size: 20, italics: true })] : []),
     new Paragraph({ children: [new PageBreak()] }),
   ];
 }
@@ -390,9 +382,7 @@ function frontMatter(plan: DocumentPlan): Array<Paragraph | TableOfContents> {
 
 /** Encabezado y pie compartidos por el cuerpo del documento. */
 function bodyHeaderFooter(meta: DocumentMeta): { header: Header; footer: Footer } {
-  const runningTitle = [meta.labName?.trim() || 'Ecosistema de Innovación del Centro de Innovación', meta.zonaUNAD?.trim()]
-    .filter(Boolean)
-    .join(' · ');
+  const runningTitle = [meta.reportType, meta.title].filter(Boolean).join(' · ');
   return {
     header: new Header({
       children: [
@@ -476,15 +466,15 @@ function numberingConfig() {
 }
 
 /** Genera el archivo .docx completo, listo para descargar. */
-export async function buildFundanteDocxBlob(plan: DocumentPlan, meta: DocumentMeta): Promise<Blob> {
+export async function buildReportDocxBlob(plan: DocumentPlan, meta: DocumentMeta): Promise<Blob> {
   const body = await blocksToChildren(plan.blocks);
   const { header, footer } = bodyHeaderFooter(meta);
   const page = { margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 } };
 
   const doc = new Document({
-    title: `Ecosistema de Innovación — ${meta.labName || 'Centro de Innovación'}`,
-    creator: meta.generatedBy?.trim() || 'Universidad Nacional Abierta y a Distancia',
-    description: 'Ecosistema de Innovación de Centro de Innovación (versión preliminar sujeta a validación institucional)',
+    title: `${meta.reportType} — ${meta.title}`,
+    creator: 'Laboratorio de Innovación en Línea · Observatorio InnovaHub360',
+    description: meta.subtitle || meta.reportType,
     // Word actualiza los campos TOC/SEQ al abrir el archivo.
     features: { updateFields: true },
     styles: documentStyles(),
@@ -496,73 +486,6 @@ export async function buildFundanteDocxBlob(plan: DocumentPlan, meta: DocumentMe
         headers: { default: header },
         footers: { default: footer },
         children: [...frontMatter(plan), ...body],
-      },
-    ],
-  });
-
-  return Packer.toBlob(doc);
-}
-
-/**
- * Genera un archivo Word (.docx) editable para entregables individuales de cualquier fase
- * (Estudio Territorial / Contenedor 2, Vocación y Temas, Árbol de Innovación).
- */
-export async function buildGenericDocxBlob({
-  title,
-  subtitle,
-  markdown,
-  meta,
-}: {
-  title: string;
-  subtitle?: string;
-  markdown: string;
-  meta: DocumentMeta;
-}): Promise<Blob> {
-  const plan = buildDocumentPlan(markdown);
-  const body = await blocksToChildren(plan.blocks);
-  const { header, footer } = bodyHeaderFooter(meta);
-  const page = { margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 } };
-
-  const territory = formatTerritory(meta);
-  const headerBlocks: Paragraph[] = [
-    new Paragraph({
-      spacing: { before: 180, after: 80 },
-      children: [new TextRun({ text: title, bold: true, size: 36, color: BRAND, font: 'Calibri' })],
-    }),
-    ...(subtitle
-      ? [
-          new Paragraph({
-            spacing: { before: 0, after: 100 },
-            children: [new TextRun({ text: subtitle, size: 22, italics: true, color: '475569', font: 'Calibri' })],
-          }),
-        ]
-      : []),
-    new Paragraph({
-      spacing: { before: 0, after: 260 },
-      children: [
-        new TextRun({
-          text: `Universidad Nacional Abierta y a Distancia (UNAD)${meta.zonaUNAD ? ` · ${meta.zonaUNAD}` : ''}${territory ? ` · ${territory}` : ''} · ${formatSpanishDate(meta.generatedAt)}`,
-          size: 18,
-          color: '64748B',
-          font: 'Calibri',
-        }),
-      ],
-    }),
-  ];
-
-  const doc = new Document({
-    title: `${title} — ${meta.labName || 'Centro de Innovación'}`,
-    creator: meta.generatedBy?.trim() || 'Universidad Nacional Abierta y a Distancia',
-    description: subtitle || title,
-    features: { updateFields: true },
-    styles: documentStyles(),
-    numbering: numberingConfig(),
-    sections: [
-      {
-        properties: { page: { ...page, pageNumbers: { start: 1 } } },
-        headers: { default: header },
-        footers: { default: footer },
-        children: [...headerBlocks, ...body],
       },
     ],
   });
