@@ -1,94 +1,51 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
-export type ZoeSoulState =
-  | 'idle'
-  | 'sitting'
-  | 'walking'
-  | 'sleeping'
-  | 'happy'
-  | 'playing'
-  | 'explaining'
-  | 'speaking'
-  | 'listening'
-  | 'greeting'
-  | 'thinking';
-
-export type ZoeAnimState = ZoeSoulState;
+export type ZoeSoulState = 'idle' | 'listening' | 'thinking' | 'speaking' | 'happy' | 'sleeping';
 
 export interface ZoeCanvas3DProps {
   behavior?: ZoeSoulState;
-  state?: ZoeSoulState;
-  outfit?: string;
-  isListening?: boolean;
   isWalking?: boolean;
-  posture?: 'sitting' | 'standing';
+  posture?: 'sitting' | 'standing' | 'lying';
   show360Environment?: boolean;
   petTrigger?: number;
-  onPet?: () => void;
-  onLoaded?: () => void;
+  facing?: -1 | 0 | 1;
+  framing?: 'full' | 'close';
 }
 
+const damp = (from: number, to: number, speed: number, dt: number) =>
+  from + (to - from) * (1 - Math.exp(-speed * dt));
+
 export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
-  behavior = 'sitting',
-  state = 'sitting',
-  outfit,
-  isListening = false,
+  behavior = 'idle',
   isWalking = false,
-  posture = 'sitting',
+  posture = 'standing',
   show360Environment = false,
   petTrigger,
-  onPet,
-  onLoaded,
+  facing = 0,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const triggerSniffRef = useRef<(() => void) | null>(null);
-  const isWalkingRef = useRef<boolean>(Boolean(isWalking));
-  const postureRef = useRef<'sitting' | 'standing'>(posture || 'sitting');
-  const walkActionRef = useRef<THREE.AnimationAction | null>(null);
-  const show360Ref = useRef<boolean>(Boolean(show360Environment));
-  const env360GroupRef = useRef<THREE.Group | null>(null);
+  const liveRef = useRef({ behavior, isWalking, posture, show360Environment, facing });
+  liveRef.current = { behavior, isWalking, posture, show360Environment, facing };
+
+  const petRef = useRef<() => void>(() => {});
 
   useEffect(() => {
-    postureRef.current = posture || 'sitting';
-  }, [posture]);
-
-  useEffect(() => {
-    isWalkingRef.current = Boolean(isWalking);
-    if (walkActionRef.current) {
-      if (isWalking) {
-        walkActionRef.current.reset().fadeIn(0.25).play();
-      } else {
-        walkActionRef.current.fadeOut(0.25);
-      }
-    }
-  }, [isWalking]);
-
-  useEffect(() => {
-    show360Ref.current = Boolean(show360Environment);
-    if (env360GroupRef.current) {
-      env360GroupRef.current.visible = Boolean(show360Environment);
-    }
-  }, [show360Environment]);
-
-  useEffect(() => {
-    if (petTrigger && triggerSniffRef.current) {
-      triggerSniffRef.current();
+    if (petTrigger) {
+      petRef.current();
     }
   }, [petTrigger]);
 
   useEffect(() => {
-    if (!containerRef.current) return;
     const container = containerRef.current;
-    let width = container.clientWidth || 290;
-    let height = container.clientHeight || 310;
+    if (!container) return;
 
-    // 1. Escena y cámara encuadrada para ver a Zoe MÁS GRANDE y majestuoso
+    let width = container.clientWidth || 320;
+    let height = container.clientHeight || 340;
+
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(28, width / height, 0.1, 100);
-    // Cámara ligeramente elevada mirando al centro del modelo, más cerca para mayor tamaño
+    const camera = new THREE.PerspectiveCamera(27, width / height, 0.1, 100);
     camera.position.set(0, 0.02, 3.3);
     camera.lookAt(0, 0, 0);
 
@@ -100,50 +57,52 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 0.95;
+    renderer.toneMappingExposure = 1.05;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
 
     container.innerHTML = '';
     container.appendChild(renderer.domElement);
 
-    // 2. Iluminación suave de estudio
-    const ambientLight = new THREE.AmbientLight(0x283845, 1.45);
+    // Iluminación equilibrada de estudio para resaltar la textura y geometría sin artefactos
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.4);
     scene.add(ambientLight);
 
-    const keyLight = new THREE.DirectionalLight(0xd4f4ff, 1.2);
-    keyLight.position.set(2.8, 4.0, 3.2);
+    const keyLight = new THREE.DirectionalLight(0xdcf8ff, 1.5);
+    keyLight.position.set(3, 4, 3);
     scene.add(keyLight);
 
-    const rimLight = new THREE.DirectionalLight(0xb85eff, 0.9);
-    rimLight.position.set(-3.0, 3.0, -3.0);
+    const rimLight = new THREE.DirectionalLight(0x27dcff, 1.2);
+    rimLight.position.set(-3, 2, -3);
     scene.add(rimLight);
 
-    // Luz tenue y sutil bajo las patitas en el piso
-    const pawGlowLight = new THREE.PointLight(0x27dcff, 0.7, 3.5);
-    pawGlowLight.position.set(0, -0.52, 0.15);
-    scene.add(pawGlowLight);
+    const softFill = new THREE.DirectionalLight(0xb85eff, 0.6);
+    softFill.position.set(0, -2, 2);
+    scene.add(softFill);
 
-    // Disco sutil que sólo emite un destello tenue en el punto de contacto en el piso
-    const contactGlowGeo = new THREE.CircleGeometry(0.44, 32);
-    contactGlowGeo.rotateX(-Math.PI / 2);
-    const contactGlowMat = new THREE.MeshBasicMaterial({
+    // Disco sutil en el punto de apoyo en el piso
+    const contactGeo = new THREE.CircleGeometry(0.48, 32);
+    contactGeo.rotateX(-Math.PI / 2);
+    const contactMat = new THREE.MeshBasicMaterial({
       color: 0x27dcff,
       transparent: true,
-      opacity: 0.16,
+      opacity: 0.18,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     });
-    const contactGlowMesh = new THREE.Mesh(contactGlowGeo, contactGlowMat);
-    contactGlowMesh.position.y = -0.54;
-    scene.add(contactGlowMesh);
+    const contactMesh = new THREE.Mesh(contactGeo, contactMat);
+    contactMesh.position.y = -0.54;
+    scene.add(contactMesh);
 
-    // Entorno 360° Holográfico Opcional (Cúpula geodésica, anillos orbitales y partículas cuánticas)
+    const pawLight = new THREE.PointLight(0x27dcff, 0.7, 2.5);
+    pawLight.position.set(0, -0.5, 0.1);
+    scene.add(pawLight);
+
+    // Entorno 360° holográfico opcional
     const env360Group = new THREE.Group();
-    env360Group.visible = show360Ref.current;
+    env360Group.visible = Boolean(show360Environment);
     scene.add(env360Group);
-    env360GroupRef.current = env360Group;
 
-    const domeGeo = new THREE.SphereGeometry(2.3, 28, 18);
+    const domeGeo = new THREE.SphereGeometry(2.3, 24, 16);
     const domeMat = new THREE.MeshBasicMaterial({
       color: 0x27dcff,
       wireframe: true,
@@ -169,71 +128,51 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
     orbitalRingMesh.position.y = -0.53;
     env360Group.add(orbitalRingMesh);
 
-    const outerRingGeo = new THREE.RingGeometry(1.05, 1.12, 36);
-    outerRingGeo.rotateX(-Math.PI / 2);
-    const outerRingMat = new THREE.MeshBasicMaterial({
-      color: 0xf29f05,
-      transparent: true,
-      opacity: 0.25,
-      side: THREE.DoubleSide,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-    });
-    const outerRingMesh = new THREE.Mesh(outerRingGeo, outerRingMat);
-    outerRingMesh.position.y = -0.535;
-    env360Group.add(outerRingMesh);
-
-    const particlesCount = 75;
-    const posArray = new Float32Array(particlesCount * 3);
-    for (let i = 0; i < particlesCount * 3; i += 3) {
-      posArray[i] = (Math.random() - 0.5) * 3.2;
-      posArray[i + 1] = Math.random() * 2.2 - 0.5;
-      posArray[i + 2] = (Math.random() - 0.5) * 3.2;
+    // Partículas cuánticas en el entorno 360
+    const partCount = 50;
+    const partPos = new Float32Array(partCount * 3);
+    for (let i = 0; i < partCount * 3; i += 3) {
+      partPos[i] = (Math.random() - 0.5) * 3;
+      partPos[i + 1] = Math.random() * 2 - 0.5;
+      partPos[i + 2] = (Math.random() - 0.5) * 3;
     }
     const partGeo = new THREE.BufferGeometry();
-    partGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+    partGeo.setAttribute('position', new THREE.BufferAttribute(partPos, 3));
     const partMat = new THREE.PointsMaterial({
-      size: 0.038,
+      size: 0.035,
       color: 0x5ec2dd,
       transparent: true,
       opacity: 0.55,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     });
-    const particlesMesh = new THREE.Points(partGeo, partMat);
-    env360Group.add(particlesMesh);
+    const partMesh = new THREE.Points(partGeo, partMat);
+    env360Group.add(partMesh);
 
-    // 3. Contenedores y jerarquía 3D
+    // Contenedor principal de ZOE
     const zoeContainer = new THREE.Group();
-    // Perspectiva 3/4 serena y noble (fija, sin giros bruscos)
     zoeContainer.rotation.set(0, -0.35, 0);
     scene.add(zoeContainer);
 
     let zoeGroup: THREE.Group | null = null;
-    let headBone: THREE.Bone | null = null;
-    let headEndBone: THREE.Bone | null = null;
-    let hipsBone: THREE.Bone | null = null;
-    let chestBone: THREE.Bone | null = null;
-    let backLegBone: THREE.Bone | null = null;
-    let rBackLegBone: THREE.Bone | null = null;
-    let backLeg0Bone: THREE.Bone | null = null;
-    let rBackLeg0Bone: THREE.Bone | null = null;
-
     let mixer: THREE.AnimationMixer | null = null;
     let walkAction: THREE.AnimationAction | null = null;
+
+    // Huesos clave para micro-gestos naturales en reposo
+    let headBone: THREE.Bone | null = null;
+    let headEndBone: THREE.Bone | null = null;
+    let chestBone: THREE.Bone | null = null;
+    let tailBone: THREE.Bone | null = null;
+
     const baseHeadRot = new THREE.Euler();
     const baseHeadEndRot = new THREE.Euler();
-    const baseHipsPos = new THREE.Vector3();
     const baseChestRot = new THREE.Euler();
-    const baseBackLegRot = new THREE.Euler();
-    const baseRBackLegRot = new THREE.Euler();
-    const baseBackLeg0Rot = new THREE.Euler();
-    const baseRBackLeg0Rot = new THREE.Euler();
+    const baseTailRot = new THREE.Euler();
 
-    const textureLoader = new THREE.TextureLoader();
-    const furTexture = textureLoader.load('/assets/zoe/zoe_texture.png');
-    furTexture.colorSpace = THREE.SRGBColorSpace;
-    furTexture.flipY = false;
+    let sniffStart = -99;
+    petRef.current = () => {
+      sniffStart = clock.getElapsedTime();
+    };
 
     const gltfLoader = new GLTFLoader();
     gltfLoader.load(
@@ -241,291 +180,182 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
       (gltf) => {
         zoeGroup = gltf.scene;
 
-        // Centrado y escala precisa: 1.15 garantiza que orejas, cola y patas se vean 100% completas
+        // Centrado y escala precisa: 1.25 encuadra a ZOE grande y majestuoso
         const bbox = new THREE.Box3().setFromObject(zoeGroup);
-        const bSize = new THREE.Vector3();
-        const bCenter = new THREE.Vector3();
-        bbox.getSize(bSize);
-        bbox.getCenter(bCenter);
+        const bSize = bbox.getSize(new THREE.Vector3());
+        const bCenter = bbox.getCenter(new THREE.Vector3());
+        const maxD = Math.max(bSize.x, bSize.y, bSize.z) || 1;
+        const s = 1.26 / maxD;
 
-        const maxD = Math.max(bSize.x, bSize.y, bSize.z);
-        const s = 1.28 / (maxD || 1);
         zoeGroup.scale.set(s, s, s);
-
-        // Centrado exacto del modelo natural en el centro del viewport
         zoeGroup.position.set(-bCenter.x * s, -bCenter.y * s, -bCenter.z * s);
         zoeContainer.add(zoeGroup);
 
-        // Clip de animación para caminar cuando se active el modo
+        // Nivel de piso exacto bajo las 4 patas
+        const groundLevel = -(bSize.y * s) * 0.48;
+        contactMesh.position.y = groundLevel;
+        pawLight.position.set(0, groundLevel + 0.04, 0.15);
+
+        // Optimización de la malla: Preservar textura original limpia y sólida (sin transparencias rotas)
+        zoeGroup.traverse((node) => {
+          if ((node as THREE.Mesh).isMesh) {
+            const mesh = node as THREE.Mesh;
+            mesh.castShadow = false;
+            mesh.receiveShadow = false;
+
+            const origMat = mesh.material as THREE.MeshStandardMaterial;
+            // Material limpio y sólido: preserva la textura nativa de 25k polígonos
+            const solidMat = new THREE.MeshStandardMaterial({
+              map: origMat.map || null,
+              roughness: 0.65,
+              metalness: 0.05,
+              emissive: new THREE.Color(0x04222b),
+              emissiveIntensity: 0.2,
+              transparent: false,
+              depthWrite: true,
+              depthTest: true,
+              side: THREE.FrontSide,
+            });
+            mesh.material = solidMat;
+          }
+
+          if ((node as THREE.Bone).isBone) {
+            if (node.name === 'head') {
+              headBone = node as THREE.Bone;
+              baseHeadRot.copy(headBone.rotation);
+            } else if (node.name === 'headend') {
+              headEndBone = node as THREE.Bone;
+              baseHeadEndRot.copy(headEndBone.rotation);
+            } else if (node.name === 'chest') {
+              chestBone = node as THREE.Bone;
+              baseChestRot.copy(chestBone.rotation);
+            } else if (node.name === 'tail' || node.name === 'tailstart') {
+              tailBone = node as THREE.Bone;
+              baseTailRot.copy(tailBone.rotation);
+            }
+          }
+        });
+
+        // Configuración de animación de caminata oficial de 4 patas
         if (gltf.animations && gltf.animations.length > 0) {
           mixer = new THREE.AnimationMixer(zoeGroup);
           walkAction = mixer.clipAction(gltf.animations[0]);
-          walkAction.setEffectiveTimeScale(0.85); // paso noble y natural
-          walkActionRef.current = walkAction;
-          if (isWalkingRef.current) {
+          walkAction.setEffectiveTimeScale(0.85); // Ritmo de marcha noble y natural
+          if (liveRef.current.isWalking) {
             walkAction.play();
           }
         }
-
-        // Ajustar contacto de patitas en el piso
-        const groundLevel = -(bSize.y * s) * 0.48;
-        contactGlowMesh.position.y = groundLevel;
-        pawGlowLight.position.set(0, groundLevel + 0.04, 0.15);
-
-        // Identificar huesos clave para animación noble, olfateo y postura sentada
-        zoeGroup.traverse((node) => {
-          if (node.name === 'head') {
-            headBone = node as THREE.Bone;
-            baseHeadRot.copy(headBone.rotation);
-          } else if (node.name === 'headend') {
-            headEndBone = node as THREE.Bone;
-            baseHeadEndRot.copy(headEndBone.rotation);
-          } else if (node.name === 'Hips') {
-            hipsBone = node as THREE.Bone;
-            baseHipsPos.copy(hipsBone.position);
-          } else if (node.name === 'chest') {
-            chestBone = node as THREE.Bone;
-            baseChestRot.copy(chestBone.rotation);
-          } else if (node.name === 'backleg') {
-            backLegBone = node as THREE.Bone;
-            baseBackLegRot.copy(backLegBone.rotation);
-          } else if (node.name === 'R_backleg') {
-            rBackLegBone = node as THREE.Bone;
-            baseRBackLegRot.copy(rBackLegBone.rotation);
-          } else if (node.name === 'backleg0') {
-            backLeg0Bone = node as THREE.Bone;
-            baseBackLeg0Rot.copy(backLeg0Bone.rotation);
-          } else if (node.name === 'R_backleg0') {
-            rBackLeg0Bone = node as THREE.Bone;
-            baseRBackLeg0Rot.copy(rBackLeg0Bone.rotation);
-          }
-        });
-
-        // Material físico y shaders holográficos suaves (sin distorsiones)
-        zoeGroup.traverse((node) => {
-          if ((node as THREE.Mesh).isMesh) {
-            const m = node as THREE.Mesh;
-            const originalMat = m.material as THREE.MeshStandardMaterial;
-            const activeMap = originalMat.map || furTexture;
-
-            const soulMat = new THREE.MeshPhysicalMaterial({
-              map: activeMap,
-              color: new THREE.Color(0xffffff),
-              emissive: new THREE.Color(0x021016),
-              emissiveIntensity: 0.06,
-              metalness: 0.02,
-              roughness: 0.55,
-              transmission: 0.20,
-              ior: 1.2,
-              transparent: true,
-              opacity: 0.98,
-              depthWrite: true,
-              side: THREE.FrontSide,
-            });
-
-            soulMat.onBeforeCompile = (shader) => {
-              shader.uniforms.uTime = { value: 0 };
-              shader.vertexShader = shader.vertexShader.replace(
-                '#include <common>',
-                `
-                #include <common>
-                varying vec3 vWorldPos;
-                varying vec3 vViewNormal;
-                `
-              );
-              shader.vertexShader = shader.vertexShader.replace(
-                '#include <begin_vertex>',
-                `
-                #include <begin_vertex>
-                vWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz;
-                vViewNormal = normalize(normalMatrix * normal);
-                `
-              );
-              shader.fragmentShader = shader.fragmentShader.replace(
-                '#include <common>',
-                `
-                #include <common>
-                uniform float uTime;
-                varying vec3 vWorldPos;
-                varying vec3 vViewNormal;
-                `
-              );
-              shader.fragmentShader = shader.fragmentShader.replace(
-                '#include <dithering_fragment>',
-                `
-                #include <dithering_fragment>
-
-                // Borde Fresnel sutil
-                float fresnel = pow(1.0 - abs(dot(vViewNormal, vec3(0.0, 0.0, 1.0))), 3.2);
-                vec3 cyanGlow = vec3(0.15, 0.86, 1.0) * fresnel * 0.25;
-                vec3 violetGlow = vec3(0.72, 0.37, 1.0) * pow(fresnel, 4.0) * 0.15;
-                gl_FragColor.rgb += cyanGlow + violetGlow;
-
-                // Malla wireframe delicada
-                float scanGrid = sin(vWorldPos.y * 36.0 + uTime * 1.2);
-                float linePulse = smoothstep(0.95, 0.99, scanGrid) * 0.04;
-                gl_FragColor.rgb += vec3(0.15, 0.86, 1.0) * linePulse;
-                `
-              );
-              (soulMat as any).userData.shader = shader;
-            };
-
-            m.material = soulMat;
-            m.castShadow = false;
-            m.receiveShadow = false;
-          }
-        });
-
-        // NOTA: NO se agregan aros artificiales en el cuello ni en el pecho
-        // Zoe luce su modelo natural de Schnauzer fiel al Character Book
-
-        triggerSniffRef.current = () => {
-          sniffStartTime = clock.getElapsedTime();
-        };
-
-        setIsLoaded(true);
-        if (onLoaded) onLoaded();
       },
       undefined,
-      (err) => console.warn('[ZoeCanvas3D] Error cargando modelo holográfico:', err)
+      (err) => console.warn('[ZoeCanvas3D] Error cargando modelo:', err)
     );
 
-    // 4. Eventos e interacción táctil / olfateo noble
-    let sniffStartTime = -999;
-    const triggerSniff = () => {
-      sniffStartTime = clock.getElapsedTime();
-      if (onPet) onPet();
+    // Seguimiento suave del puntero del mouse
+    const pointer = { x: 0, y: 0 };
+    const handlePointerMove = (e: MouseEvent) => {
+      const rect = container.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      const y = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
+      pointer.x = Math.max(-1, Math.min(1, x));
+      pointer.y = Math.max(-1, Math.min(1, y));
     };
-
-    const handleClick = () => {
-      triggerSniff();
-    };
-    container.addEventListener('click', handleClick);
+    window.addEventListener('pointermove', handlePointerMove);
 
     const handleResize = () => {
       if (!container) return;
-      width = container.clientWidth || 290;
-      height = container.clientHeight || 310;
+      width = container.clientWidth || 320;
+      height = container.clientHeight || 340;
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
-      camera.lookAt(0, 0, 0);
       renderer.setSize(width, height);
     };
     window.addEventListener('resize', handleResize);
 
-    // 5. Bucle de renderizado quieto y sereno (con opción de caminar y micro-olfateo)
     const clock = new THREE.Clock();
     let animId: number;
-    let currentSitFactor = 0.0;
+    let bodyYaw = -0.35;
+    let walkWeight = 0;
 
     const animate = () => {
       animId = requestAnimationFrame(animate);
-      const delta = clock.getDelta();
-      const elapsed = clock.getElapsedTime();
+      const dt = clock.getDelta();
+      const t = clock.getElapsedTime();
+      const state = liveRef.current;
 
-      // Animación de caminata cuando se activa el modo caminar
-      if (mixer && isWalkingRef.current) {
-        mixer.update(delta);
+      // Control fluido de la animación de caminata
+      const isWalking = Boolean(state.isWalking);
+      if (walkAction) {
+        if (isWalking && !walkAction.isRunning()) {
+          walkAction.reset().fadeIn(0.25).play();
+        } else if (!isWalking && walkAction.isRunning()) {
+          walkAction.fadeOut(0.25);
+        }
       }
 
-      // Shaders holográficos sutiles en la textura
-      if (zoeGroup) {
-        zoeGroup.traverse((node) => {
-          if ((node as THREE.Mesh).isMesh) {
-            const m = node as THREE.Mesh;
-            const mat = m.material as any;
-            if (mat && mat.userData && mat.userData.shader) {
-              mat.userData.shader.uniforms.uTime.value = elapsed;
-            }
-          }
-        });
+      walkWeight = damp(walkWeight, isWalking ? 1 : 0, 4, dt);
+      if (mixer && (walkAction?.isRunning() || walkWeight > 0.01)) {
+        mixer.update(dt);
       }
 
-      // Si el entorno 360° opcional está activo, animamos la cúpula, anillos y rotación orbital de Zoe
-      if (show360Ref.current) {
-        if (env360Group) {
-          env360Group.visible = true;
-          domeMesh.rotation.y += 0.0015;
-          orbitalRingMesh.rotation.z += 0.007;
-          outerRingMesh.rotation.z -= 0.004;
-          particlesMesh.rotation.y += 0.003;
-        }
-        if (zoeContainer) {
-          zoeContainer.position.set(0, 0, 0);
-          zoeContainer.rotation.y += 0.006; // Giro orbital 360 panorámico suave
-        }
+      // Entorno 360° opcional
+      env360Group.visible = Boolean(state.show360Environment);
+      if (state.show360Environment) {
+        domeMesh.rotation.y += 0.002;
+        orbitalRingMesh.rotation.z += 0.006;
+        partMesh.rotation.y += 0.003;
+        bodyYaw += 0.005; // Rotación orbital suave en 360°
       } else {
-        if (env360Group) {
-          env360Group.visible = false;
-        }
-        // MODO ESTÁNDAR LIMPIO Y TRANSPARENTE: ZOE PERMANECE SERENO EN PERSPECTIVA 3/4
-        if (zoeContainer) {
-          zoeContainer.position.set(0, 0, 0);
-          zoeContainer.rotation.set(0, -0.35, 0);
-        }
+        const targetYaw = state.facing !== 0 ? state.facing * 1.1 : -0.35;
+        bodyYaw = damp(bodyYaw, targetYaw, 4, dt);
       }
+      zoeContainer.rotation.y = bodyYaw;
 
-      // Lógica de Postura Canina: Sentado vs De Pie vs Caminando
-      const targetSit = (!isWalkingRef.current && postureRef.current === 'sitting') ? 1.0 : 0.0;
-      currentSitFactor += (targetSit - currentSitFactor) * 0.08;
-
-      if (currentSitFactor > 0.005) {
-        if (hipsBone) {
-          hipsBone.position.y = baseHipsPos.y - currentSitFactor * 0.055;
-          hipsBone.position.z = baseHipsPos.z - currentSitFactor * 0.018;
-        }
-        if (backLegBone) {
-          backLegBone.rotation.x = baseBackLegRot.x - currentSitFactor * 0.55;
-        }
-        if (rBackLegBone) {
-          rBackLegBone.rotation.x = baseRBackLegRot.x - currentSitFactor * 0.55;
-        }
-        if (backLeg0Bone) {
-          backLeg0Bone.rotation.x = baseBackLeg0Rot.x + currentSitFactor * 0.65;
-        }
-        if (rBackLeg0Bone) {
-          rBackLeg0Bone.rotation.x = baseRBackLeg0Rot.x + currentSitFactor * 0.65;
-        }
+      // Micro-gestos naturales en reposo (cuando no está caminando)
+      const restFactor = 1 - walkWeight;
+      if (restFactor > 0.05) {
+        // 1. Respiración viva y suave en el pecho
         if (chestBone) {
-          chestBone.rotation.x = baseChestRot.x + currentSitFactor * 0.28;
+          const breath = Math.sin(t * 1.6) * 0.018 * restFactor;
+          chestBone.rotation.x = baseChestRot.x + breath;
         }
-      } else if (currentSitFactor <= 0.005 && targetSit === 0.0) {
-        if (hipsBone && baseHipsPos.lengthSq() > 0) hipsBone.position.copy(baseHipsPos);
-        if (backLegBone && baseBackLegRot) backLegBone.rotation.copy(baseBackLegRot);
-        if (rBackLegBone && baseRBackLegRot) rBackLegBone.rotation.copy(baseRBackLegRot);
-        if (backLeg0Bone && baseBackLeg0Rot) backLeg0Bone.rotation.copy(baseBackLeg0Rot);
-        if (rBackLeg0Bone && baseRBackLeg0Rot) rBackLeg0Bone.rotation.copy(baseRBackLeg0Rot);
-        if (chestBone && baseChestRot) chestBone.rotation.copy(baseChestRot);
-      }
 
-      // MICRO-ANIMACIÓN PROCEDURAL DE OLFATEO NOBLE Y TIERNA AL TOCARLO (1.5 segundos)
-      const sniffElapsed = elapsed - sniffStartTime;
-      if (sniffElapsed >= 0 && sniffElapsed < 1.5) {
-        const p = sniffElapsed / 1.5; // 0.0 a 1.0
-        // Elevación suave de la cabeza hacia arriba con curiosidad (curva en campana)
-        const headLift = Math.sin(p * Math.PI); // 0 -> 1 -> 0
-        // Micro-pulsos rítmicos de olfateo en la punta del hocico (3 ciclos rápidos)
-        const sniffTwitch = Math.sin(p * Math.PI * 6) * Math.sin(p * Math.PI);
+        // 2. Movimiento sutil y sereno de la cola
+        if (tailBone) {
+          const wag = Math.sin(t * 2.4) * 0.07 * restFactor;
+          tailBone.rotation.y = baseTailRot.y + wag;
+        }
 
-        if (headBone) {
-          headBone.rotation.x = baseHeadRot.x - headLift * 0.09;
-          headBone.rotation.y = baseHeadRot.y + headLift * 0.025;
+        // 3. Cabeza atenta que sigue con dulzura el puntero
+        const lookYaw = damp(0, pointer.x * 0.28, 4, dt) * restFactor;
+        const lookPitch = damp(0, -pointer.y * 0.16, 4, dt) * restFactor;
+
+        // 4. Olfateo noble al acariciar (1.4 segundos de micro-pulsos curiosos)
+        const sniffElapsed = t - sniffStart;
+        if (sniffElapsed >= 0 && sniffElapsed < 1.4) {
+          const p = sniffElapsed / 1.4;
+          const lift = Math.sin(p * Math.PI) * 0.08;
+          const twitch = Math.sin(p * Math.PI * 6) * Math.sin(p * Math.PI) * 0.06;
+
+          if (headBone) {
+            headBone.rotation.x = baseHeadRot.x - lift;
+            headBone.rotation.y = baseHeadRot.y + lookYaw;
+          }
+          if (headEndBone) {
+            headEndBone.rotation.x = baseHeadEndRot.x + twitch;
+          }
+          contactMat.opacity = 0.18 + Math.sin(p * Math.PI) * 0.35;
+          pawLight.intensity = 0.7 + Math.sin(p * Math.PI) * 1.2;
+        } else {
+          if (headBone) {
+            headBone.rotation.x = baseHeadRot.x + lookPitch;
+            headBone.rotation.y = baseHeadRot.y + lookYaw;
+          }
+          if (headEndBone) {
+            headEndBone.rotation.copy(baseHeadEndRot);
+          }
+          contactMat.opacity = 0.18;
+          pawLight.intensity = 0.7;
         }
-        if (headEndBone) {
-          headEndBone.rotation.x = baseHeadEndRot.x + sniffTwitch * 0.075;
-        }
-        // Suave destello de luz celeste en su punto de apoyo
-        contactGlowMat.opacity = 0.16 + headLift * 0.38;
-        pawGlowLight.intensity = 0.65 + headLift * 1.15;
-      } else {
-        if (headBone && baseHeadRot) {
-          headBone.rotation.copy(baseHeadRot);
-        }
-        if (headEndBone && baseHeadEndRot) {
-          headEndBone.rotation.copy(baseHeadEndRot);
-        }
-        contactGlowMat.opacity = 0.16;
-        pawGlowLight.intensity = 0.65;
       }
 
       renderer.render(scene, camera);
@@ -535,17 +365,15 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
 
     return () => {
       cancelAnimationFrame(animId);
-      container.removeEventListener('click', handleClick);
+      window.removeEventListener('pointermove', handlePointerMove);
       window.removeEventListener('resize', handleResize);
       renderer.dispose();
-      contactGlowGeo.dispose();
-      contactGlowMat.dispose();
+      contactGeo.dispose();
+      contactMat.dispose();
       domeGeo.dispose();
       domeMat.dispose();
       orbitalRingGeo.dispose();
       orbitalRingMat.dispose();
-      outerRingGeo.dispose();
-      outerRingMat.dispose();
       partGeo.dispose();
       partMat.dispose();
     };

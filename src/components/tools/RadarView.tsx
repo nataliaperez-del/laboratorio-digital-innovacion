@@ -3,58 +3,12 @@ import { BrainCircuit, ExternalLink, Rocket, Trees } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { loadRadarFeed, OBSERVATORIO_URL, signalAsInput, type RadarFeed, type RadarSignal } from '@/services/observatorio';
 import { ErrorNotice, SegmentedControl, ToolHeader } from '@/components/lab/common';
+import { RadarScope } from './RadarScope';
 import type { ToolId } from '@/components/layout/Header';
 
 const PRIORITY_COLOR: Record<string, string> = { alta: '#F29F05', media: '#A8C63C', baja: '#2E9CBA' };
-const PLOT = { x0: 56, y0: 18, size: 460 };
 
 const colorOf = (s: RadarSignal) => PRIORITY_COLOR[s.prioridad.toLowerCase()] ?? '#5EC2DD';
-
-/** Matriz impacto × adopción con los datos reales del Radar del Observatorio. */
-const RadarMatrix: React.FC<{ signals: RadarSignal[]; active: RadarSignal | null; onSelect: (s: RadarSignal) => void }> = ({ signals, active, onSelect }) => {
-  const { x0, y0, size } = PLOT;
-  const px = (adopcion: number) => x0 + (adopcion / 100) * size;
-  const py = (impacto: number) => y0 + size - (impacto / 100) * size;
-  return (
-    <svg viewBox={`0 0 ${x0 + size + 20} ${y0 + size + 46}`} className="w-full h-auto block select-none" role="group" aria-label="Matriz de impacto territorial y velocidad de adopción">
-      <rect x={x0} y={y0} width={size} height={size} fill="#04222B" fillOpacity="0.55" stroke="#5EC2DD" strokeOpacity="0.3" />
-      <rect x={x0 + size / 2} y={y0} width={size / 2} height={size / 2} fill="#F29F05" fillOpacity="0.07" />
-      {[0.25, 0.5, 0.75].map((f) => (
-        <g key={f} stroke="#9FD4E4" strokeOpacity={f === 0.5 ? 0.35 : 0.12}>
-          <line x1={x0 + f * size} x2={x0 + f * size} y1={y0} y2={y0 + size} />
-          <line x1={x0} x2={x0 + size} y1={y0 + f * size} y2={y0 + f * size} />
-        </g>
-      ))}
-      <text x={x0 + size / 2} y={y0 + size + 34} textAnchor="middle" fontSize="12" fill="#9FD4E4">Velocidad de adopción →</text>
-      <text transform={`translate(18 ${y0 + size / 2}) rotate(-90)`} textAnchor="middle" fontSize="12" fill="#9FD4E4">Impacto territorial →</text>
-      <text x={x0 + size - 8} y={y0 + 18} textAnchor="end" fontSize="11" fill="#F3C26B">Actuar ahora</text>
-      {signals.map((s) => {
-        const selected = active?.id === s.id;
-        const label = `${s.nombre}. Impacto ${s.impacto}, adopción ${s.adopcion}`;
-        return (
-          <g
-            key={s.id}
-            role="button"
-            tabIndex={0}
-            aria-label={label}
-            className="cursor-pointer outline-none"
-            onClick={() => onSelect(s)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                onSelect(s);
-              }
-            }}
-          >
-            <title>{label}</title>
-            {selected && <circle cx={px(s.adopcion)} cy={py(s.impacto)} r={15} fill="none" stroke={colorOf(s)} strokeWidth="1.5" strokeDasharray="4 3" />}
-            <circle cx={px(s.adopcion)} cy={py(s.impacto)} r={selected ? 9 : 7} fill={colorOf(s)} stroke="#04222B" strokeWidth="1.5" />
-          </g>
-        );
-      })}
-    </svg>
-  );
-};
 
 interface Props {
   onNavigate: (tool: ToolId) => void;
@@ -90,6 +44,7 @@ export const RadarView: React.FC<Props> = ({ onNavigate }) => {
     () => (feed?.senales ?? []).filter((s) => (area === 'todas' || s.area === area) && (priority === 'todas' || s.prioridad === priority)),
     [feed, area, priority],
   );
+  const visibleIds = useMemo(() => new Set(signals.map((s) => s.id)), [signals]);
   const active = feed?.senales.find((s) => s.id === activeId) ?? null;
   const related = active ? (feed?.senales ?? []).filter((s) => active.relacionadas.includes(s.id)) : [];
 
@@ -125,7 +80,7 @@ export const RadarView: React.FC<Props> = ({ onNavigate }) => {
       {feed && (
         <>
           <div className="lab-panel flex flex-wrap items-center gap-3">
-            <SegmentedControl<'radar' | 'lista'> label="Vista" value={view} onChange={setView} options={[{ value: 'radar', label: 'Matriz' }, { value: 'lista', label: 'Lista' }]} />
+            <SegmentedControl<'radar' | 'lista'> label="Vista" value={view} onChange={setView} options={[{ value: 'radar', label: 'Radar' }, { value: 'lista', label: 'Lista' }]} />
             <label className="text-xs text-brand-textMuted flex items-center gap-2">
               Área
               <select className="lab-input py-1.5" value={area} onChange={(e) => setArea(e.target.value)}>
@@ -149,8 +104,9 @@ export const RadarView: React.FC<Props> = ({ onNavigate }) => {
             <div className="lg:col-span-8 min-w-0">
               {view === 'radar' ? (
                 <div className="lab-tree-canvas p-3">
-                  <RadarMatrix signals={signals} active={active} onSelect={(s) => setActiveId(s.id)} />
+                  <RadarScope all={feed.senales} visibleIds={visibleIds} activeId={activeId} relatedIds={active?.relacionadas ?? []} colorOf={colorOf} onSelect={(s) => setActiveId(s.id)} />
                   <div className="flex flex-wrap gap-4 px-2 pb-1 text-xs text-[#CFE6EE]">
+                    <span>Sector: área · Cerca del centro: más impacto · Tamaño: más adopción</span>
                     {Object.entries(PRIORITY_COLOR).map(([k, c]) => (
                       <span key={k} className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ background: c }} aria-hidden="true" /> Prioridad {k}</span>
                     ))}

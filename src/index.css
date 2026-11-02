@@ -40,12 +40,37 @@
     --brand-purple-text: #4A3480;
   }
 
+  html {
+    overflow-y: scroll;
+    scrollbar-gutter: stable;
+  }
+
   body {
     background-color: var(--bg-page);
     color: var(--text-primary);
     font-family: 'Inter', sans-serif;
     transition: background-color 0.25s ease, color 0.25s ease;
+    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
   }
+}
+
+/* Scrollbar Única, Moderna y Elegante (Elimina scrollbars duplicadas) */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(4, 34, 43, 0.5);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(46, 156, 186, 0.45);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(39, 220, 255, 0.75);
 }
 
 /* Tipografías del Sistema Oficial InnovaHub360 */
@@ -385,3 +410,81 @@ button.lab-card:hover { border-color: var(--brand-teal-text); }
 .lab-tree-canvas { background: #021219; border: 1px solid rgba(94, 194, 221, .28); border-radius: 16px; overflow: auto; min-width: 0; }
 .lab-tree-canvas svg.arbol-svg { display: block; width: 100%; min-width: 820px; height: auto; }
 :focus-visible { outline: 2px solid var(--brand-teal-text); outline-offset: 2px; }
+
+/* ═══════════ ZOE: vive en la interfaz sin tapar el contenido ═══════════ */
+.zoe-stage { pointer-events: none; }
+.zoe-hit { position: absolute; border-radius: 50%; pointer-events: auto; cursor: grab; touch-action: none; background: transparent; }
+.zoe-hit:active { cursor: grabbing; }
+.zoe-toolbar { position: absolute; right: 0; top: 0; display: flex; flex-direction: column; gap: 3px; pointer-events: auto; opacity: 0; transform: translateX(-4px); transition: opacity .15s ease, transform .15s ease; }
+.zoe-stage:hover .zoe-toolbar, .zoe-toolbar:focus-within { opacity: 1; transform: none; }
+.zoe-tool { display: flex; width: 30px; height: 30px; align-items: center; justify-content: center; border-radius: 999px; background: rgba(4, 34, 43, .9); border: 1px solid currentColor; cursor: pointer; }
+.zoe-tool[aria-pressed="true"] { background: currentColor; }
+.zoe-tool[aria-pressed="true"] svg { color: #04222B; }
+.zoe-caption { position: absolute; bottom: calc(100% + 4px); right: 0; width: min(340px, calc(100vw - 24px)); max-height: 42vh; overflow-y: auto; padding: 11px 14px; border-radius: 14px; font-size: 13.5px; line-height: 1.45; pointer-events: auto; color: var(--text-primary); background: var(--bg-page); border: 1px solid rgba(39, 220, 255, .45); box-shadow: 0 12px 34px rgba(0, 0, 0, .4); }
+.zoe-caption-left { right: auto; left: 0; }
+.zoe-caption p:last-child { padding-right: 16px; }
+.zoe-caption-close { position: absolute; top: 8px; right: 8px; color: var(--text-muted); cursor: pointer; }
+.zoe-status { font-weight: 600; color: var(--brand-teal-text); }
+.zoe-status-on { animation: zoe-breathe 1.2s ease-in-out infinite; }
+@keyframes zoe-breathe { 50% { opacity: .55; } }
+.zoe-level-track { display: block; height: 4px; margin-top: 6px; overflow: hidden; border-radius: 4px; background: rgba(39, 220, 255, .16); }
+.zoe-level { display: block; height: 100%; background: #27DCFF; transform: scaleX(0); transform-origin: left; transition: transform .08s linear; }
+.zoe-zzz { position: absolute; left: 62%; top: 26%; color: #9FE8FF; font: 700 18px 'Space Grotesk', sans-serif; pointer-events: none; }
+.zoe-zzz span { position: absolute; opacity: 0; animation: zoe-zzz 3.6s ease-out infinite; }
+.zoe-zzz span:nth-child(2) { animation-delay: 1.2s; font-size: 14px; }
+.zoe-zzz span:nth-child(3) { animation-delay: 2.4s; font-size: 11px; }
+@keyframes zoe-zzz { 0% { opacity: 0; transform: translate(0, 12px); } 25% { opacity: .9; } 100% { opacity: 0; transform: translate(26px, -44px); } }
+@media (hover: none) { .zoe-toolbar { opacity: 1; transform: none; } }
+@media (max-width: 767px) { .zoe-toolbar { display: none; } }
+
+/* ═══════════ Radar de barrido ═══════════ */
+.radar-scope-stage { position: relative; width: 100%; aspect-ratio: 1; max-width: 760px; margin: 0 auto; }
+.radar-scope-canvas, .radar-scope-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.radar-blip:focus-visible circle:last-of-type { stroke: #EFF6FF; stroke-width: 3; }
+.radar-scope-readout { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 16px; padding: 8px 8px 10px; font-size: 12px; color: #CFE6EE; font-variant-numeric: tabular-nums; }
+.radar-scope-readout b { color: #9FE8FF; font-weight: 600; }
+.radar-scope-contact { min-width: 0; overflow-wrap: anywhere; }
+
+/* ═══════════ Presentación de ZOE ═══════════ */
+.zoe-intro { position: fixed; inset: 0; z-index: 100; overflow: hidden; color: #EFF6FF; background: radial-gradient(ellipse at 50% 55%, #0B2A4A 0%, #070D20 62%, #03060F 100%); }
+.zoe-intro-grid { position: absolute; inset: 0; opacity: .25; background-image: linear-gradient(rgba(80, 145, 255, .25) 1px, transparent 1px), linear-gradient(90deg, rgba(80, 145, 255, .25) 1px, transparent 1px); background-size: 64px 64px; mask-image: radial-gradient(ellipse at center, #000 20%, transparent 72%); }
+.zoe-intro-layer { position: absolute; inset: 0; pointer-events: none; }
+.zoe-intro-actor { position: absolute; left: 50%; top: 50%; width: min(70vh, 92vw); height: min(70vh, 92vw); transform: translate(-50%, -50%); transition: left 1.6s ease, width 1.6s ease, height 1.6s ease; }
+.zoe-intro-actor.is-close { left: 30%; width: min(92vh, 66vw); height: min(92vh, 66vw); }
+.zoe-platform { position: absolute; left: 50%; bottom: 8%; width: 66%; height: 14%; transform: translateX(-50%); border-radius: 50%; border: 2px solid rgba(39, 220, 255, .75); box-shadow: 0 0 34px rgba(39, 220, 255, .55), inset 0 0 26px rgba(39, 220, 255, .35); }
+.zoe-intro-actor.is-close .zoe-platform { opacity: 0; }
+.zoe-code { position: absolute; margin: 0; padding: 16px 18px; font: 500 13px/1.8 'IBM Plex Mono', monospace; color: #9FE8FF; white-space: pre; background: rgba(11, 42, 74, .42); border: 1px solid rgba(39, 220, 255, .45); border-radius: 8px; box-shadow: 0 0 34px rgba(39, 220, 255, .18); }
+.zoe-code span { opacity: 0; animation: zoe-type .4s ease forwards; }
+@keyframes zoe-type { to { opacity: 1; } }
+.zoe-code-0 { left: 5%; top: 16%; transform: perspective(900px) rotateY(16deg); }
+.zoe-code-1 { right: 5%; top: 12%; transform: perspective(900px) rotateY(-16deg); color: #D5B3FF; border-color: rgba(184, 94, 255, .5); }
+.zoe-code-2 { right: 9%; bottom: 22%; transform: perspective(900px) rotateY(-10deg); }
+.zoe-beam { position: absolute; left: 50%; top: -5%; bottom: 14%; width: min(38vh, 44vw); transform: translateX(-50%) scaleX(.1); opacity: 0; transition: opacity 1s ease, transform 1.2s ease; background: linear-gradient(90deg, transparent, rgba(39, 220, 255, .42), rgba(239, 246, 255, .55), rgba(184, 94, 255, .42), transparent); filter: blur(5px); }
+.zoe-beam.is-on { opacity: 1; transform: translateX(-50%) scaleX(1); }
+.zoe-waves { position: absolute; left: calc(50% + min(24vh, 26vw)); top: 36%; }
+.zoe-waves span { position: absolute; left: 0; top: 0; width: 120px; height: 120px; margin: -60px 0 0 -60px; border-radius: 50%; border: 2px solid transparent; border-right-color: #27DCFF; opacity: 0; animation: zoe-wave 1.7s ease-out infinite; }
+@keyframes zoe-wave { 0% { transform: scale(.4); opacity: .95; } 100% { transform: scale(2); opacity: 0; } }
+.zoe-net { position: absolute; inset: 0; width: 100%; height: 100%; }
+.zoe-tool-card { position: absolute; display: flex; align-items: center; gap: 10px; padding: 10px 14px; transform: translate(-50%, -50%); border: 1px solid; border-radius: 12px; font-size: 12px; background: rgba(7, 13, 32, .78); box-shadow: 0 0 22px rgba(39, 220, 255, .2); opacity: 0; animation: zoe-type .6s ease forwards; }
+.zoe-tool-card strong { display: block; font-family: 'Space Grotesk', sans-serif; font-size: 14px; white-space: nowrap; }
+.zoe-tool-card span { color: #B7CBD3; white-space: nowrap; }
+.zoe-quote { position: absolute; right: 6%; top: 50%; width: min(44vw, 620px); margin: 0; transform: translateY(-50%); font: 700 clamp(26px, 4.2vw, 58px)/1.12 'Space Grotesk', sans-serif; text-align: center; color: #9FE8FF; text-shadow: 0 0 26px rgba(39, 220, 255, .7); animation: zoe-type 1.8s ease forwards; }
+.zoe-intro-caption { position: absolute; left: 50%; bottom: 62px; width: min(760px, calc(100vw - 32px)); margin: 0; transform: translateX(-50%); padding: 9px 16px; text-align: center; font-size: 15px; line-height: 1.4; border-radius: 10px; background: rgba(3, 6, 15, .68); }
+.zoe-intro-dots { position: absolute; left: 50%; bottom: 28px; display: flex; gap: 8px; transform: translateX(-50%); }
+.zoe-intro-dots span { width: 26px; height: 3px; border-radius: 3px; background: rgba(255, 255, 255, .22); transition: background .3s ease; }
+.zoe-intro-dots span.is-on { background: #27DCFF; }
+.zoe-intro-actions { position: absolute; right: 20px; top: 18px; display: flex; gap: 8px; }
+.zoe-intro .lab-btn { color: #EFF6FF; background: rgba(11, 42, 74, .7); border-color: rgba(255, 255, 255, .25); }
+@media (max-width: 767px) {
+  .zoe-code-1, .zoe-code-2 { display: none; }
+  .zoe-code { font-size: 10.5px; left: 3%; top: 10%; }
+  .zoe-tool-card { padding: 6px 9px; }
+  .zoe-tool-card span { display: none; }
+  .zoe-tool-card strong { font-size: 11px; }
+  .zoe-intro-actor.is-close { left: 50%; top: 40%; width: 90vw; height: 90vw; }
+  .zoe-quote { right: 4%; left: 4%; top: 74%; width: auto; font-size: 22px; }
+  .zoe-intro-caption { font-size: 13px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .zoe-waves span, .zoe-status-on, .zoe-zzz span { animation: none; opacity: .6; }
+}

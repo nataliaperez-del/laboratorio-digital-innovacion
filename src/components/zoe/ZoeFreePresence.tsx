@@ -1,607 +1,566 @@
-import React, { useState, useEffect, useRef } from 'react';
-import {
-  Sparkles,
-  Mic,
-  Volume2,
-  VolumeX,
-  X,
-  Heart,
-  Bot,
-  Move,
-  Footprints,
-  Globe,
-  Dog
-} from 'lucide-react';
-import { ZoeCanvas3D, ZoeSoulState } from './ZoeCanvas3D';
-import { ToolId } from '../layout/Header';
-import { askZoeGemini } from '@/services/zoeAi';
+import React, { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { Bot, Dog, Footprints, Globe, Heart, Mic, Moon, Volume2, VolumeX, X } from 'lucide-react';
+import type { ZoeSoulState } from './ZoeCanvas3D';
+import { splitSentences, useZoeVoice, type ZoeListenFailure } from './useZoeVoice';
+import type { ToolId } from '../layout/Header';
+import { askZoe } from '@/services/zoeAi';
+import { parseZoeCommand, TOOL_HINTS, TOOL_NAMES, type ZoeTurn } from '@/lib/zoeContext';
 
-interface ZoeFreePresenceProps {
+// El modelo 3D y Three.js pesan: se descargan aparte, sin demorar la herramienta que se abrió.
+const ZoeCanvas3D = lazy(() => import('./ZoeCanvas3D'));
+
+/** Tamaño de ZOE en pantalla; en celulares se reduce para dejarle el espacio al contenido. */
+const STAGE = typeof window !== 'undefined' && window.innerWidth < 768 ? { width: 170, height: 190 } : { width: 260, height: 290 };
+const POSITION_KEY = 'innovahub_zoe_pos_v2';
+const WALK_SPEED = 90; // píxeles por segundo; acorde al tamaño, para que las patas no parezcan patinar
+/** Si no responde la IA en este tiempo, ZOE dice algo: el silencio es lo que rompe la conversación. */
+const FILLER_AFTER_MS = 1500;
+const FILLERS = ['A ver…', 'Mmm, déjame olfatear eso.', 'Buena pregunta, dame un segundo.', 'Déjame pensarlo.', 'Interesante…'];
+const AFTER_SPEECH_MS = 250;
+/** Lo que ZOE explica cuando no puede escuchar; cada causa tiene una solución distinta. */
+const MIC_PROBLEMS: Partial<Record<ZoeListenFailure, string>> = {
+  'sin-permiso': 'El navegador no me deja usar el micrófono. Dale permiso en el candadito de la barra de direcciones y me vuelves a tocar.',
+  'sin-microfono': 'No encuentro un micrófono disponible. Revisa que esté conectado y que otra aplicación no lo esté usando.',
+  'mic-mudo': 'No me llega ningún sonido de tu micrófono. Revisa que no esté silenciado y que el navegador use el correcto.',
+  'sin-https': 'Para escucharte, esta página debe abrirse con una dirección segura, con h t t p s.',
+  'sin-red': 'El servicio de voz del navegador no responde. Necesita internet, y funciona en Chrome o Edge.',
+  error: 'No alcancé a escucharte: el reconocimiento de voz falló. Intentemos otra vez en un momento.',
+};
+
+const pause = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms));
+
+/** Busca dónde echarse: el tramo del piso de la página con menos botones y enlaces debajo. */
+function findQuietSpot(currentX: number) {
+  const y = clampPosition(0, window.innerHeight).y;
+  const crowding = (x: number) => {
+    let found = 0;
+    for (const px of [0.25, 0.5, 0.75]) {
+      for (const py of [0.5, 0.9]) {
+        const under = document.elementsFromPoint(x + STAGE.width * px, y + STAGE.height * py).find((el) => !el.closest('.zoe-stage'));
+        if (under?.closest('button, a, input, select, textarea, [role="button"]')) found += 1;
+      }
+    }
+    return found;
+  };
+  const spots = Array.from({ length: 8 }, (_, i) => clampPosition(((window.innerWidth - STAGE.width) * i) / 7, y).x).filter((x) => Math.abs(x - currentX) > 120);
+  const best = spots.map((x) => ({ x, score: crowding(x) + Math.random() })).sort((a, b) => a.score - b.score)[0];
+  return { x: best?.x ?? currentX, y };
+}
+
+function clampPosition(x: number, y: number) {
+  return {
+    x: Math.max(4, Math.min(window.innerWidth - STAGE.width - 48, x)),
+    y: Math.max(4, Math.min(window.innerHeight - STAGE.height - 4, y)),
+  };
+}
+
+function initialPosition() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(POSITION_KEY) ?? 'null');
+    if (typeof saved?.x === 'number') return clampPosition(saved.x, saved.y);
+  } catch {
+    /* Posición guardada ilegible: se usa la de siempre. */
+  }
+  return clampPosition(window.innerWidth, window.innerHeight);
+}
+
+/** Si el navegador no puede dibujar 3D, ZOE sigue presente con su imagen. */
+class CanvasBoundary extends React.Component<{ children: React.ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  render() {
+    return this.state.failed ? <img src="/assets/zoe/zoe_fallback.png" alt="" className="w-full h-full object-contain" /> : this.props.children;
+  }
+}
+
+/** Pedido de otra pantalla: iniciar la conversación y, si trae texto, preguntarlo. */
+export interface ZoeRequest {
+  id: number;
+  text?: string;
+}
+
+interface Props {
   currentTool: ToolId;
   onSelectTool: (tool: ToolId) => void;
   theme: 'dark' | 'light';
   onToggleTheme: () => void;
   isOpen: boolean;
   onToggleOpen: () => void;
+  request: ZoeRequest | null;
 }
 
-export const ZoeFreePresence: React.FC<ZoeFreePresenceProps> = ({
-  currentTool,
-  onSelectTool,
-  theme,
-  onToggleTheme,
-  isOpen,
-  onToggleOpen,
-}) => {
-  // Estado inicial: 'sitting' (sentado según la lámina y biblia del personaje)
-  const [behavior, setBehavior] = useState<ZoeSoulState>('sitting');
-  const [isListening, setIsListening] = useState<boolean>(false);
-  const [isThinking, setIsThinking] = useState<boolean>(false);
-  const [speechBubbleText, setSpeechBubbleText] = useState<string>(
-    '¡Hola! Soy Zoe, tu perrito en el Laboratorio de Innovación. ¡Puedes moverme a donde quieras o hablarme por voz!'
+export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, theme, onToggleTheme, isOpen, onToggleOpen, request }) => {
+  const voice = useZoeVoice();
+  const [behavior, setBehavior] = useState<ZoeSoulState>('idle');
+  const [isWalking, setIsWalking] = useState(false);
+  const [facing, setFacing] = useState<-1 | 0 | 1>(0);
+  const [posture, setPosture] = useState<'sitting' | 'standing' | 'lying'>('sitting');
+  const [napping, setNapping] = useState(false);
+  const [show360, setShow360] = useState(false);
+  const [petCounter, setPetCounter] = useState(0);
+
+  /** Modo conversación: al terminar de hablar, ZOE vuelve a escuchar solo. */
+  const [talking, setTalking] = useState(false);
+  const talkingRef = useRef(false);
+  talkingRef.current = talking;
+  const historyRef = useRef<ZoeTurn[]>([]);
+  const [caption, setCaption] = useState<string | null>(null);
+  const [heard, setHeard] = useState<string | null>(null);
+  const silentTries = useRef(0);
+  const captionTimer = useRef<number | undefined>(undefined);
+
+  const [position, setPosition] = useState(initialPosition);
+  const positionRef = useRef(position);
+  positionRef.current = position;
+  const drag = useRef<{ dx: number; dy: number; startX: number; startY: number; moved: boolean } | null>(null);
+  const seenTools = useRef(new Set<ToolId>());
+  const walkTarget = useRef<{ x: number; y: number } | null>(null);
+  const onArrive = useRef<(() => void) | null>(null);
+  const routine = useRef(0);
+  const levelRef = useRef<HTMLSpanElement>(null);
+  const busyRef = useRef(false);
+  busyRef.current = talking || napping || behavior !== 'idle';
+  const toolRef = useRef(currentTool);
+  toolRef.current = currentTool;
+
+  // ── Rutinas: secuencias de caminar y descansar que cualquier toque interrumpe ──
+  const walkTo = useCallback((x: number, y: number) => {
+    return new Promise<void>((resolve) => {
+      walkTarget.current = clampPosition(x, y);
+      onArrive.current = resolve;
+      setIsWalking(true);
+    });
+  }, []);
+
+  const stopRoutine = useCallback(() => {
+    routine.current += 1;
+    walkTarget.current = null;
+    setIsWalking(false);
+    setNapping(false);
+    const arrived = onArrive.current;
+    onArrive.current = null;
+    arrived?.();
+  }, []);
+
+  /** Lo despierta si estaba acostado; si no, solo corta lo que estuviera haciendo. */
+  const wake = useCallback(() => {
+    stopRoutine();
+    setBehavior((b) => (b === 'sleeping' ? 'idle' : b));
+    setPosture((p) => (p === 'lying' ? 'sitting' : p));
+  }, [stopRoutine]);
+
+  /** Se levanta, busca un sitio olfateando, da unas vueltas, se echa y duerme un momento. */
+  const nap = useCallback(async () => {
+    stopRoutine();
+    const id = routine.current;
+    const alive = () => id === routine.current;
+    setNapping(true);
+    setBehavior('idle');
+    setPosture('standing');
+    await pause(900);
+    if (!alive()) return;
+    const from = positionRef.current;
+    const spot = findQuietSpot(from.x);
+    await walkTo((from.x + spot.x) / 2, (from.y + spot.y) / 2);
+    if (!alive()) return;
+    setPetCounter((n) => n + 1); // El olfateo.
+    await pause(1500);
+    if (!alive()) return;
+    await walkTo(spot.x, spot.y);
+    if (!alive()) return;
+    // Como todo perro, da un par de pasos sobre el sitio antes de echarse.
+    const side = spot.x > window.innerWidth / 2 ? -1 : 1;
+    await walkTo(spot.x + side * 34, spot.y);
+    if (!alive()) return;
+    await walkTo(spot.x, spot.y);
+    if (!alive()) return;
+    setPosture('lying');
+    await pause(2200);
+    if (!alive()) return;
+    setBehavior('sleeping');
+    await pause(30000 + Math.random() * 25000);
+    if (!alive()) return;
+    setBehavior('idle');
+    await pause(1200);
+    if (!alive()) return;
+    setPosture('sitting');
+    setNapping(false);
+  }, [stopRoutine, walkTo]);
+
+  /** Camina hasta otro punto del piso y se queda ahí, casi siempre sentado. */
+  const stroll = useCallback(async () => {
+    stopRoutine();
+    const id = routine.current;
+    const { x, y } = positionRef.current;
+    const span = Math.max(240, window.innerWidth * 0.3) * (0.5 + Math.random() * 0.5);
+    setPosture('standing');
+    await walkTo(x + (x > window.innerWidth / 2 ? -span : span), y);
+    if (id === routine.current) setPosture(Math.random() < 0.7 ? 'sitting' : 'standing');
+  }, [stopRoutine, walkTo]);
+
+  const showCaption = useCallback((text: string, ms?: number) => {
+    window.clearTimeout(captionTimer.current);
+    setCaption(text);
+    if (ms) captionTimer.current = window.setTimeout(() => setCaption(null), ms);
+  }, []);
+
+  // ── La conversación: escuchar → pensar → hablar → volver a escuchar ──
+  const listenRef = useRef<() => void>(() => undefined);
+
+  /** Dice algo y, si la conversación sigue abierta, vuelve a escuchar. */
+  const say = useCallback(
+    (text: string, keepListening = true) => {
+      setBehavior('speaking');
+      setHeard(null);
+      setCaption(splitSentences(text)[0] ?? text);
+      voice.speak(
+        text,
+        () => {
+          setBehavior('idle');
+          if (keepListening && talkingRef.current) {
+            // Un respiro antes de abrir el micrófono: que no se oiga a sí mismo.
+            window.setTimeout(() => {
+              if (talkingRef.current) listenRef.current();
+            }, AFTER_SPEECH_MS);
+          } else window.setTimeout(() => setCaption(null), 2500);
+        },
+        setCaption,
+      );
+    },
+    [voice],
   );
-  const [showSpeechBubble, setShowSpeechBubble] = useState<boolean>(true);
-  const [isMuted, setIsMuted] = useState<boolean>(false);
-  const [petCounter, setPetCounter] = useState<number>(0);
-  const [isWalking, setIsWalking] = useState<boolean>(false);
-  const [posture, setPosture] = useState<'sitting' | 'standing'>('sitting');
-  const [show360Environment, setShow360Environment] = useState<boolean>(false);
 
-  const togglePosture = () => {
-    // Si estaba caminando, se detiene y se sienta o para
-    if (isWalking) {
-      setIsWalking(false);
-      setPosture('sitting');
-      speakText('Me siento en calma a tu lado.');
+  const endConversation = useCallback(() => {
+    setTalking(false);
+    talkingRef.current = false;
+    voice.stopListening();
+    voice.stopSpeaking();
+    setBehavior('idle');
+    setHeard(null);
+  }, [voice]);
+
+  const answer = useCallback(
+    async (text: string) => {
+      setHeard(text);
+      const command = parseZoeCommand(text);
+      if (command?.type === 'navigate') {
+        onSelectTool(command.tool);
+        say(`¡Vamos! Esto es ${TOOL_NAMES[command.tool]}. ${TOOL_HINTS[command.tool]}`);
+        return;
+      }
+      if (command?.type === 'theme') {
+        if (theme !== command.value) onToggleTheme();
+        say(command.value === 'light' ? 'Listo, prendí las luces.' : 'Listo, así brillo mejor.');
+        return;
+      }
+      if (command?.type === 'sleep') {
+        endConversation();
+        showCaption('Busco un rinconcito y me echo un rato. Tócame cuando quieras.', 5000);
+        void nap();
+        return;
+      }
+      if (command?.type === 'sit' || command?.type === 'stand') {
+        wake();
+        setPosture(command.type === 'sit' ? 'sitting' : 'standing');
+        say(command.type === 'sit' ? 'Sentado, como todo un profesional.' : '¡Arriba! Listo para lo que venga.');
+        return;
+      }
+      if (command?.type === 'walk') {
+        say('¡Vamos a estirar las patas!');
+        void stroll();
+        return;
+      }
+
+      setBehavior('thinking');
+      setCaption(null);
+      const filler = window.setTimeout(() => {
+        const line = FILLERS[Math.floor(Math.random() * FILLERS.length)];
+        setCaption(line);
+        voice.speak(line);
+      }, FILLER_AFTER_MS);
+      try {
+        const reply = await askZoe(text, historyRef.current, toolRef.current);
+        window.clearTimeout(filler);
+        if (!talkingRef.current && !request) return; // La persona cerró mientras pensaba.
+        historyRef.current = [...historyRef.current, { role: 'user' as const, text }, { role: 'zoe' as const, text: reply }].slice(-12);
+        say(reply);
+      } catch (e) {
+        window.clearTimeout(filler);
+        console.warn('[ZOE] La IA no respondió:', e);
+        endConversation();
+        say('Se me cayó la conexión con la IA y no quiero inventarte una respuesta. Revisa el botón I A de la cabecera y me vuelves a llamar.', false);
+      }
+    },
+    [endConversation, nap, onSelectTool, onToggleTheme, request, say, showCaption, stroll, theme, voice, wake],
+  );
+
+  const onListenFail = useCallback(
+    (reason: ZoeListenFailure) => {
+      setBehavior('idle');
+      if (reason === 'sin-voz') {
+        // Dos silencios seguidos: se da por terminada la charla sin insistir.
+        silentTries.current += 1;
+        if (silentTries.current >= 2) {
+          endConversation();
+          say('Te dejo trabajar. Tócame cuando quieras seguir.', false);
+        } else if (talkingRef.current) {
+          say('¿Sigues ahí? Te escucho.');
+        }
+      } else {
+        endConversation();
+        say(MIC_PROBLEMS[reason] ?? MIC_PROBLEMS.error!, false);
+      }
+    },
+    [endConversation, say],
+  );
+
+  listenRef.current = () => {
+    setBehavior('listening');
+    setHeard(null);
+    setCaption(null);
+    voice.listen(
+      (text) => {
+        silentTries.current = 0;
+        void answer(text);
+      },
+      onListenFail,
+      setHeard,
+      (level) => {
+        if (levelRef.current) levelRef.current.style.transform = `scaleX(${Math.min(1, level * 9)})`;
+      },
+    );
+  };
+
+  const startConversation = useCallback(async () => {
+    if (!voice.canListen) {
+      say('Para conversar por voz necesito Chrome o Edge: este navegador no me deja escuchar.', false);
       return;
     }
+    wake();
+    setFacing(0);
+    setPetCounter((n) => n + 1);
+    silentTries.current = 0;
+    setTalking(true);
+    talkingRef.current = true;
+    // El permiso se pide aquí, dentro del toque, y no cuando ya terminó el saludo.
+    const problem = await voice.checkMic();
+    if (!talkingRef.current) return;
+    if (problem) onListenFail(problem);
+    else if (historyRef.current.length) listenRef.current();
+    else say('¡Hola, hola! Cuéntame, ¿qué tenemos entre manos?');
+  }, [onListenFail, say, voice, wake]);
 
-    setPosture((prev) => {
-      const next = prev === 'sitting' ? 'standing' : 'sitting';
-      if (next === 'sitting') {
-        speakText('Me siento aquí en reposo, siempre alerta y fiel contigo.');
-      } else {
-        speakText('Me pongo de pie, listo y atento para innovar.');
-      }
-      return next;
-    });
+  /** Tocarlo: empieza a conversar; si está hablando, lo interrumpe y escucha; si escucha, termina. */
+  const onTouchZoe = useCallback(() => {
+    if (!talkingRef.current) void startConversation();
+    else if (voice.listening) endConversation();
+    else listenRef.current();
+  }, [endConversation, startConversation, voice.listening]);
+
+  const pet = () => {
+    wake();
+    setPetCounter((n) => n + 1);
+    setBehavior('happy');
+    window.setTimeout(() => setBehavior((b) => (b === 'happy' ? 'idle' : b)), 1800);
   };
 
-  const toggle360Environment = () => {
-    setShow360Environment((prev) => {
-      const next = !prev;
-      if (next) {
-        speakText('¡Entorno 360 activado! Cúpula holográfica y anillos cuánticos en órbita.');
-      } else {
-        speakText('Modo libre y transparente activado.');
-      }
-      return next;
-    });
-  };
-
-  const toggleWalking = () => {
-    setIsWalking((prev) => {
-      const next = !prev;
-      if (next) {
-        speakText('¡Avanzamos juntos por el laboratorio! Marchando a tu lado.');
-      } else {
-        speakText('Me quedo aquí quieto y atento observando el laboratorio.');
-      }
-      return next;
-    });
-  };
-
-  // =========================================================================
-  // LIBERTAD DE MOVIMIENTO: POSICIÓN FLOTANTE ARRASTRABLE POR TODA LA PANTALLA
-  // Vive libre en la interfaz, sin marcos, y el usuario puede moverlo a cualquier lugar
-  // =========================================================================
-  const [position, setPosition] = useState<{ x: number; y: number }>(() => {
-    if (typeof window !== 'undefined') {
-      const maxX = Math.max(10, window.innerWidth - 380);
-      const maxY = Math.max(40, window.innerHeight - 380);
-      const saved = localStorage.getItem('innovahub_zoe_pos');
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          return {
-            x: Math.max(10, Math.min(parsed.x, maxX)),
-            y: Math.max(40, Math.min(parsed.y, maxY)),
-          };
-        } catch (e) {}
-      }
-      return {
-        x: maxX,
-        y: maxY,
-      };
-    }
-    return { x: 900, y: 450 };
-  });
-
-  const isDraggingRef = useRef<boolean>(false);
-  const dragStartRef = useRef<{ mouseX: number; mouseY: number; startX: number; startY: number }>({
-    mouseX: 0,
-    mouseY: 0,
-    startX: 0,
-    startY: 0,
-  });
-  const hasMovedRef = useRef<boolean>(false);
-
-  const recognitionRef = useRef<any>(null);
-  const speechTimeoutRef = useRef<any>(null);
-
-  // Manejo de Arrastre Libre (Mouse y Touch)
-  const handlePointerDown = (e: React.PointerEvent) => {
-    // Si se hizo clic en un botón interactivo (micrófono o silenciar), no arrastrar
-    if ((e.target as HTMLElement).closest('button')) return;
-
-    isDraggingRef.current = true;
-    hasMovedRef.current = false;
-    dragStartRef.current = {
-      mouseX: e.clientX,
-      mouseY: e.clientY,
-      startX: position.x,
-      startY: position.y,
-    };
-  };
-
+  // Preguntas sugeridas desde el inicio: se responden en voz alta.
+  const lastRequest = useRef<number | null>(null);
   useEffect(() => {
-    const handlePointerMove = (e: PointerEvent) => {
-      if (!isDraggingRef.current) return;
-      const dx = e.clientX - dragStartRef.current.mouseX;
-      const dy = e.clientY - dragStartRef.current.mouseY;
-
-      if (Math.hypot(dx, dy) > 4) {
-        hasMovedRef.current = true;
-        const maxX = Math.max(10, window.innerWidth - 360);
-        const maxY = Math.max(10, window.innerHeight - 370);
-        const nextX = Math.max(10, Math.min(maxX, dragStartRef.current.startX + dx));
-        const nextY = Math.max(10, Math.min(maxY, dragStartRef.current.startY + dy));
-        setPosition({ x: nextX, y: nextY });
-      }
-    };
-
-    const handlePointerUp = () => {
-      if (isDraggingRef.current) {
-        isDraggingRef.current = false;
-        if (!hasMovedRef.current) {
-          // Fue un clic simple sobre Zoe -> Acariciar
-          handlePetZoe();
-        } else {
-          localStorage.setItem('innovahub_zoe_pos', JSON.stringify(position));
-        }
-      }
-    };
-
-    window.addEventListener('pointermove', handlePointerMove);
-    window.addEventListener('pointerup', handlePointerUp);
-    return () => {
-      window.removeEventListener('pointermove', handlePointerMove);
-      window.removeEventListener('pointerup', handlePointerUp);
-    };
-  }, [position]);
-
-  // =========================================================================
-  // SINTETIZADOR DE VOZ: NIÑO MACHO EN ESPAÑOL LATINO NEUTRO (SIN ACENTOS)
-  // =========================================================================
-  const speakText = (text: string, onEndCallback?: () => void) => {
-    setSpeechBubbleText(text);
-    setShowSpeechBubble(true);
-    setBehavior('speaking');
-
-    if (speechTimeoutRef.current) clearTimeout(speechTimeoutRef.current);
-    speechTimeoutRef.current = setTimeout(() => {
-      setShowSpeechBubble(false);
-      setBehavior('sitting');
-    }, Math.max(4500, text.length * 85));
-
-    if (!isMuted && typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-
-      // Timbre dulce de niño macho (Pitch 1.38, alegre y sin tono robot)
-      utterance.pitch = 1.38;
-      utterance.rate = 1.03;
-
-      const voices = window.speechSynthesis.getVoices();
-
-      // Prioridad a voces latinoamericanas o neutras
-      const latinVoice =
-        voices.find(
-          (v) =>
-            (v.lang.startsWith('es-419') ||
-              v.lang.startsWith('es-MX') ||
-              v.lang.startsWith('es-CO') ||
-              v.lang.startsWith('es-US') ||
-              v.lang.startsWith('es-AR') ||
-              v.lang.startsWith('es-CL')) &&
-            (v.name.includes('Raul') ||
-              v.name.includes('Jorge') ||
-              v.name.includes('Diego') ||
-              v.name.includes('Carlos') ||
-              v.name.includes('Alonso') ||
-              v.name.includes('Male') ||
-              v.name.includes('Natural'))
-        ) ||
-        voices.find(
-          (v) =>
-            v.lang.startsWith('es-419') ||
-            v.lang.startsWith('es-MX') ||
-            v.lang.startsWith('es-CO') ||
-            v.lang.startsWith('es-US')
-        ) ||
-        voices.find(
-          (v) =>
-            v.lang.startsWith('es') &&
-            !v.lang.includes('ES') &&
-            (v.name.includes('Male') || v.name.includes('Raul') || v.name.includes('Jorge'))
-        ) ||
-        voices.find((v) => v.lang.startsWith('es') && !v.lang.includes('ES')) ||
-        voices.find((v) => v.lang.startsWith('es'));
-
-      if (latinVoice) {
-        utterance.voice = latinVoice;
-        utterance.lang = latinVoice.lang;
-      } else {
-        utterance.lang = 'es-419';
-      }
-
-      utterance.onend = () => {
-        setBehavior('sitting');
-        if (onEndCallback) onEndCallback();
-      };
-      utterance.onerror = () => {
-        setBehavior('sitting');
-        if (onEndCallback) onEndCallback();
-      };
-
-      window.speechSynthesis.speak(utterance);
+    if (!request || request.id === lastRequest.current) return;
+    lastRequest.current = request.id;
+    if (request.text) {
+      setTalking(true);
+      talkingRef.current = true;
+      void answer(request.text);
     } else {
-      setTimeout(() => {
-        setBehavior('sitting');
-        if (onEndCallback) onEndCallback();
-      }, Math.max(3000, text.length * 60));
+      void startConversation();
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [request]);
 
-  // =========================================================================
-  // RECONOCIMIENTO DE VOZ E INTERACCIÓN CON GEMINI IA
-  // =========================================================================
-  const toggleVoiceRecognition = () => {
-    if (isListening) {
-      if (recognitionRef.current) recognitionRef.current.stop();
-      setIsListening(false);
-      setBehavior('sitting');
-      return;
-    }
-
-    const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-
-    if (!SpeechRecognition) {
-      speakText('¡Guau! Tu navegador no tiene micrófono, pero puedes acariciarme y estaré siempre contigo.');
-      return;
-    }
-
-    try {
-      const recognition = new SpeechRecognition();
-      recognitionRef.current = recognition;
-      recognition.lang = 'es-419';
-      recognition.continuous = false;
-      recognition.interimResults = false;
-
-      recognition.onstart = () => {
-        setIsListening(true);
-        setBehavior('listening');
-        setSpeechBubbleText('¡Te escucho! Dime qué hacemos en el laboratorio...');
-        setShowSpeechBubble(true);
-      };
-
-      recognition.onresult = async (event: any) => {
-        const transcript = event.results[0][0].transcript.trim();
-        setIsListening(false);
-        setIsThinking(true);
-        setBehavior('explaining');
-        setSpeechBubbleText(`Pensando en "${transcript}"... ✨`);
-
-        const lower = transcript.toLowerCase();
-        let navigated = false;
-
-        // Comandos de voz de navegación rápida
-        if (lower.includes('radar') || lower.includes('señales') || lower.includes('vigilancia')) {
-          onSelectTool('radar');
-          navigated = true;
-        } else if (lower.includes('estudio') || lower.includes('territorio') || lower.includes('zonal')) {
-          onSelectTool('estudio');
-          navigated = true;
-        } else if (lower.includes('ideación') || lower.includes('ideacion') || lower.includes('tema')) {
-          onSelectTool('ideacion');
-          navigated = true;
-        } else if (lower.includes('árbol') || lower.includes('arbol') || lower.includes('holográfico')) {
-          onSelectTool('arbol');
-          navigated = true;
-        } else if (lower.includes('prototipo') || lower.includes('prototipado') || lower.includes('solución')) {
-          onSelectTool('prototipado');
-          navigated = true;
-        } else if (lower.includes('inicio') || lower.includes('portada') || lower.includes('casa')) {
-          onSelectTool('portal');
-          navigated = true;
-        } else if (lower.includes('claro') || lower.includes('día') || lower.includes('blanco')) {
-          if (theme !== 'light') onToggleTheme();
-          navigated = true;
-        } else if (lower.includes('oscuro') || lower.includes('noche')) {
-          if (theme !== 'dark') onToggleTheme();
-          navigated = true;
-        } else if (lower.includes('duerme') || lower.includes('siesta') || lower.includes('descansa')) {
-          setBehavior('sleeping');
-          speakText('¡Zzz! Me acuesto a descansar un ratito...');
-          setIsThinking(false);
-          return;
-        }
-
-        // Consulta a Gemini IA
-        try {
-          const aiResponse = await askZoeGemini(transcript, currentTool);
-          setIsThinking(false);
-          speakText(aiResponse);
-        } catch (e) {
-          setIsThinking(false);
-          speakText(
-            navigated
-              ? '¡Listo! Ya te llevé a la herramienta. ¿Qué analizamos ahora?'
-              : '¡Guau! Me encanta explorar esto contigo. ¡Sigamos innovando en el territorio!'
-          );
-        }
-      };
-
-      recognition.onerror = (e: any) => {
-        console.warn('[ZOE Voice] Error en reconocimiento:', e);
-        setIsListening(false);
-        setIsThinking(false);
-        setBehavior('sitting');
-      };
-
-      recognition.onend = () => {
-        setIsListening(false);
-      };
-
-      recognition.start();
-    } catch (err) {
-      console.warn('[ZOE Voice] Error al inicializar audio:', err);
-      setIsListening(false);
-      setIsThinking(false);
-    }
-  };
-
-  // Reacción de Acariciar (Petting) con micro-olfateo noble
-  const handlePetZoe = () => {
-    setPetCounter((prev) => prev + 1);
-    const joyfulResponses = [
-      '¡Guau! ¡Qué rico cariño! Siempre estoy aquí contigo en el laboratorio.',
-      '¡Me encantan las caricias! Soy tu compañero fiel en este espacio de innovación.',
-      '¡Guau, guau! ¡Toda mi atención está lista para lo que necesites!',
-      '¡Qué buen amigo eres! ¿Revisamos alguna idea, diagnóstico o proyecto juntos?',
-    ];
-    const chosen = joyfulResponses[Math.floor(Math.random() * joyfulResponses.length)];
-    speakText(chosen);
-  };
-
-  // Saludo contextual cuando cambia de herramienta
+  // Una pista breve la primera vez que se visita cada herramienta; después, silencio.
   useEffect(() => {
-    let comment = '';
-    if (currentTool === 'radar') {
-      comment = '¡Llegamos al Radar de Innovación! Treinta y una señales tecnológicas activas.';
-    } else if (currentTool === 'estudio') {
-      comment = 'Estudio Territorial en pantalla: doce bloques para caracterizar la región.';
-    } else if (currentTool === 'ideacion') {
-      comment = '¡Ideación Estratégica! Aquí elegimos el tema ancla que guiará el proyecto.';
-    } else if (currentTool === 'arbol') {
-      comment = '¡El Árbol de Innovación! Circuito holográfico diez, cinco, tres.';
-    } else if (currentTool === 'prototipado') {
-      comment = '¡Banco de Prototipado Rápido con IA! Estructuramos planes de solución.';
-    } else if (currentTool === 'portal') {
-      comment = '¡Bienvenido al Observatorio InnovaHub360! Esta es mi casa: el Laboratorio de Innovación.';
-    }
+    if (!isOpen || talkingRef.current || seenTools.current.has(currentTool)) return;
+    seenTools.current.add(currentTool);
+    showCaption(TOOL_HINTS[currentTool], 5000);
+  }, [currentTool, isOpen, showCaption]);
 
-    if (comment) {
-      setSpeechBubbleText(comment);
-      setShowSpeechBubble(true);
-      if (speechTimeoutRef.current) clearTimeout(speechTimeoutRef.current);
-      speechTimeoutRef.current = setTimeout(() => {
-        setShowSpeechBubble(false);
-      }, 5000);
+  // ── Vida propia: de vez en cuando pasea, cambia de postura o busca dónde dormir ──
+  useEffect(() => {
+    if (!isOpen || window.matchMedia('(prefers-reduced-motion: reduce)').matches || window.innerWidth < 768) return;
+    let timer: number;
+    const schedule = () => {
+      timer = window.setTimeout(() => {
+        if (!busyRef.current && !drag.current && !document.hidden) {
+          const roll = Math.random();
+          if (roll < 0.35) void nap();
+          else if (roll < 0.8) void stroll();
+          else setPosture((p) => (p === 'sitting' ? 'standing' : 'sitting'));
+        }
+        schedule();
+      }, 28000 + Math.random() * 32000);
+    };
+    schedule();
+    return () => window.clearTimeout(timer);
+  }, [isOpen, nap, stroll]);
+
+  // Desplazamiento mientras camina (también al pedírselo con el botón).
+  useEffect(() => {
+    if (!isWalking) {
+      setFacing(0);
+      return;
     }
-  }, [currentTool]);
+    if (walkTarget.current === null) {
+      const { x, y } = positionRef.current;
+      walkTarget.current = clampPosition(x + (x > window.innerWidth / 2 ? -320 : 320), y);
+    }
+    let raf = 0;
+    let last = performance.now();
+    const step = (now: number) => {
+      raf = requestAnimationFrame(step);
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      const target = walkTarget.current;
+      if (target === null) return;
+      const dx = target.x - positionRef.current.x;
+      const dy = target.y - positionRef.current.y;
+      const distance = Math.hypot(dx, dy);
+      if (distance < 3) {
+        walkTarget.current = null;
+        setIsWalking(false);
+        const arrived = onArrive.current;
+        onArrive.current = null;
+        arrived?.();
+        return;
+      }
+      if (Math.abs(dx) > 2) setFacing(dx > 0 ? 1 : -1);
+      const stride = (WALK_SPEED * dt) / distance;
+      setPosition((p) => ({ x: p.x + dx * stride, y: p.y + dy * stride }));
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [isWalking]);
+
+  // ── Arrastre libre: un toque sin mover inicia la conversación ──
+  const onPointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
+    e.currentTarget.setPointerCapture(e.pointerId);
+    wake();
+    drag.current = { dx: e.clientX - position.x, dy: e.clientY - position.y, startX: e.clientX, startY: e.clientY, moved: false };
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    const d = drag.current;
+    if (!d) return;
+    if (Math.hypot(e.clientX - d.startX, e.clientY - d.startY) > 5) d.moved = true;
+    if (d.moved) setPosition(clampPosition(e.clientX - d.dx, e.clientY - d.dy));
+  };
+  const onPointerUp = () => {
+    const d = drag.current;
+    drag.current = null;
+    if (!d) return;
+    if (d.moved) {
+      try {
+        localStorage.setItem(POSITION_KEY, JSON.stringify(positionRef.current));
+      } catch {
+        /* Solo es una preferencia. */
+      }
+    } else {
+      onTouchZoe();
+    }
+  };
+
+  useEffect(() => {
+    const onResize = () => setPosition((p) => clampPosition(p.x, p.y));
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen && talkingRef.current) endConversation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   if (!isOpen) {
     return (
-      <button
-        type="button"
-        onClick={onToggleOpen}
-        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-2 rounded-full g border border-[#27DCFF]/40 text-[#27DCFF] hover:scale-105 transition-all shadow-[0_0_20px_rgba(39,220,255,0.3)] cursor-pointer zoe-glow"
-        title="Llamar a ZOE"
-      >
-        <Bot className="w-5 h-5 text-[#27DCFF]" />
-        <span className="text-xs font-bold sy tracking-wide">ZOE</span>
-        <span className="relative flex h-2 w-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#27DCFF] opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-[#27DCFF]"></span>
-        </span>
+      <button type="button" onClick={onToggleOpen} className="fixed bottom-4 right-4 z-50 lab-btn zoe-glow" title="Llamar a ZOE">
+        <Bot className="w-4 h-4 text-[#27DCFF]" aria-hidden="true" /> ZOE
       </button>
     );
   }
 
+  const status = voice.listening ? 'Te escucho…' : behavior === 'thinking' ? 'Pensando…' : null;
+  const toolbar: Array<{ label: string; icon: React.ReactNode; onClick: () => void; pressed?: boolean; color: string }> = [
+    { label: talking ? 'Terminar la conversación' : 'Conversar con ZOE', icon: <Mic className="w-4 h-4" />, onClick: () => (talking ? endConversation() : void startConversation()), pressed: talking, color: '#27DCFF' },
+    { label: voice.muted ? 'Activar la voz de ZOE' : 'Silenciar la voz de ZOE', icon: voice.muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />, onClick: voice.toggleMuted, pressed: voice.muted, color: '#5EC2DD' },
+    { label: posture === 'sitting' ? 'Poner de pie a ZOE' : 'Sentar a ZOE', icon: <Dog className="w-4 h-4" />, onClick: () => { wake(); setPosture(posture === 'sitting' ? 'standing' : 'sitting'); }, color: '#F29F05' },
+    { label: isWalking ? 'Detener la caminata' : 'Poner a caminar a ZOE', icon: <Footprints className="w-4 h-4" />, onClick: () => (isWalking ? wake() : void stroll()), pressed: isWalking, color: '#A8C63C' },
+    { label: napping ? 'Despertar a ZOE' : 'Que ZOE busque dónde dormir', icon: <Moon className="w-4 h-4" />, onClick: () => (napping ? wake() : void nap()), pressed: napping, color: '#B85EFF' },
+    { label: show360 ? 'Quitar el entorno 360°' : 'Activar el entorno 360°', icon: <Globe className="w-4 h-4" />, onClick: () => setShow360((v) => !v), pressed: show360, color: '#27DCFF' },
+    { label: 'Acariciar a ZOE', icon: <Heart className="w-4 h-4" />, onClick: pet, color: '#F29F05' },
+  ];
+
   return (
-    // =========================================================================
-    // ENTORNO FLOTANTE TOTALMENTE LIBRE (SIN MARCO, SIN CAJAS, ARRASTRABLE)
-    // El holograma vive directamente en la interfaz y puede moverse libremente
-    // =========================================================================
-    <div
-      style={{
-        left: `${position.x}px`,
-        top: `${position.y}px`,
-      }}
-      className="fixed z-50 pointer-events-auto select-none touch-none flex flex-col items-center cursor-grab active:cursor-grabbing"
-      onPointerDown={handlePointerDown}
-    >
-      {/* Burbuja Flotante de Diálogo (Aparece sólo cuando habla o escucha, flotando sobre su cabeza sin empujarlo) */}
-      {showSpeechBubble && (
-        <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 w-[270px] sm:w-[320px] g2 p-3 rounded-2xl border border-[#27DCFF]/30 shadow-[0_0_20px_rgba(39,220,255,0.15)] backdrop-blur-md z-20 animate-in fade-in slide-in-from-bottom-2 duration-200">
-          <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-1 mb-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#27DCFF] m flex items-center gap-1.5">
-              <Sparkles className="w-3 h-3 text-[#27DCFF]" />
-              ZOE · Alma de Innovación
+    <div className="zoe-stage fixed z-40 group" style={{ left: position.x, top: position.y, width: STAGE.width + 44, height: STAGE.height }}>
+      {/* Subtítulos: lo que ZOE dice, también para quien no puede oírlo. No es un chat. */}
+      {(caption || status || heard) && (
+        <div className={`zoe-caption ${position.x < window.innerWidth / 2 ? 'zoe-caption-left' : ''}`} role="status" aria-live="polite">
+          {talking && (
+            <button type="button" className="zoe-caption-close" onClick={endConversation} aria-label="Terminar la conversación">
+              <X className="w-3.5 h-3.5" aria-hidden="true" />
+            </button>
+          )}
+          {heard && status && <p className="text-[11px] italic text-brand-textMuted mb-1">«{heard}»</p>}
+          {status ? <p className={voice.listening ? 'zoe-status zoe-status-on' : 'zoe-status'}>{status}</p> : <p>{caption}</p>}
+          {voice.listening && (
+            <span className="zoe-level-track" aria-hidden="true">
+              <span ref={levelRef} className="zoe-level" />
             </span>
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsMuted(!isMuted);
-                }}
-                className="text-white/60 hover:text-white transition-colors cursor-pointer"
-                title={isMuted ? 'Activar voz' : 'Silenciar voz'}
-              >
-                {isMuted ? (
-                  <VolumeX className="w-3 h-3 text-red-400" />
-                ) : (
-                  <Volume2 className="w-3 h-3 text-[#27DCFF]" />
-                )}
-              </button>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowSpeechBubble(false);
-                }}
-                className="text-white/40 hover:text-white transition-colors cursor-pointer"
-                title="Cerrar diálogo"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          </div>
-
-          <p className="text-xs text-white font-medium leading-relaxed sy">
-            {speechBubbleText}
-          </p>
-
-          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-3 h-3 bg-[#0C5E78]/90 border-r border-b border-[#27DCFF]/30 rotate-45" />
+          )}
         </div>
       )}
 
-      {/* Contenedor de ZOE (Tamaño Más Grande y Majestuoso) + Botones flotando a su lado */}
-      <div className="relative flex items-center select-none">
-        {/* Holograma 3D de ZOE (Escala ampliada, cuerpo completo sin marcos) */}
-        <div className="relative w-[280px] sm:w-[320px] h-[300px] sm:h-[340px] flex items-center justify-center bg-transparent cursor-grab active:cursor-grabbing">
-          <ZoeCanvas3D
-            behavior={behavior}
-            state={behavior}
-            isListening={isListening}
-            isWalking={isWalking}
-            posture={posture}
-            show360Environment={show360Environment}
-            petTrigger={petCounter}
-            onPet={handlePetZoe}
-          />
-
-          {/* Indicador sutil de que se puede arrastrar */}
-          <div
-            className="absolute top-2 right-3 opacity-30 hover:opacity-80 transition-opacity text-[#27DCFF] cursor-grab"
-            title="Puedes arrastrar a ZOE por toda la pantalla"
-          >
-            <Move className="w-3.5 h-3.5" />
-          </div>
+      {behavior === 'sleeping' && (
+        <div className="zoe-zzz" aria-hidden="true">
+          <span>z</span>
+          <span>z</span>
+          <span>z</span>
         </div>
+      )}
 
-        {/* Cinco íconos flotando junto a Zoe a un lado: Sentarse/Pararse, Caminar/Quieto, Entorno 360°, Micrófono y Corazón */}
-        <div className="flex flex-col items-center gap-2.5 -ml-2 pointer-events-auto z-10">
-          {/* Botón Alternador: Postura Canina (Sentado vs De Pie Estático) */}
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              togglePosture();
-            }}
-            className={`p-2.5 rounded-full backdrop-blur-md transition-all cursor-pointer flex items-center justify-center border shadow-lg ${
-              !isWalking && posture === 'sitting'
-                ? 'bg-[#F29F05] text-[#04222B] border-[#F29F05] shadow-[0_0_15px_rgba(242,159,5,0.7)] scale-110'
-                : 'bg-[#04222B]/85 text-[#F29F05] border-[#F29F05]/40 shadow-[0_0_12px_rgba(242,159,5,0.25)] hover:border-[#F29F05] hover:bg-[#0A4A5C] hover:scale-110'
-            }`}
-            title={
-              isWalking
-                ? 'ZOE Caminando · Clic para sentarlo en reposo'
-                : posture === 'sitting'
-                ? 'ZOE Sentado en reposo · Clic para ponerlo De Pie estático'
-                : 'ZOE De Pie estático · Clic para Sentarlo en reposo'
-            }
-          >
-            <Dog className="w-4 h-4" />
-          </button>
+      <div className="absolute left-0 top-0 pointer-events-none" style={{ width: STAGE.width, height: STAGE.height }}>
+        <Suspense fallback={null}>
+          <CanvasBoundary>
+            <ZoeCanvas3D behavior={behavior} isWalking={isWalking} facing={facing} posture={posture} show360Environment={show360} petTrigger={petCounter} />
+          </CanvasBoundary>
+        </Suspense>
+      </div>
 
-          {/* Botón Alternador: Quieto o Caminando */}
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              toggleWalking();
-            }}
-            className={`p-2.5 rounded-full backdrop-blur-md transition-all cursor-pointer flex items-center justify-center border shadow-lg ${
-              isWalking
-                ? 'bg-[#A8C63C] text-[#04222B] border-[#A8C63C] shadow-[0_0_15px_rgba(168,198,60,0.7)] scale-110'
-                : 'bg-[#04222B]/85 text-[#A8C63C] border-[#A8C63C]/40 shadow-[0_0_12px_rgba(168,198,60,0.25)] hover:border-[#A8C63C] hover:bg-[#0A4A5C] hover:scale-110'
-            }`}
-            title={isWalking ? 'ZOE Caminando (con corrección) · Clic para detenerlo y dejarlo Quieto' : 'ZOE Quieto · Clic para ponerlo a Caminar'}
-          >
-            <Footprints className="w-4 h-4" />
-          </button>
+      {/* Solo la silueta recibe el puntero: las esquinas vacías dejan pasar los clics al contenido. */}
+      <button
+        type="button"
+        className="zoe-hit"
+        style={{ left: STAGE.width * 0.22, top: STAGE.height * 0.1, width: STAGE.width * 0.56, height: STAGE.height * 0.82 }}
+        aria-label={talking ? 'ZOE te escucha: toca para terminar o interrumpir' : 'Conversar con ZOE por voz'}
+        title="Tócame para conversar · Arrástrame para moverme"
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onTouchZoe();
+          }
+        }}
+      />
 
-          {/* Botón Alternador Opcional: Entorno 360° Holográfico */}
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              toggle360Environment();
-            }}
-            className={`p-2.5 rounded-full backdrop-blur-md transition-all cursor-pointer flex items-center justify-center border shadow-lg ${
-              show360Environment
-                ? 'bg-[#27DCFF] text-[#04222B] border-[#27DCFF] shadow-[0_0_15px_rgba(39,220,255,0.8)] scale-110'
-                : 'bg-[#04222B]/85 text-[#27DCFF]/80 border-[#27DCFF]/40 shadow-[0_0_12px_rgba(39,220,255,0.2)] hover:border-[#27DCFF] hover:text-[#27DCFF] hover:bg-[#0C5E78] hover:scale-110'
-            }`}
-            title={show360Environment ? 'Domo 360° Activo · Clic para volver a modo libre transparente' : 'Activar Entorno 360° Opcional (Domo, anillos orbitales y giro)'}
-          >
-            <Globe className="w-4 h-4" />
+      <div className="zoe-toolbar" role="toolbar" aria-label="Controles de ZOE">
+        {toolbar.map((b) => (
+          <button key={b.label} type="button" className="zoe-tool" style={{ color: b.color }} title={b.label} aria-label={b.label} aria-pressed={b.pressed} onClick={b.onClick}>
+            {b.icon}
           </button>
-
-          {/* Botón Flotante Discreto de Micrófono para Hablar con Gemini */}
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              toggleVoiceRecognition();
-            }}
-            className={`p-2.5 rounded-full backdrop-blur-md transition-all cursor-pointer flex items-center justify-center border shadow-lg ${
-              isListening
-                ? 'bg-[#F29F05] text-[#04222B] border-[#F29F05] shadow-[0_0_15px_rgba(242,159,5,0.7)] animate-bounce scale-110'
-                : 'bg-[#04222B]/85 text-[#27DCFF] border-[#27DCFF]/40 shadow-[0_0_12px_rgba(39,220,255,0.25)] hover:border-[#27DCFF] hover:bg-[#0C5E78] hover:scale-110'
-            }`}
-            title={isListening ? 'Escuchando tu voz...' : 'Hablar con ZOE (Voz latina e IA Gemini)'}
-          >
-            <Mic className={`w-4 h-4 ${isListening ? 'text-[#04222B]' : 'text-[#27DCFF]'}`} />
-          </button>
-
-          {/* Botón Discreto para Acariciar / Activar Olfateo Noble */}
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              handlePetZoe();
-            }}
-            className="p-2.5 rounded-full bg-[#04222B]/85 backdrop-blur-md border border-[#F29F05]/40 shadow-[0_0_12px_rgba(242,159,5,0.25)] text-[#F29F05] hover:border-[#F29F05] hover:bg-[#0C5E78] hover:scale-110 transition-all cursor-pointer flex items-center justify-center"
-            title="Acariciar a ZOE (Olfateo y ternura)"
-          >
-            <Heart className="w-4 h-4 text-[#F29F05] fill-[#F29F05]" />
-          </button>
-        </div>
+        ))}
       </div>
     </div>
   );

@@ -11,6 +11,19 @@ Módulo del **Observatorio InnovaHub360** (UNAD · VIEM). Es solo una parte del 
 
 Cada herramienta funciona sola. Encadenarlas es opcional: cada una entrega su resultado a la siguiente con un botón.
 
+## ZOE
+
+ZOE es el schnauzer holográfico que vive en la interfaz; la referencia es `zoe_personality_character_bible_editable_v2.pptx`. Se comunica **solo por voz** y **subtítulos**: se le toca, saluda, escucha, responde y vuelve a escuchar. Tocarlo mientras habla lo interrumpe; dos silencios seguidos cierran la charla.
+
+- **Inteligencia:** el mismo modelo institucional de las herramientas, con personalidad propia y especialidad en innovación (`src/services/zoeAi.ts`). Conoce la pantalla actual y el contenido real del resultado que hay en ella. Si la IA falla, lo dice.
+- **Órdenes directas:** «llévame al árbol», «pon el modo oscuro», «a dormir» se cumplen sin consultar a la IA (`src/lib/zoeContext.ts`).
+- **Animación:** capa procedimental sobre el clip de caminar del modelo (`ZoeCanvas3D.tsx`): respiración, mirada que sigue al puntero, cola en cadena, gestos al azar y estados de escucha, pensamiento, habla y alegría.
+- **Presentación:** `ZoeIntro.tsx`, seis escenas con el modelo 3D en vivo, narradas y con subtítulos. Se abre desde el inicio.
+- **Requisitos:** el reconocimiento de voz necesita Chrome o Edge y permiso de micrófono. La calidad de la voz es la del sistema operativo.
+- **Ojos:** se dibujan por shader sobre el modelo (`EYE_FRAGMENT` en `ZoeCanvas3D.tsx`): parpadeo irregular, mirada, pupila según el ánimo, sonrisa y ojos cerrados al dormir.
+- **Malla:** `public/assets/zoe/zoe.glb` ya está reparado. Si llega un modelo nuevo, se repara con `node scripts/reparar-malla-zoe.mjs entrada.glb salida.glb`, varias pasadas.
+- **Límites del modelo actual:** no tiene rig facial (no mueve la boca) ni los accesorios de la biblia (visor, chaleco), porque dependen del equipo 3D.
+
 ## Puesta en marcha
 
 ```bash

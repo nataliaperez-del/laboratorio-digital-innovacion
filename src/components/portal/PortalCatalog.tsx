@@ -23,10 +23,12 @@ import { ToolId } from '../layout/Header';
 
 interface PortalCatalogProps {
   onSelectTool: (tool: ToolId) => void;
-  onOpenZoe: () => void;
+  /** Inicia la conversación por voz con ZOE; si trae texto, se lo pregunta. */
+  onOpenZoe: (text?: string) => void;
+  onPlayIntro: () => void;
 }
 
-export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOpenZoe }) => {
+export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOpenZoe, onPlayIntro }) => {
   const [activeSlide, setActiveSlide] = useState<number>(0);
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [slideProgress, setSlideProgress] = useState<number>(0);
@@ -283,11 +285,11 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
 
               <button
                 type="button"
-                onClick={onOpenZoe}
+                onClick={() => onOpenZoe()}
                 className="g2 px-5 py-3.5 rounded-full text-sm font-semibold text-[#27DCFF] border border-[#27DCFF]/40 hover:bg-[#27DCFF]/15 flex items-center gap-2 cursor-pointer transition-all zoe-glow"
               >
                 <Sparkles className="w-4 h-4 text-[#27DCFF] animate-spin" style={{ animationDuration: '6s' }} />
-                <span>Hablar con ZOE</span>
+                <span>Conversar con ZOE</span>
               </button>
             </div>
           </div>
@@ -340,40 +342,43 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
                 <h3 className="text-lg font-bold text-white sy">ZOE</h3>
               </div>
               <p className="text-xs sm:text-sm text-[#CFE0E6] max-w-3xl leading-relaxed">
-                ZOE no está confinada a una sola pantalla. Acompaña cada destino del Observatorio InnovaHub360 y cada fase del Laboratorio de Innovación: responde consultas sobre tendencias, analiza variables territoriales, sugiere ramificaciones para el árbol y estructura planes de prototipado en tiempo real.
+                ZOE vive en la interfaz y conversa por voz: tócalo y háblale. Te explica las herramientas y tus resultados, te ayuda a formular retos y hace alguna broma en el camino. Los documentos los generan las herramientas y la última palabra es tuya.
               </p>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5 shrink-0 w-full lg:w-auto">
+            <button type="button" onClick={onPlayIntro} className="lab-btn w-full sm:w-auto">
+              Ver su presentación
+            </button>
             <button
               type="button"
-              onClick={onOpenZoe}
+              onClick={() => onOpenZoe()}
               className="metal px-5 py-2.5 text-xs font-bold text-white flex items-center gap-2 cursor-pointer shadow hover:scale-105 transition-all w-full sm:w-auto justify-center"
             >
               <Sparkles className="w-3.5 h-3.5 text-[#27DCFF]" />
-              <span>Consultar a ZOE Ahora</span>
+              <span>Conversar con ZOE</span>
             </button>
           </div>
         </div>
 
         {/* Quick Transversal Prompt Pills */}
         <div className="mt-5 pt-4 border-t border-white/10 flex flex-wrap items-center gap-2 text-xs">
-          <span className="text-brand-textMuted font-medium mr-1">Consultas rápidas con ZOE:</span>
+          <span className="text-brand-textMuted font-medium mr-1">Pregúntale a ZOE:</span>
           <button
-            onClick={onOpenZoe}
+            onClick={() => onOpenZoe('¿Cómo uso el Estudio Territorial con el Árbol?')}
             className="px-3 py-1 rounded-full bg-white/5 hover:bg-white/15 text-white/90 border border-white/10 transition-colors cursor-pointer"
           >
-            "¿Cómo integro el estudio territorial con el árbol?"
+            "¿Cómo uso el Estudio Territorial con el Árbol?"
           </button>
           <button
-            onClick={onOpenZoe}
+            onClick={() => onOpenZoe('¿Qué necesito para armar un plan de prototipado?')}
             className="px-3 py-1 rounded-full bg-white/5 hover:bg-white/15 text-white/90 border border-white/10 transition-colors cursor-pointer"
           >
-            "Genera una idea de prototipado para mi municipio"
+            "¿Qué necesito para armar un plan de prototipado?"
           </button>
           <button
-            onClick={onOpenZoe}
+            onClick={() => onOpenZoe('Explícame las señales del Radar')}
             className="px-3 py-1 rounded-full bg-white/5 hover:bg-white/15 text-white/90 border border-white/10 transition-colors cursor-pointer"
           >
             "Explícame las señales del Radar"

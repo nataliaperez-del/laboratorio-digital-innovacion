@@ -159,7 +159,8 @@ export const Header: React.FC<HeaderProps> = ({
                 ? 'bg-[#27DCFF]/20 border-[#27DCFF] text-[#27DCFF] shadow-[0_0_20px_rgba(39,220,255,0.4)]'
                 : 'g2 border-white/15 text-[#27DCFF] hover:border-[#27DCFF]/50'
             }`}
-            title="Abrir ZOE 3D"
+            title={isZoeOpen ? 'Guardar a ZOE' : 'Llamar a ZOE'}
+            aria-pressed={isZoeOpen}
           >
             <Sparkles className="w-4 h-4 animate-spin text-[#27DCFF]" style={{ animationDuration: '6s' }} />
             <span className="text-xs font-bold sy tracking-wide">ZOE</span>

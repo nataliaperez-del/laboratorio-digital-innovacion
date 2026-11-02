@@ -63,6 +63,8 @@ export type CallAIOptions = {
    * proveedores Gemini (directo y proxy UNAD); los demás no ofrecen navegación.
    */
   googleSearch?: boolean;
+  /** Llamada independiente de la generación en curso: «Detener» no la afecta ni ella a «Detener». */
+  detached?: boolean;
 };
 
 /** Si el modelo ignora la instrucción y envuelve todo en ```markdown ... ```, quita el fence exterior. */
@@ -86,13 +88,14 @@ type CallAIResult = {
 };
 
 async function callAIOnce(prompt: string, options?: CallAIOptions): Promise<CallAIResult> {
-  if (cancelRequested) throw new GenerationCancelledError();
+  const detached = Boolean(options?.detached);
+  if (cancelRequested && !detached) throw new GenerationCancelledError();
   const state = useStore.getState();
   const { aiProvider, apiKeys, ollamaUrl, ollamaModel, openaiModel, anthropicModel, providerModels, unadGeminiBearer } = state;
   const maxOut = options?.maxOutputTokens;
 
   const controller = new AbortController();
-  activeAbort = controller;
+  if (!detached) activeAbort = controller;
   const signal = controller.signal;
 
   try {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { lazy, Suspense, useState, useEffect } from 'react';
 import { Header, ToolId, TOOL_IDS } from './components/layout/Header';
 import { PortalCatalog } from './components/portal/PortalCatalog';
 import { RadarView } from './components/tools/RadarView';
@@ -6,7 +6,9 @@ import { EstudioTerritorialView } from './components/tools/EstudioTerritorialVie
 import { IdeacionEstrategicaView } from './components/tools/IdeacionEstrategicaView';
 import { ArbolInnovacionView } from './components/tools/ArbolInnovacionView';
 import { PrototipadoView } from './components/tools/PrototipadoView';
-import { ZoeFreePresence } from './components/zoe/ZoeFreePresence';
+import { ZoeFreePresence, type ZoeRequest } from './components/zoe/ZoeFreePresence';
+
+const ZoeIntro = lazy(() => import('./components/zoe/ZoeIntro'));
 
 export const App: React.FC = () => {
   // La herramienta vive en el hash: permite enlazarla desde el Observatorio y usar «Atrás».
@@ -28,7 +30,29 @@ export const App: React.FC = () => {
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     return (localStorage.getItem('innovahub_theme') as 'dark' | 'light') || 'dark';
   });
-  const [isZoeOpen, setIsZoeOpen] = useState<boolean>(true);
+  // Abierta por defecto salvo en pantallas pequeñas, donde el espacio es del contenido.
+  const [isZoeOpen, setIsZoeOpen] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('innovahub_zoe_open');
+      if (saved !== null) return saved === '1';
+    } catch {
+      /* Sin almacenamiento se usa el valor por defecto. */
+    }
+    return window.innerWidth >= 768;
+  });
+  const [zoeRequest, setZoeRequest] = useState<ZoeRequest | null>(null);
+  const [introOpen, setIntroOpen] = useState(false);
+  const openZoe = (text?: string) => {
+    setIsZoeOpen(true);
+    setZoeRequest((prev) => ({ id: (prev?.id ?? 0) + 1, text }));
+  };
+  useEffect(() => {
+    try {
+      localStorage.setItem('innovahub_zoe_open', isZoeOpen ? '1' : '0');
+    } catch {
+      /* Solo es una preferencia. */
+    }
+  }, [isZoeOpen]);
   const zoeState = 'idle';
 
   useEffect(() => {
@@ -125,11 +149,12 @@ export const App: React.FC = () => {
       />
 
       {/* Main Dynamic View Content (Fluid Full-Width Layout) */}
-      <main className="relative z-10 flex-1 box-border w-full px-4 sm:px-6 md:px-8 xl:px-12 2xl:px-16 py-6">
+      <main className="relative z-10 flex-1 box-border w-full px-4 sm:px-6 md:px-8 xl:px-12 2xl:px-16 pt-6 pb-10">
         {currentTool === 'portal' && (
           <PortalCatalog
             onSelectTool={setCurrentTool}
-            onOpenZoe={() => setIsZoeOpen(true)}
+            onOpenZoe={openZoe}
+            onPlayIntro={() => setIntroOpen(true)}
           />
         )}
         {currentTool === 'radar' && <RadarView onNavigate={setCurrentTool} />}
@@ -140,17 +165,25 @@ export const App: React.FC = () => {
       </main>
 
       {/* ZOE: Alma de Innovación 3D - Presencia Libre por su Casa */}
-      <ZoeFreePresence
+      {introOpen && (
+        <Suspense fallback={null}>
+          <ZoeIntro onClose={() => setIntroOpen(false)} />
+        </Suspense>
+      )}
+
+      {!introOpen && <ZoeFreePresence
         currentTool={currentTool}
         onSelectTool={setCurrentTool}
         theme={theme}
         onToggleTheme={toggleTheme}
         isOpen={isZoeOpen}
         onToggleOpen={() => setIsZoeOpen((prev) => !prev)}
-      />
+        request={zoeRequest}
+      />}
 
       {/* Footer Oficial InnovaHub360 & Créditos Institucionales */}
-      <footer className="relative z-20 box-border w-full px-4 sm:px-6 md:px-8 xl:px-12 2xl:px-16 py-8 border-t border-white/10 mt-12 flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-brand-textMuted">
+      {/* Margen final: ZOE nunca deja contenido fuera de alcance al llegar al final de la página. */}
+      <footer className="relative z-20 box-border w-full px-4 sm:px-6 md:px-8 xl:px-12 2xl:px-16 pt-8 pb-52 md:pb-80 border-t border-white/10 mt-12 flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-brand-textMuted">
         <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 text-center sm:text-left">
           <span className="font-bold text-white sy tracking-wide text-sm">InnovaHub360</span>
           <span className="hidden sm:inline">·</span>
@@ -159,16 +192,27 @@ export const App: React.FC = () => {
           <span className="text-[#5EC2DD] font-semibold">Laboratorio de Innovación en Línea</span>
         </div>
 
-        {/* Créditos Oficiales de Desarrollo */}
-        <div className="flex flex-col items-center md:items-end text-center md:text-right gap-1">
-          <div className="text-white/90 font-medium">
-            Desarrollado por <span className="text-white font-semibold">Natalia Elizabeth Pérez</span> y <span className="text-white font-semibold">Camilo Esteban Lozano</span>
+        {/* Créditos Oficiales de Desarrollo y Logo Institucional UNAD Acreditada */}
+        <div className="flex flex-col sm:flex-row items-center md:items-end text-center md:text-right gap-3.5">
+          <div className="flex flex-col items-center md:items-end text-center md:text-right gap-1">
+            <div className="text-white/90 font-medium">
+              Desarrollado por <span className="text-white font-semibold">Natalia Elizabeth Pérez</span> y <span className="text-white font-semibold">Camilo Esteban Lozano</span>
+            </div>
+            <div className="text-[11px] text-[#A8C63C] font-semibold tracking-wide">
+              Vicerrectoría de Innovación y Emprendimiento — VIEM
+            </div>
+            <div className="text-[10px] text-brand-textMuted m">
+              Universidad Nacional Abierta y a Distancia (UNAD)
+            </div>
           </div>
-          <div className="text-[11px] text-[#A8C63C] font-semibold tracking-wide">
-            Vicerrectoría de Innovación y Emprendimiento — VIEM
-          </div>
-          <div className="text-[10px] text-brand-textMuted m">
-            Universidad Nacional Abierta y a Distancia (UNAD)
+          {/* Sello Oficial UNAD Acreditada en Alta Calidad */}
+          <div className="flex items-center justify-center p-1.5 bg-white/95 rounded-2xl border border-[#F29F05]/30 shadow-[0_4px_16px_rgba(0,0,0,0.35)] shrink-0 transition-transform hover:scale-105">
+            <img
+              src="/assets/unad_acreditada.png"
+              alt="UNAD - Universidad Nacional Abierta y a Distancia · Acreditada en Alta Calidad"
+              className="w-14 h-14 md:w-16 md:h-16 object-contain"
+              title="Universidad Nacional Abierta y a Distancia - Acreditada en Alta Calidad"
+            />
           </div>
         </div>
       </footer>
