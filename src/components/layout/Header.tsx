@@ -54,7 +54,6 @@ export const Header: React.FC<HeaderProps> = ({
 
   const navTools = [
     { id: 'portal' as ToolId, name: 'Inicio', icon: Home, color: '#5EC2DD' },
-    { id: 'radar' as ToolId, name: 'Radar del Observatorio', icon: Compass, color: '#5EC2DD' },
     { id: 'estudio' as ToolId, name: 'Estudio Territorial', icon: Layers, color: '#A8C63C' },
     { id: 'ideacion' as ToolId, name: 'Ideación Estratégica', icon: BrainCircuit, color: '#F3C26B' },
     { id: 'arbol' as ToolId, name: 'Árbol de Innovación', icon: Trees, color: '#A8C63C' },
@@ -104,14 +103,6 @@ export const Header: React.FC<HeaderProps> = ({
             </span>
             <span className="c text-[22px] font-bold text-[#F29F05]">360</span>
           </span>
-          <div className="hidden sm:flex flex-col pl-3 border-l border-white/15 text-left">
-            <span className="text-[10px] text-brand-textMuted uppercase font-semibold tracking-widest sy">
-              Observatorio
-            </span>
-            <span className="text-xs text-[#5EC2DD] font-bold sy tracking-wide">
-              Laboratorio de Innovación en Línea
-            </span>
-          </div>
         </button>
 
         {/* =========================================================================

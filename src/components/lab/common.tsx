@@ -6,15 +6,21 @@ import { buildDocumentPlan } from '@/lib/documentPlan';
 import type { LabReport } from '@/lib/labReports';
 import type { GenerationPartStatus } from '@/prompts/themeAndInnovationPrompts';
 
-/** Encabezado común: ubica cada herramienta dentro del Observatorio. */
-export const ToolHeader: React.FC<{ title: string; description: string; children?: React.ReactNode }> = ({ title, description, children }) => (
+/** Encabezado común de cada herramienta. */
+export const ToolHeader: React.FC<{
+  title: string;
+  description: string;
+  titleColor?: string;
+  children?: React.ReactNode;
+}> = ({ title, description, titleColor, children }) => (
   <div className="flex flex-wrap items-end justify-between gap-4">
     <div className="min-w-0">
-      <nav className="m text-xs text-brand-textMuted mb-2" aria-label="Migas de pan">
-        <span>Observatorio</span> <span className="opacity-40">/</span> <span>Laboratorio de Innovación en Línea</span> <span className="opacity-40">/</span>{' '}
-        <span className="text-white">{title}</span>
-      </nav>
-      <h1 className="h2 text-3xl md:text-4xl text-white font-bold tracking-tight">{title}</h1>
+      <h1
+        className="h2 text-3xl md:text-4xl font-bold tracking-tight"
+        style={{ color: titleColor || '#FFFFFF' }}
+      >
+        {title}
+      </h1>
       <p className="bd text-sm text-brand-textSecondary mt-1 max-w-3xl">{description}</p>
     </div>
     {children && <div className="flex flex-wrap items-center gap-2.5">{children}</div>}

@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   ArrowRight,
-  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
   Layers,
   BrainCircuit,
   Trees,
@@ -147,9 +148,9 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({
               Laboratorio de Innovación en Línea
             </h1>
 
-            {/* Texto de Bienvenida */}
+            {/* Texto de Bienvenida Mejorado: Nace y vive en el Observatorio pero con identidad propia de prototipado y acción */}
             <p className="text-sm sm:text-base md:text-lg text-[#CFE0E6] leading-relaxed max-w-4xl">
-              Bienvenido al espacio interactivo del Observatorio InnovaHub360 para transformar desafíos regionales en soluciones estructuradas. Aquí caracterizas territorios, exploras tendencias globales y nacionales en árboles holográficos de innovación y estructuras planes de prototipado listos para implementación, asistido en cada paso por <strong>ZOE</strong>.
+              Entorno interactivo de experimentación y prototipado rápido concebido dentro del Observatorio InnovaHub360. Aquí la inteligencia territorial se convierte en acción: caracterizas desafíos regionales, descubres tendencias en árboles holográficos de innovación y formulas planes de prototipado listos para el territorio, asistido en cada fase por <strong>ZOE</strong>.
             </p>
 
             {/* Accesos directos a las 4 herramientas del LAB */}
@@ -240,7 +241,7 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({
       </div>
 
       {/* =========================================================================
-          SLIDE 2: VIDEO DE ZOE (Proyección Holográfica Flotante en Vidrio Futurista)
+          SLIDE 2: VIDEO DE ZOE (Proyección Holográfica Flotante a Pantalla Completa)
           Cubre toda la pantalla con bordes desvanecidos hacia el espacio exterior
           ========================================================================= */}
       <div
@@ -251,64 +252,19 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({
         }`}
       >
         <section
-          className="relative w-full h-full flex flex-col justify-between p-3 sm:p-6 overflow-hidden"
+          className="relative w-full h-full flex items-center justify-center p-2 sm:p-4 overflow-hidden"
           style={{
             // Desvanecimiento suave en los bordes para eliminar cualquier línea dura o borde tosco
             background:
               'radial-gradient(ellipse 95% 90% at 50% 50%, rgba(4, 34, 43, 0.70) 0%, rgba(2, 20, 26, 0.50) 65%, transparent 100%)',
             WebkitMaskImage:
-              'radial-gradient(ellipse 98% 95% at 50% 50%, black 75%, transparent 100%)',
+              'radial-gradient(ellipse 98% 95% at 50% 50%, black 80%, transparent 100%)',
             maskImage:
-              'radial-gradient(ellipse 98% 95% at 50% 50%, black 75%, transparent 100%)',
+              'radial-gradient(ellipse 98% 95% at 50% 50%, black 80%, transparent 100%)',
           }}
         >
-          {/* Barra Superior Discreta de Navegación del Holograma */}
-          <div className="relative z-30 flex items-center justify-between w-full max-w-6xl mx-auto px-2 py-1">
-            <button
-              type="button"
-              onClick={() => setSlideIndex(0)}
-              className="px-4 py-2 rounded-full bg-[#04222B]/80 hover:bg-[#0C5E78] border border-[#27DCFF]/40 text-white text-xs font-bold flex items-center gap-2 backdrop-blur-md transition-all cursor-pointer shadow-lg hover:scale-105"
-              title="Volver a la presentación del Laboratorio"
-            >
-              <ArrowLeft className="w-4 h-4 text-[#27DCFF]" />
-              <span>Volver a la Presentación</span>
-            </button>
-
-            {/* Indicador Tecnológico Flotante */}
-            <div className="flex items-center gap-2.5 px-3 py-1 rounded-full bg-[#04222B]/60 backdrop-blur-md border border-[#27DCFF]/20">
-              <span className="w-2 h-2 rounded-full bg-[#27DCFF] animate-pulse shadow-[0_0_8px_#27DCFF]" />
-              <span className="text-[11px] font-mono text-[#5EC2DD] tracking-wider uppercase">
-                Proyección Holográfica // ZOE
-              </span>
-            </div>
-
-            <div className="flex items-center gap-2.5">
-              <button
-                type="button"
-                onClick={() => setSlideIndex(0)}
-                className="w-2.5 h-2.5 rounded-full bg-white/30 hover:bg-[#27DCFF] cursor-pointer transition-all hover:scale-125"
-                title="Slide 1: Presentación"
-              />
-              <button
-                type="button"
-                onClick={() => setSlideIndex(1)}
-                className="w-3 h-3 rounded-full bg-[#27DCFF] shadow-[0_0_10px_#27DCFF] cursor-pointer transition-transform hover:scale-125"
-                title="Slide 2: Video"
-              />
-              <span className="text-xs text-white/80 font-mono ml-1">02 / 02</span>
-            </div>
-          </div>
-
-          {/* Contenedor del Video a pantalla completa dentro de la sección sin bordes duros */}
-          <div
-            className="relative z-20 flex-1 w-full max-w-6xl mx-auto flex items-center justify-center my-auto overflow-hidden rounded-2xl"
-            style={{
-              WebkitMaskImage:
-                'radial-gradient(ellipse 95% 90% at 50% 50%, black 80%, transparent 100%)',
-              maskImage:
-                'radial-gradient(ellipse 95% 90% at 50% 50%, black 80%, transparent 100%)',
-            }}
-          >
+          {/* Contenedor del Video a pantalla completa dentro de la sección sin barras invasivas */}
+          <div className="relative z-20 w-full h-full flex items-center justify-center my-auto overflow-hidden">
             {/* Scanlines holográficas muy sutiles sobre el video */}
             <div
               className="absolute inset-0 pointer-events-none opacity-15 z-30"
@@ -324,7 +280,7 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({
               controls
               playsInline
               onEnded={() => setSlideIndex(0)}
-              className="w-full h-full max-h-[75vh] object-contain drop-shadow-[0_0_30px_rgba(39,220,255,0.25)]"
+              className="w-full h-full max-h-[84vh] object-contain drop-shadow-[0_0_30px_rgba(39,220,255,0.25)]"
               title="Proyección Holográfica Oficial de ZOE"
             >
               Tu navegador no soporta reproducción de video.
@@ -332,6 +288,27 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({
           </div>
         </section>
       </div>
+
+      {/* Flechas flotantes translúcidas a los costados para retroceso y avance */}
+      <button
+        type="button"
+        onClick={() => setSlideIndex((prev) => (prev === 0 ? 1 : 0))}
+        className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-40 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/40 hover:bg-[#27DCFF]/25 border border-white/10 hover:border-[#27DCFF]/50 backdrop-blur-xl text-white/60 hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-[0_4px_20px_rgba(0,0,0,0.5)] hover:scale-110 active:scale-95 group"
+        title={slideIndex === 0 ? 'Ver Video de ZOE' : 'Volver a la Presentación'}
+        aria-label="Diapositiva anterior"
+      >
+        <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:-translate-x-0.5" />
+      </button>
+
+      <button
+        type="button"
+        onClick={() => setSlideIndex((prev) => (prev === 0 ? 1 : 0))}
+        className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-40 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/40 hover:bg-[#27DCFF]/25 border border-white/10 hover:border-[#27DCFF]/50 backdrop-blur-xl text-white/60 hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-[0_4px_20px_rgba(0,0,0,0.5)] hover:scale-110 active:scale-95 group"
+        title={slideIndex === 0 ? 'Ver Video de ZOE' : 'Volver a la Presentación'}
+        aria-label="Siguiente diapositiva"
+      >
+        <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:translate-x-0.5" />
+      </button>
     </div>
   );
 };

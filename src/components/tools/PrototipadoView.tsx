@@ -49,15 +49,15 @@ const PlanView: React.FC<{ plan: PrototypePlan }> = ({ plan }) => {
 
       {tab === 'general' && (
         <div className="space-y-4">
-          <div className="lab-card" style={{ borderLeft: '3px solid var(--brand-teal-text)' }}>
-            <span className="text-xs font-bold text-[var(--brand-teal-text)] flex items-center gap-2 mb-1"><Target className="w-4 h-4" aria-hidden="true" /> Hipótesis a validar</span>
+          <div className="lab-card" style={{ borderLeft: '3px solid #A8C63C' }}>
+            <span className="text-xs font-bold text-[#A8C63C] flex items-center gap-2 mb-1"><Target className="w-4 h-4 text-[#A8C63C]" aria-hidden="true" /> Hipótesis a validar</span>
             <p className="text-base text-white sy font-medium leading-relaxed">{plan.hypothesis}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="lab-card"><h4 className="text-xs font-bold text-white mb-1">Problema que resuelve</h4><p className="text-sm text-brand-textSecondary leading-relaxed">{plan.problemSolved}</p></div>
-            <div className="lab-card"><h4 className="text-xs font-bold text-white mb-1">Población y actores</h4><p className="text-sm text-brand-textSecondary leading-relaxed">{plan.targetAudience}</p></div>
+            <div className="lab-card"><h4 className="text-xs font-bold text-[#A8C63C] mb-1">Problema que resuelve</h4><p className="text-sm text-brand-textSecondary leading-relaxed">{plan.problemSolved}</p></div>
+            <div className="lab-card"><h4 className="text-xs font-bold text-[#A8C63C] mb-1">Población y actores</h4><p className="text-sm text-brand-textSecondary leading-relaxed">{plan.targetAudience}</p></div>
           </div>
-          <div className="lab-card"><h4 className="text-xs font-bold text-white mb-1">La solución</h4><p className="text-sm text-brand-textSecondary leading-relaxed">{plan.solution}</p></div>
+          <div className="lab-card"><h4 className="text-xs font-bold text-[#A8C63C] mb-1">La solución</h4><p className="text-sm text-brand-textSecondary leading-relaxed">{plan.solution}</p></div>
           {plan.unadSchools.length > 0 && <p className="text-xs text-brand-textMuted">Articula: {plan.unadSchools.join(' · ')}</p>}
         </div>
       )}
@@ -75,13 +75,13 @@ const PlanView: React.FC<{ plan: PrototypePlan }> = ({ plan }) => {
             ))}
           </ol>
           <div className="lab-card space-y-3">
-            <h4 className="text-sm font-bold text-white sy">{current.fase}</h4>
+            <h4 className="text-sm font-bold text-[#A8C63C] sy">{current.fase}</h4>
             <p className="text-sm text-brand-textSecondary leading-relaxed">{current.actividades}</p>
             <div>
-              <span className="text-[11px] font-semibold text-[var(--brand-olive)] block mb-1">Entregables de la fase</span>
+              <span className="text-[11px] font-semibold text-[#A8C63C] block mb-1">Entregables de la fase</span>
               <ul className="space-y-1">
                 {current.entregables.map((e, i) => (
-                  <li key={i} className="text-sm text-brand-textSecondary flex gap-2"><CheckCircle2 className="w-4 h-4 shrink-0 text-[var(--brand-olive)]" aria-hidden="true" /> {e}</li>
+                  <li key={i} className="text-sm text-brand-textSecondary flex gap-2"><CheckCircle2 className="w-4 h-4 shrink-0 text-[#A8C63C]" aria-hidden="true" /> {e}</li>
                 ))}
               </ul>
             </div>
@@ -92,12 +92,12 @@ const PlanView: React.FC<{ plan: PrototypePlan }> = ({ plan }) => {
       {tab === 'arquitectura' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {[
-            { icon: Wrench, title: 'Componente físico', text: plan.architecture.fisico, color: 'var(--brand-teal-text)' },
-            { icon: BrainCircuit, title: 'Componente digital', text: plan.architecture.digital, color: 'var(--brand-olive)' },
-            { icon: FileText, title: 'Componente metodológico', text: plan.architecture.metodologico, color: '#F3C26B' },
+            { icon: Wrench, title: 'Componente físico', text: plan.architecture.fisico, color: '#A8C63C' },
+            { icon: BrainCircuit, title: 'Componente digital', text: plan.architecture.digital, color: '#A8C63C' },
+            { icon: FileText, title: 'Componente metodológico', text: plan.architecture.metodologico, color: '#A8C63C' },
           ].map(({ icon: Icon, title, text, color }) => (
             <div key={title} className="lab-card">
-              <h4 className="text-xs font-bold flex items-center gap-2 mb-1.5" style={{ color }}><Icon className="w-4 h-4" aria-hidden="true" /> {title}</h4>
+              <h4 className="text-xs font-bold flex items-center gap-2 mb-1.5" style={{ color }}><Icon className="w-4 h-4 text-[#A8C63C]" aria-hidden="true" /> {title}</h4>
               <p className="text-sm text-brand-textSecondary leading-relaxed">{text || 'No aplica'}</p>
             </div>
           ))}
@@ -107,13 +107,13 @@ const PlanView: React.FC<{ plan: PrototypePlan }> = ({ plan }) => {
       {tab === 'validacion' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           <div className="lab-card">
-            <h4 className="text-xs font-bold text-white flex items-center gap-2 mb-2"><ListChecks className="w-4 h-4 text-[var(--brand-olive)]" aria-hidden="true" /> Métricas de validación</h4>
+            <h4 className="text-xs font-bold text-[#A8C63C] flex items-center gap-2 mb-2"><ListChecks className="w-4 h-4 text-[#A8C63C]" aria-hidden="true" /> Métricas de validación</h4>
             <ul className="space-y-1.5 text-sm text-brand-textSecondary list-disc pl-4">{plan.validationMetrics.map((m, i) => <li key={i}>{m}</li>)}</ul>
-            <h4 className="text-xs font-bold text-white mt-4 mb-2">Entregables finales</h4>
+            <h4 className="text-xs font-bold text-[#A8C63C] mt-4 mb-2">Entregables finales</h4>
             <ul className="space-y-1.5 text-sm text-brand-textSecondary list-disc pl-4">{plan.deliverables.map((m, i) => <li key={i}>{m}</li>)}</ul>
           </div>
           <div className="lab-card">
-            <h4 className="text-xs font-bold text-white flex items-center gap-2 mb-2"><ShieldAlert className="w-4 h-4 text-[#F3C26B]" aria-hidden="true" /> Riesgos y mitigación</h4>
+            <h4 className="text-xs font-bold text-[#A8C63C] flex items-center gap-2 mb-2"><ShieldAlert className="w-4 h-4 text-[#A8C63C]" aria-hidden="true" /> Riesgos y mitigación</h4>
             <ul className="space-y-2">
               {plan.risks.map((r, i) => (
                 <li key={i} className="text-sm"><strong className="text-white font-semibold">{r.riesgo}</strong><span className="block text-brand-textSecondary">{r.mitigacion}</span></li>
@@ -121,7 +121,7 @@ const PlanView: React.FC<{ plan: PrototypePlan }> = ({ plan }) => {
             </ul>
             {plan.supuestos.length > 0 && (
               <>
-                <h4 className="text-xs font-bold text-white mt-4 mb-2">Supuestos por verificar</h4>
+                <h4 className="text-xs font-bold text-[#A8C63C] mt-4 mb-2">Supuestos por verificar</h4>
                 <ul className="space-y-1.5 text-sm text-brand-textSecondary list-disc pl-4">{plan.supuestos.map((s, i) => <li key={i}>{s}</li>)}</ul>
               </>
             )}
@@ -194,6 +194,7 @@ export const PrototipadoView: React.FC<Props> = ({ onNavigate }) => {
     <div className="w-full space-y-6">
       <ToolHeader
         title="Prototipado"
+        titleColor="#A8C63C"
         description="Arma un plan de prototipado completo con IA: hipótesis, arquitectura, fases, métricas y riesgos. Parte de una idea libre o de un resultado del Árbol de Innovación."
       />
 
@@ -201,7 +202,7 @@ export const PrototipadoView: React.FC<Props> = ({ onNavigate }) => {
 
       <section className="lab-panel space-y-4" aria-label="Datos del plan">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-sm font-bold text-white sy flex items-center gap-2"><Rocket className="w-4 h-4 text-[var(--brand-purple-text)]" aria-hidden="true" /> ¿Qué vamos a prototipar?</h2>
+          <h2 className="text-sm font-bold text-[#A8C63C] sy flex items-center gap-2"><Rocket className="w-4 h-4 text-[#A8C63C]" aria-hidden="true" /> ¿Qué vamos a prototipar?</h2>
           <SegmentedControl<OriginMode>
             label="Origen del plan"
             value={mode}
@@ -288,7 +289,7 @@ export const PrototipadoView: React.FC<Props> = ({ onNavigate }) => {
       {active ? (
         <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-5 items-start">
           <nav className="space-y-2" aria-label="Banco de prototipos">
-            <h2 className="l text-brand-textMuted">Banco de prototipos ({prototypes.length})</h2>
+            <h2 className="l text-[#A8C63C] font-bold">Banco de prototipos ({prototypes.length})</h2>
             {prototypes.map((p) => (
               <button key={p.id} type="button" aria-current={p.id === active.id} className={`lab-card text-left w-full ${p.id === active.id ? 'is-selected' : ''}`} onClick={() => setActiveId(p.id)}>
                 <span className="text-[11px] text-brand-textMuted block">{p.category}{p.origin.code ? ` · ${p.origin.code}` : ''}</span>
@@ -306,7 +307,7 @@ export const PrototipadoView: React.FC<Props> = ({ onNavigate }) => {
                   <span className="lab-chip">{active.trlTarget}</span>
                   <span className="lab-chip">{active.scope}</span>
                 </div>
-                <h2 className="text-2xl font-bold text-white sy">{active.name}</h2>
+                <h2 className="text-2xl font-bold text-[#A8C63C] sy">{active.name}</h2>
                 {active.tagline && <p className="text-sm text-[var(--brand-teal-text)] mt-0.5">{active.tagline}</p>}
                 <p className="text-xs text-brand-textMuted mt-1">Origen: {active.origin.label}{active.origin.code ? ` (${active.origin.code})` : ''}</p>
               </div>
