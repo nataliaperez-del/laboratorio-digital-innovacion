@@ -26,21 +26,21 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({
   const [isHovered, setIsHovered] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Transición automática cíclica fluida tras unos segundos
+  // Transición automática cíclica fluida: 20 segundos para la presentación y 20 segundos para el video
   useEffect(() => {
     let timer: NodeJS.Timeout;
 
     if (!isHovered) {
       if (slideIndex === 0) {
-        // En presentación: esperar 11 segundos y pasar suavemente al video
+        // En presentación: esperar exactamente 20 segundos y pasar suavemente al video
         timer = setTimeout(() => {
           setSlideIndex(1);
-        }, 11000);
+        }, 20000);
       } else {
-        // En video: si no termina por onEnded, volver a la presentación tras 30 segundos
+        // En video: proyectar durante exactamente 20 segundos y retornar suavemente a la presentación
         timer = setTimeout(() => {
           setSlideIndex(0);
-        }, 30000);
+        }, 20000);
       }
     }
 
