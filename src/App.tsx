@@ -203,36 +203,36 @@ export const App: React.FC = () => {
             : 'relative z-20 box-border w-full px-4 sm:px-6 md:px-8 xl:px-12 2xl:px-16 pt-8 pb-52 md:pb-80 border-t border-white/10 mt-12 flex items-center justify-end'
         }
       >
-        <div className="flex items-center gap-3.5 sm:gap-4 justify-end">
-          {/* Bloque de Desarrolladores justificado hacia la derecha, junto al logo UNAD */}
-          <div className="flex flex-col text-right leading-tight">
-            <span className="text-[7.5px] uppercase tracking-wider text-[#F29F05]/75 font-semibold">
+        <div className="flex items-center gap-4 sm:gap-5 justify-end">
+          {/* Bloque de Desarrolladores: 20% más pequeño, sutil, justificado hacia la derecha junto al logo UNAD */}
+          <div className="flex flex-col text-right leading-none">
+            <span className="text-[6.5px] uppercase tracking-wider text-[#F29F05]/75 font-semibold">
               Desarrollado por
             </span>
-            <span className="text-[10px] italic text-white/60 tracking-tight mt-0.5 font-light">
+            <span className="text-[8px] italic text-white/60 tracking-tight mt-1 font-light">
               Natalia Elizabeth Perez
             </span>
-            <span className="text-[10px] italic text-white/60 tracking-tight font-light">
+            <span className="text-[8px] italic text-white/60 tracking-tight mt-0.5 font-light">
               Camilo Esteban Lozano
             </span>
           </div>
 
-          {/* Logo PNG Oficial UNAD Acreditada - Tonalidad natural sin resplandor agresivo */}
+          {/* Logo PNG Oficial UNAD Acreditada - 30% más grande que antes (~50px), nítido y sin brillo agresivo */}
           <div className="flex items-center shrink-0">
             <img
               src="/assets/unad_acreditada.png"
               alt="Universidad Nacional Abierta y a Distancia · Acreditada en Alta Calidad"
-              className="h-9 sm:h-10 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity"
+              className="h-11 sm:h-[52px] w-auto object-contain opacity-90 hover:opacity-100 transition-opacity"
               title="UNAD - Acreditada en Alta Calidad"
             />
           </div>
 
-          {/* Logo PNG Oficial VIEM - Tonalidad natural sin resplandor agresivo */}
+          {/* Logo PNG Oficial VIEM - 30% más grande que antes (~45px), nítido y sin brillo agresivo */}
           <div className="flex items-center shrink-0">
             <img
               src="/assets/viem_logo.png"
               alt="VIEM · Vicerrectoría de Innovación y Emprendimiento"
-              className="h-8 sm:h-9 w-auto object-contain opacity-85 hover:opacity-100 transition-opacity"
+              className="h-10 sm:h-[46px] w-auto object-contain opacity-85 hover:opacity-100 transition-opacity"
               title="Vicerrectoría de Innovación y Emprendimiento (VIEM)"
             />
           </div>
