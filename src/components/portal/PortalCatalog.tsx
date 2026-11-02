@@ -1,13 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   ArrowRight,
-  ChevronLeft,
-  ChevronRight,
   Layers,
   BrainCircuit,
   Trees,
   Rocket,
-  Play,
   Sparkles
 } from 'lucide-react';
 import { ToolId } from '../layout/Header';
@@ -24,29 +21,16 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({
 }) => {
   // 0: Presentación del LAB, 1: Video Proyección Holográfica de ZOE
   const [slideIndex, setSlideIndex] = useState<0 | 1>(0);
-  const [isHovered, setIsHovered] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Transición automática cíclica fluida: 20 segundos para la presentación y 20 segundos para el video
+  // Transición automática estricta cada 20 segundos (sin interrupciones)
   useEffect(() => {
-    let timer: NodeJS.Timeout;
-
-    if (!isHovered) {
-      if (slideIndex === 0) {
-        // En presentación: esperar exactamente 20 segundos y pasar suavemente al video
-        timer = setTimeout(() => {
-          setSlideIndex(1);
-        }, 20000);
-      } else {
-        // En video: proyectar durante exactamente 20 segundos y retornar suavemente a la presentación
-        timer = setTimeout(() => {
-          setSlideIndex(0);
-        }, 20000);
-      }
-    }
+    const timer = setTimeout(() => {
+      setSlideIndex((prev) => (prev === 0 ? 1 : 0));
+    }, 20000);
 
     return () => clearTimeout(timer);
-  }, [slideIndex, isHovered]);
+  }, [slideIndex]);
 
   // Manejo de reproducción de video sincronizada con el slide
   useEffect(() => {
@@ -96,11 +80,7 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({
   ];
 
   return (
-    <div
-      className="relative w-full h-full flex-1 flex items-center justify-center overflow-hidden"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <div className="relative w-full h-full flex-1 flex items-center justify-center overflow-hidden">
       {/* =========================================================================
           SLIDE 1: PRESENTACIÓN OFICIAL DEL LABORATORIO
           Cubre toda la sección con bordes holográficos desvanecidos hacia el fondo
@@ -148,7 +128,7 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({
               Laboratorio de Innovación en Línea
             </h1>
 
-            {/* Texto de Bienvenida Mejorado: Nace y vive en el Observatorio pero con identidad propia de prototipado y acción */}
+            {/* Texto de Bienvenida */}
             <p className="text-sm sm:text-base md:text-lg text-[#CFE0E6] leading-relaxed max-w-4xl">
               Entorno interactivo de experimentación y prototipado rápido concebido dentro del Observatorio InnovaHub360. Aquí la inteligencia territorial se convierte en acción: caracterizas desafíos regionales, descubres tendencias en árboles holográficos de innovación y formulas planes de prototipado listos para el territorio, asistido en cada fase por <strong>ZOE</strong>.
             </p>
@@ -195,47 +175,16 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({
             </div>
           </div>
 
-          {/* Barra Inferior Flotante: Indicadores y Botones de Acción */}
-          <div className="relative z-10 max-w-5xl mx-auto w-full pt-4 flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-2.5">
-              <button
-                type="button"
-                onClick={() => setSlideIndex(0)}
-                className="w-3 h-3 rounded-full bg-[#27DCFF] shadow-[0_0_10px_#27DCFF] cursor-pointer transition-transform hover:scale-125"
-                title="Presentación del Laboratorio"
-              />
-              <button
-                type="button"
-                onClick={() => setSlideIndex(1)}
-                className="w-2.5 h-2.5 rounded-full bg-white/30 hover:bg-[#27DCFF] cursor-pointer transition-all hover:scale-125"
-                title="Ver Proyección Holográfica de ZOE"
-              />
-              <span className="text-xs text-[#5EC2DD] m ml-1 font-mono tracking-wide">
-                Presentación 01 / 02
-              </span>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => onOpenZoe()}
-                className="px-4 py-2.5 rounded-full bg-white/5 backdrop-blur-md text-xs font-semibold text-[#27DCFF] border border-[#27DCFF]/40 hover:bg-[#27DCFF]/15 flex items-center gap-2 cursor-pointer transition-all shadow-sm"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-[#27DCFF]" />
-                <span>Hablar con ZOE</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setSlideIndex(1)}
-                className="metal px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold text-white flex items-center gap-2 cursor-pointer shadow-lg hover:scale-105 transition-all"
-                title="Ver Video Oficial de ZOE en pantalla completa"
-              >
-                <Play className="w-4 h-4 text-[#F3C26B] fill-[#F3C26B]" />
-                <span>Ver Video de ZOE</span>
-                <ArrowRight className="w-4 h-4 text-white" />
-              </button>
-            </div>
+          {/* Barra Inferior: Botón para hablar con ZOE */}
+          <div className="relative z-10 max-w-5xl mx-auto w-full pt-4 flex items-center justify-end">
+            <button
+              type="button"
+              onClick={() => onOpenZoe()}
+              className="px-4 py-2.5 rounded-full bg-white/5 backdrop-blur-md text-xs font-semibold text-[#27DCFF] border border-[#27DCFF]/40 hover:bg-[#27DCFF]/15 flex items-center gap-2 cursor-pointer transition-all shadow-sm"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-[#27DCFF]" />
+              <span>Hablar con ZOE</span>
+            </button>
           </div>
         </section>
       </div>
@@ -280,7 +229,7 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({
               controls
               playsInline
               onEnded={() => setSlideIndex(0)}
-              className="w-full h-full max-h-[84vh] object-contain drop-shadow-[0_0_30px_rgba(39,220,255,0.25)]"
+              className="w-full h-full max-h-[85vh] object-contain drop-shadow-[0_0_30px_rgba(39,220,255,0.25)]"
               title="Proyección Holográfica Oficial de ZOE"
             >
               Tu navegador no soporta reproducción de video.
@@ -289,26 +238,34 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({
         </section>
       </div>
 
-      {/* Flechas flotantes translúcidas a los costados para retroceso y avance */}
-      <button
-        type="button"
-        onClick={() => setSlideIndex((prev) => (prev === 0 ? 1 : 0))}
-        className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-40 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/40 hover:bg-[#27DCFF]/25 border border-white/10 hover:border-[#27DCFF]/50 backdrop-blur-xl text-white/60 hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-[0_4px_20px_rgba(0,0,0,0.5)] hover:scale-110 active:scale-95 group"
-        title={slideIndex === 0 ? 'Ver Video de ZOE' : 'Volver a la Presentación'}
-        aria-label="Diapositiva anterior"
-      >
-        <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:-translate-x-0.5" />
-      </button>
-
-      <button
-        type="button"
-        onClick={() => setSlideIndex((prev) => (prev === 0 ? 1 : 0))}
-        className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-40 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/40 hover:bg-[#27DCFF]/25 border border-white/10 hover:border-[#27DCFF]/50 backdrop-blur-xl text-white/60 hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-[0_4px_20px_rgba(0,0,0,0.5)] hover:scale-110 active:scale-95 group"
-        title={slideIndex === 0 ? 'Ver Video de ZOE' : 'Volver a la Presentación'}
-        aria-label="Siguiente diapositiva"
-      >
-        <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:translate-x-0.5" />
-      </button>
+      {/* =========================================================================
+          CONTROLES DE PAGINACIÓN: ÚNICAMENTE LOS PUNTOS PARA AVANZAR Y RETROCEDER
+          Alternan con animación cada 20 segundos o al hacer clic
+          ========================================================================= */}
+      <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-black/45 backdrop-blur-md border border-white/10 shadow-[0_4px_16px_rgba(0,0,0,0.5)]">
+        <button
+          type="button"
+          onClick={() => setSlideIndex(0)}
+          className={`transition-all rounded-full cursor-pointer ${
+            slideIndex === 0
+              ? 'w-7 h-2.5 bg-[#27DCFF] shadow-[0_0_12px_#27DCFF]'
+              : 'w-2.5 h-2.5 bg-white/30 hover:bg-white/60'
+          }`}
+          title="Diapositiva 1: Presentación del Laboratorio"
+          aria-label="Ir a presentación"
+        />
+        <button
+          type="button"
+          onClick={() => setSlideIndex(1)}
+          className={`transition-all rounded-full cursor-pointer ${
+            slideIndex === 1
+              ? 'w-7 h-2.5 bg-[#27DCFF] shadow-[0_0_12px_#27DCFF]'
+              : 'w-2.5 h-2.5 bg-white/30 hover:bg-white/60'
+          }`}
+          title="Diapositiva 2: Video Proyección de ZOE"
+          aria-label="Ir a video"
+        />
+      </div>
     </div>
   );
 };
