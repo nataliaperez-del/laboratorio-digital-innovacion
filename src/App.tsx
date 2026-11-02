@@ -158,7 +158,7 @@ export const App: React.FC = () => {
       <main
         className={
           currentTool === 'portal'
-            ? 'relative z-10 flex-1 box-border w-full px-4 sm:px-6 md:px-8 xl:px-12 2xl:px-16 py-1 overflow-hidden flex items-center justify-center'
+            ? 'relative z-10 flex-1 box-border w-full h-full px-2 sm:px-4 md:px-6 py-0 overflow-hidden flex items-center justify-center'
             : 'relative z-10 flex-1 box-border w-full px-4 sm:px-6 md:px-8 xl:px-12 2xl:px-16 pt-6 pb-10'
         }
       >
@@ -195,45 +195,45 @@ export const App: React.FC = () => {
         />
       )}
 
-      {/* Footer Oficial: Firma sutil justificada en la esquina inferior derecha */}
+      {/* Footer Oficial: Desarrolladores a la izquierda y Logos Institucionales a la derecha */}
       <footer
         className={
           currentTool === 'portal'
-            ? 'relative z-20 box-border w-full px-4 sm:px-6 md:px-8 xl:px-12 2xl:px-16 py-2.5 border-t border-white/10 flex items-center justify-end'
-            : 'relative z-20 box-border w-full px-4 sm:px-6 md:px-8 xl:px-12 2xl:px-16 pt-8 pb-52 md:pb-80 border-t border-white/10 mt-12 flex items-center justify-end'
+            ? 'relative z-20 box-border w-full px-4 sm:px-6 md:px-8 xl:px-12 2xl:px-16 py-2.5 border-t border-white/10 flex items-center justify-between'
+            : 'relative z-20 box-border w-full px-4 sm:px-6 md:px-8 xl:px-12 2xl:px-16 pt-8 pb-52 md:pb-80 border-t border-white/10 mt-12 flex items-center justify-between'
         }
       >
-        <div className="flex items-center gap-4 sm:gap-5 justify-end">
-          {/* Bloque de Nombres */}
-          <div className="flex flex-col text-right">
-            <div className="flex items-center justify-end gap-1.5 text-[11px] text-white/60 font-medium">
-              <span>Desarrollado por</span>
-              <span className="w-0.5 h-3 bg-[#27DCFF]/70 inline-block rounded-full" />
-            </div>
-            <div className="text-xs font-semibold text-white tracking-tight mt-0.5 leading-snug">
-              Natalia Elizabeth Perez
-            </div>
-            <div className="text-xs font-semibold text-white tracking-tight leading-snug">
-              Camilo Esteban Lozano
-            </div>
-          </div>
+        {/* Bloque de Desarrolladores sutil, pequeño, justificado al borde izquierdo con nombres en cursiva */}
+        <div className="flex flex-col text-left leading-tight">
+          <span className="text-[8.5px] uppercase tracking-wider text-white/40 font-medium">
+            Desarrollado por
+          </span>
+          <span className="text-[9.5px] italic text-white/55 tracking-tight mt-0.5 font-light">
+            Natalia Elizabeth Perez
+          </span>
+          <span className="text-[9.5px] italic text-white/55 tracking-tight font-light">
+            Camilo Esteban Lozano
+          </span>
+        </div>
 
-          {/* Logo PNG Oficial UNAD Acreditada en Alta Calidad (Fondo transparente) */}
+        {/* Logos Institucionales UNAD y VIEM en tonalidad natural */}
+        <div className="flex items-center gap-3.5 sm:gap-4 shrink-0">
+          {/* Logo PNG Oficial UNAD Acreditada - Tonalidad natural sin resplandor agresivo */}
           <div className="flex items-center shrink-0">
             <img
               src="/assets/unad_acreditada.png"
               alt="Universidad Nacional Abierta y a Distancia · Acreditada en Alta Calidad"
-              className="h-10 sm:h-12 w-auto object-contain transition-transform hover:scale-105 filter drop-shadow-[0_2px_6px_rgba(255,255,255,0.35)]"
+              className="h-9 sm:h-10 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity"
               title="UNAD - Acreditada en Alta Calidad"
             />
           </div>
 
-          {/* Logo PNG Oficial VIEM (Fondo transparente) */}
+          {/* Logo PNG Oficial VIEM - Tonalidad natural sin resplandor agresivo */}
           <div className="flex items-center shrink-0">
             <img
               src="/assets/viem_logo.png"
               alt="VIEM · Vicerrectoría de Innovación y Emprendimiento"
-              className="h-9 sm:h-11 w-auto object-contain transition-transform hover:scale-105 filter drop-shadow-[0_2px_6px_rgba(255,255,255,0.35)]"
+              className="h-8 sm:h-9 w-auto object-contain opacity-85 hover:opacity-100 transition-opacity"
               title="Vicerrectoría de Innovación y Emprendimiento (VIEM)"
             />
           </div>

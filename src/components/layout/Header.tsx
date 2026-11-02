@@ -1,6 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { AiSettings } from '@/components/lab/AiSettings';
-import { Sparkles, Sun, Moon, Search, Layers, Compass, Trees, BrainCircuit, Rocket, Menu, X, Bot } from 'lucide-react';
+import {
+  Sparkles,
+  Sun,
+  Moon,
+  Layers,
+  Compass,
+  Trees,
+  BrainCircuit,
+  Rocket,
+  Menu,
+  X,
+  Home
+} from 'lucide-react';
 
 export type ToolId = 'portal' | 'radar' | 'estudio' | 'ideacion' | 'arbol' | 'prototipado';
 export const TOOL_IDS: readonly ToolId[] = ['portal', 'radar', 'estudio', 'ideacion', 'arbol', 'prototipado'];
@@ -39,8 +51,18 @@ export const Header: React.FC<HeaderProps> = ({
     }
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isMenuOpen]);
+
+  const navTools = [
+    { id: 'portal' as ToolId, name: 'Inicio', icon: Home, color: '#5EC2DD' },
+    { id: 'radar' as ToolId, name: 'Radar del Observatorio', icon: Compass, color: '#5EC2DD' },
+    { id: 'estudio' as ToolId, name: 'Estudio Territorial', icon: Layers, color: '#A8C63C' },
+    { id: 'ideacion' as ToolId, name: 'Ideación Estratégica', icon: BrainCircuit, color: '#F3C26B' },
+    { id: 'arbol' as ToolId, name: 'Árbol de Innovación', icon: Trees, color: '#A8C63C' },
+    { id: 'prototipado' as ToolId, name: 'Banco de Prototipado', icon: Rocket, color: '#A98FD6' },
+  ];
+
   return (
-    <header className="relative z-40 w-full box-border px-4 sm:px-6 md:px-8 xl:px-12 2xl:px-16 pt-6 pb-4">
+    <header className="relative z-40 w-full box-border px-4 sm:px-6 md:px-8 xl:px-12 2xl:px-16 pt-5 pb-3">
       {/* Hidden SVGs for Logo Symbol */}
       <svg width="0" height="0" className="hidden" aria-hidden="true">
         <symbol id="mkFull" viewBox="0 0 1145 1113">
@@ -50,7 +72,7 @@ export const Header: React.FC<HeaderProps> = ({
         </symbol>
       </svg>
 
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex items-center justify-between gap-4">
         {/* Brand Lockup Oficial InnovaHub360 */}
         <button
           type="button"
@@ -92,229 +114,150 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </button>
 
-        {/* Central Tool Nav Pills */}
-        <nav className="hidden xl:flex items-center gap-1.5 p-1.5 g2 rounded-full">
-          <button
-            onClick={() => onSelectTool('portal')}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
-              currentTool === 'portal'
-                ? 'bg-white/15 text-white font-semibold shadow-sm'
-                : 'text-brand-textSecondary hover:text-white hover:bg-white/5'
-            }`}
-          >
-            Inicio
-          </button>
-          <button
-            onClick={() => onSelectTool('radar')}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
-              currentTool === 'radar'
-                ? 'bg-white/15 text-white font-semibold shadow-sm'
-                : 'text-brand-textSecondary hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <Compass className="w-3.5 h-3.5 text-[#5EC2DD]" />
-            Radar del Observatorio
-          </button>
-          <button
-            onClick={() => onSelectTool('estudio')}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
-              currentTool === 'estudio'
-                ? 'bg-white/15 text-white font-semibold shadow-sm'
-                : 'text-brand-textSecondary hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <Layers className="w-3.5 h-3.5 text-[#A8C63C]" />
-            Estudio Territorial
-          </button>
-          <button
-            onClick={() => onSelectTool('ideacion')}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
-              currentTool === 'ideacion'
-                ? 'bg-white/15 text-white font-semibold shadow-sm'
-                : 'text-brand-textSecondary hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <BrainCircuit className="w-3.5 h-3.5 text-[#F3C26B]" />
-            Ideación
-          </button>
-          <button
-            onClick={() => onSelectTool('arbol')}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
-              currentTool === 'arbol'
-                ? 'bg-white/15 text-white font-semibold shadow-sm'
-                : 'text-brand-textSecondary hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <Trees className="w-3.5 h-3.5 text-[#A8C63C]" />
-            Árbol de Innovación
-          </button>
-          <button
-            onClick={() => onSelectTool('prototipado')}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
-              currentTool === 'prototipado'
-                ? 'bg-white/15 text-white font-semibold shadow-sm'
-                : 'text-brand-textSecondary hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <Rocket className="w-3.5 h-3.5 text-[#A98FD6]" />
-            Prototipado
-          </button>
-        </nav>
+        {/* =========================================================================
+            BLOQUE JUSTIFICADO A LA DERECHA: ICONOS CON TOOLTIPS + MENÚ HAMBURGUESA
+            ========================================================================= */}
+        <div className="flex items-center gap-2 sm:gap-2.5">
+          {/* Tira compacta de sólo iconos con Tooltip Flotante */}
+          <nav className="flex items-center gap-1 sm:gap-1.5 p-1 sm:p-1.5 g2 rounded-full border border-white/10">
+            {navTools.map((tool) => {
+              const Icon = tool.icon;
+              const isActive = currentTool === tool.id;
+              return (
+                <div key={tool.id} className="relative group">
+                  <button
+                    type="button"
+                    onClick={() => onSelectTool(tool.id)}
+                    aria-label={tool.name}
+                    className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                      isActive
+                        ? 'bg-white/20 border border-[#27DCFF]/70 shadow-[0_0_12px_rgba(39,220,255,0.4)] scale-105'
+                        : 'text-brand-textSecondary hover:text-white hover:bg-white/10 border border-transparent'
+                    }`}
+                  >
+                    <Icon
+                      className={`w-4 h-4 sm:w-4.5 sm:h-4.5 transition-transform group-hover:scale-110 ${
+                        isActive ? 'text-white' : ''
+                      }`}
+                      style={{ color: isActive ? '#FFFFFF' : tool.color }}
+                    />
+                  </button>
 
-        {/* Menú Hamburguesa Superior Derecho: Funciones de IA, ZOE y Tema Claro/Oscuro */}
-        <div className="relative" ref={menuRef}>
-          <button
-            type="button"
-            onClick={() => setIsMenuOpen((prev) => !prev)}
-            className={`p-2.5 rounded-full g2 border transition-all cursor-pointer flex items-center justify-center ${
-              isMenuOpen
-                ? 'border-[#27DCFF] text-[#27DCFF] shadow-[0_0_15px_rgba(39,220,255,0.4)] bg-[#0C5E78]/50'
-                : 'border-white/15 text-brand-textSecondary hover:text-white hover:border-[#27DCFF]/40 hover:bg-white/5'
-            }`}
-            title="Menú de funciones: IA, ZOE y Tema"
-            aria-label="Abrir menú de funciones"
-            aria-expanded={isMenuOpen}
-          >
-            {isMenuOpen ? <X className="w-5 h-5 text-[#27DCFF]" /> : <Menu className="w-5 h-5" />}
-          </button>
+                  {/* Tooltip Flotante que aparece al señalar (hover) */}
+                  <div className="absolute top-full mt-2.5 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-xl bg-[#04222B]/95 text-white text-[11px] font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 border border-[#27DCFF]/40 shadow-[0_8px_20px_rgba(0,0,0,0.6)] backdrop-blur-md z-50 flex items-center gap-1.5 transform group-hover:translate-y-0 translate-y-1">
+                    <span
+                      className="w-1.5 h-1.5 rounded-full inline-block"
+                      style={{ backgroundColor: tool.color }}
+                    />
+                    <span>{tool.name}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </nav>
 
-          {/* Menú Desplegable Flotante Elegante Glassmorphism */}
-          {isMenuOpen && (
-            <div className="absolute right-0 top-full mt-3 w-72 g2 rounded-2xl border border-white/20 shadow-[0_16px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl p-4 z-50 animate-in fade-in slide-in-from-top-2 duration-150 space-y-3.5">
-              <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-brand-textMuted sy">
-                  Ajustes y Asistentes
-                </span>
-                <span className="text-[10px] m text-[#5EC2DD]">InnovaHub360</span>
-              </div>
+          {/* Botón y Menú Hamburguesa Superior Derecho */}
+          <div className="relative" ref={menuRef}>
+            <button
+              type="button"
+              onClick={() => setIsMenuOpen((prev) => !prev)}
+              className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full g2 border transition-all cursor-pointer flex items-center justify-center ${
+                isMenuOpen
+                  ? 'border-[#27DCFF] text-[#27DCFF] shadow-[0_0_15px_rgba(39,220,255,0.4)] bg-[#0C5E78]/50'
+                  : 'border-white/15 text-brand-textSecondary hover:text-white hover:border-[#27DCFF]/40 hover:bg-white/5'
+              }`}
+              title="Menú de funciones: IA, ZOE y Tema"
+              aria-label="Abrir menú de funciones"
+              aria-expanded={isMenuOpen}
+            >
+              {isMenuOpen ? <X className="w-5 h-5 text-[#27DCFF]" /> : <Menu className="w-5 h-5" />}
+            </button>
 
-              {/* 1. Selector de Proveedor / Configuración IA */}
-              <div className="space-y-1.5">
-                <span className="text-xs text-white/80 font-medium block">Inteligencia Artificial</span>
-                <div className="w-full">
-                  <AiSettings />
+            {/* Menú Desplegable Flotante Elegante Glassmorphism Perfectamente Diagramado */}
+            {isMenuOpen && (
+              <div className="absolute right-0 top-full mt-3 w-80 g2 rounded-2xl border border-white/20 shadow-[0_16px_40px_rgba(0,0,0,0.65)] backdrop-blur-2xl p-4 z-50 animate-in fade-in slide-in-from-top-2 duration-150 space-y-3.5">
+                {/* Cabecera del Panel */}
+                <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#27DCFF] shadow-[0_0_6px_#27DCFF]" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-white sy">
+                      Ajustes y Asistentes
+                    </span>
+                  </div>
+                  <span className="text-[10px] m text-[#5EC2DD] px-2 py-0.5 rounded-full bg-white/5 border border-white/10">
+                    InnovaHub360
+                  </span>
+                </div>
+
+                {/* 1. Selector de Proveedor / Configuración IA */}
+                <div className="space-y-1.5 p-2.5 rounded-xl bg-white/5 border border-white/10">
+                  <div className="flex items-center justify-between text-xs font-semibold text-white/90">
+                    <span>Inteligencia Artificial</span>
+                    <span className="text-[10px] text-[#27DCFF] font-mono">IA Motor</span>
+                  </div>
+                  <div className="w-full pt-1">
+                    <AiSettings />
+                  </div>
+                </div>
+
+                {/* 2. Control de ZOE 3D */}
+                <div className="space-y-1.5 p-2.5 rounded-xl bg-white/5 border border-white/10">
+                  <div className="flex items-center justify-between text-xs font-semibold text-white/90 mb-1">
+                    <span>Asistente ZOE</span>
+                    <span className="text-[10px] text-[#A8C63C] font-mono">3D Avatar</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onToggleZoe();
+                    }}
+                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg border transition-all cursor-pointer ${
+                      isZoeOpen
+                        ? 'bg-[#27DCFF]/20 border-[#27DCFF] text-[#27DCFF] shadow-[0_0_15px_rgba(39,220,255,0.25)]'
+                        : 'bg-white/5 border-white/10 text-white/90 hover:border-[#27DCFF]/40 hover:bg-white/10'
+                    }`}
+                    aria-pressed={isZoeOpen}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Sparkles className="w-4 h-4 text-[#27DCFF] animate-spin" style={{ animationDuration: '6s' }} />
+                      <span className="text-xs font-bold sy tracking-wide">ZOE 3D</span>
+                    </div>
+                    <span className="text-[11px] font-semibold text-[#A8C63C]">
+                      {isZoeOpen ? 'Activo en pantalla' : 'Activar ZOE'}
+                    </span>
+                  </button>
+                </div>
+
+                {/* 3. Modo Claro / Oscuro */}
+                <div className="space-y-1.5 p-2.5 rounded-xl bg-white/5 border border-white/10">
+                  <div className="flex items-center justify-between text-xs font-semibold text-white/90 mb-1">
+                    <span>Apariencia Visual</span>
+                    <span className="text-[10px] text-[#F3C26B] font-mono">Theme</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={onToggleTheme}
+                    className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white/90 hover:bg-white/10 transition-colors cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      {theme === 'dark' ? (
+                        <Moon className="w-4 h-4 text-[#5EC2DD]" />
+                      ) : (
+                        <Sun className="w-4 h-4 text-[#F3C26B]" />
+                      )}
+                      <span className="text-xs font-medium">Modo de Pantalla</span>
+                    </div>
+                    <span className="text-xs font-bold capitalize text-[#F3C26B]">
+                      {theme === 'dark' ? 'Oscuro' : 'Claro'}
+                    </span>
+                  </button>
                 </div>
               </div>
-
-              {/* 2. Control de ZOE */}
-              <div className="space-y-1.5 pt-1">
-                <span className="text-xs text-white/80 font-medium block">Asistente ZOE</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    onToggleZoe();
-                  }}
-                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border transition-all cursor-pointer ${
-                    isZoeOpen
-                      ? 'bg-[#27DCFF]/20 border-[#27DCFF] text-[#27DCFF] shadow-[0_0_15px_rgba(39,220,255,0.25)]'
-                      : 'bg-white/5 border-white/10 text-white/90 hover:border-[#27DCFF]/40 hover:bg-white/10'
-                  }`}
-                  aria-pressed={isZoeOpen}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <Sparkles className="w-4 h-4 text-[#27DCFF] animate-spin" style={{ animationDuration: '6s' }} />
-                    <span className="text-xs font-bold sy tracking-wide">ZOE 3D</span>
-                  </div>
-                  <span className="text-[11px] font-semibold text-[#A8C63C]">
-                    {isZoeOpen ? 'Activo en pantalla' : 'Activar ZOE'}
-                  </span>
-                </button>
-              </div>
-
-              {/* 3. Modo Claro / Oscuro */}
-              <div className="space-y-1.5 pt-1 border-t border-white/10">
-                <span className="text-xs text-white/80 font-medium block">Apariencia</span>
-                <button
-                  type="button"
-                  onClick={onToggleTheme}
-                  className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/90 hover:bg-white/10 transition-colors cursor-pointer"
-                >
-                  <div className="flex items-center gap-2.5">
-                    {theme === 'dark' ? (
-                      <Moon className="w-4 h-4 text-[#5EC2DD]" />
-                    ) : (
-                      <Sun className="w-4 h-4 text-[#F3C26B]" />
-                    )}
-                    <span className="text-xs font-medium">Tema Visual</span>
-                  </div>
-                  <span className="text-xs font-bold capitalize text-[#F3C26B]">
-                    Modo {theme === 'dark' ? 'Oscuro' : 'Claro'}
-                  </span>
-                </button>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
-
-      {/* Responsive Sub-Navigation Bar for Tablet & Mobile (< xl) */}
-      <div className="flex xl:hidden items-center gap-1.5 overflow-x-auto no-scrollbar pt-3 pb-1 w-full border-t border-white/10 mt-3">
-        <button
-          onClick={() => onSelectTool('portal')}
-          className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-            currentTool === 'portal'
-              ? 'bg-white/15 text-white font-semibold shadow-sm'
-              : 'text-brand-textSecondary hover:text-white hover:bg-white/5'
-          }`}
-        >
-          Inicio
-        </button>
-        <button
-          onClick={() => onSelectTool('radar')}
-          className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-            currentTool === 'radar'
-              ? 'bg-white/15 text-white font-semibold shadow-sm'
-              : 'text-brand-textSecondary hover:text-white hover:bg-white/5'
-          }`}
-        >
-          <Compass className="w-3.5 h-3.5 text-[#5EC2DD]" />
-          <span>Radar</span>
-        </button>
-        <button
-          onClick={() => onSelectTool('estudio')}
-          className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-            currentTool === 'estudio'
-              ? 'bg-white/15 text-white font-semibold shadow-sm'
-              : 'text-brand-textSecondary hover:text-white hover:bg-white/5'
-          }`}
-        >
-          <Layers className="w-3.5 h-3.5 text-[#A8C63C]" />
-          <span>Estudio</span>
-        </button>
-        <button
-          onClick={() => onSelectTool('ideacion')}
-          className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-            currentTool === 'ideacion'
-              ? 'bg-white/15 text-white font-semibold shadow-sm'
-              : 'text-brand-textSecondary hover:text-white hover:bg-white/5'
-          }`}
-        >
-          <BrainCircuit className="w-3.5 h-3.5 text-[#F3C26B]" />
-          <span>Ideación</span>
-        </button>
-        <button
-          onClick={() => onSelectTool('arbol')}
-          className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-            currentTool === 'arbol'
-              ? 'bg-white/15 text-white font-semibold shadow-sm'
-              : 'text-brand-textSecondary hover:text-white hover:bg-white/5'
-          }`}
-        >
-          <Trees className="w-3.5 h-3.5 text-[#A8C63C]" />
-          <span>Árbol</span>
-        </button>
-        <button
-          onClick={() => onSelectTool('prototipado')}
-          className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-            currentTool === 'prototipado'
-              ? 'bg-white/15 text-white font-semibold shadow-sm'
-              : 'text-brand-textSecondary hover:text-white hover:bg-white/5'
-          }`}
-        >
-          <Rocket className="w-3.5 h-3.5 text-[#A98FD6]" />
-          <span>Prototipado</span>
-        </button>
       </div>
     </header>
   );
 };
+
