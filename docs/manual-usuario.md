@@ -23,7 +23,7 @@ Cada herramienta funciona **sola** o **encadenada**: el resultado de una puede s
 ## 2. Antes de empezar
 
 - **Navegador:** Chrome o Edge actualizados. Para hablar con ZOE son necesarios, porque el reconocimiento de voz depende del navegador.
-- **Conexión:** las herramientas usan inteligencia artificial institucional y necesitan internet.
+- **Conexión:** las herramientas usan la inteligencia artificial institucional de la UNAD y necesitan internet. No hay que configurar nada: cada vez que abres el Laboratorio queda elegida. Si en el botón **IA** del menú eliges otro proveedor con tu propia clave, solo dura mientras la pestaña esté abierta.
 - **Micrófono:** para ZOE. La primera vez el navegador pide permiso: elige «Permitir».
 - **Dónde se guarda tu trabajo:** cada resultado terminado se guarda solo en el Banco Unificado, en este navegador. Para llevarlo a otro equipo, descarga el informe.
 - **Revisión humana:** todos los resultados se generan con IA. Revisa cifras, fuentes e interpretaciones antes de usarlos en un documento oficial.
@@ -159,7 +159,7 @@ ZOE conoce el Laboratorio, sus herramientas, los conceptos de innovación y lo q
 | ZOE pide una dirección segura | Abre el Laboratorio con `https://` |
 | ZOE suena distinto de lo habitual | Su voz aún se está descargando o la conexión está en ahorro de datos: mientras tanto usa la del equipo. Al recargar con buena conexión vuelve su voz |
 | ZOE no se ve en 3D | El navegador no puede dibujar 3D: se muestra su imagen fija. Actualiza el navegador o activa la aceleración por hardware |
-| La IA no responde | Revisa el indicador de IA de la cabecera y vuelve a intentar en un momento |
+| La IA no responde | Abre el botón **IA** del menú: se verifica solo y muestra «IA conectada» o el motivo del fallo. Vuelve a intentar en un momento |
 | Perdí mi trabajo | El trabajo vive en el navegador: si borraste datos o cambiaste de equipo, recupéralo desde el Banco o desde el informe descargado |
 | El informe tiene datos dudosos | Es un resultado asistido por IA: verifica con las fuentes y edítalo en Word |
 

@@ -43,7 +43,7 @@ ZOE es el schnauzer holográfico que vive en la interfaz; la referencia es `zoe_
 npm install
 ```
 
-Copia `.env.example` como `.env.local` y define `UNAD_GEMINI_X_API_KEY` y `UNAD_GEMINI_BEARER`. Luego:
+Copia `.env.example` como `.env.local` y define `UNAD_GEMINI_X_API_KEY` y `UNAD_GEMINI_BEARER`. Cada visita usa la IA institucional UNAD sin que nadie la elija; otro proveedor (Claude, Gemini comercial, OpenAI, Ollama) se elige en el botón «IA» y dura solo mientras la pestaña está abierta, igual que su clave. El panel verifica la conexión con la UNAD al abrirse. Luego:
 
 ```bash
 npm run dev

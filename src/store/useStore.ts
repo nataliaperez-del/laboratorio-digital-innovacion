@@ -185,6 +185,7 @@ export interface AppState {
   acknowledgeBadge: (badgeId: string) => void;
 
   // ── Proveedor de IA (igual que Fase 1) ──
+  /** Cada visita empieza con la IA institucional UNAD; otro proveedor dura solo lo que la pestaña. */
   aiProvider: AIProvider;
   setAiProvider: (provider: AIProvider) => void;
   apiKeys: Record<string, string>;
@@ -359,7 +360,7 @@ export const useStore = create<AppState>()(
     }),
     {
       name: 'lab-app-state',
-      version: 3,
+      version: 4,
       migrate: (persisted, version) => {
         const state = persisted as {
           aiProvider?: string;
@@ -386,6 +387,9 @@ export const useStore = create<AppState>()(
             delete (next as Record<string, unknown>)[k];
           }
         }
+        // v4: el proveedor ya no se recuerda entre visitas. Quien eligió otro una vez se quedaba
+        // con él para siempre (y sin su clave, que no se guarda), en vez de la IA de la UNAD.
+        if (version < 4) delete next.aiProvider;
         return next;
       },
       storage: createJSONStorage(() => localStorage),
@@ -415,7 +419,6 @@ export const useStore = create<AppState>()(
         savedTrees: state.savedTrees,
         zoeInteractions: state.zoeInteractions,
         acknowledgedBadges: state.acknowledgedBadges,
-        aiProvider: state.aiProvider,
         ollamaUrl: state.ollamaUrl,
         ollamaModel: state.ollamaModel,
         openaiModel: state.openaiModel,
@@ -430,17 +433,20 @@ export const useStore = create<AppState>()(
  * Las credenciales no se guardan en localStorage (permanente) por seguridad, pero sí en
  * sessionStorage: sobreviven a recargas de la página dentro de la misma pestaña y se
  * borran al cerrarla. Sin esto, cada recarga dejaba las claves vacías y la siguiente
- * generación fallaba con 401 «faltan credenciales».
+ * generación fallaba con 401 «faltan credenciales». El proveedor elegido va con ellas:
+ * un proveedor comercial no sirve sin su clave, así que al cerrar la pestaña se vuelve a la UNAD.
  */
 const SESSION_CREDENTIALS_KEY = 'lab-session-credentials';
+const PROVIDERS: readonly AIProvider[] = ['unadGemini', 'gemini', 'openai', 'anthropic', 'ollama'];
 
 try {
   const saved = sessionStorage.getItem(SESSION_CREDENTIALS_KEY);
   if (saved) {
-    const parsed = JSON.parse(saved) as { apiKeys?: Record<string, string>; unadGeminiBearer?: string };
+    const parsed = JSON.parse(saved) as { apiKeys?: Record<string, string>; unadGeminiBearer?: string; aiProvider?: AIProvider };
     useStore.setState((state) => ({
       apiKeys: { ...state.apiKeys, ...(parsed.apiKeys ?? {}) },
       unadGeminiBearer: parsed.unadGeminiBearer || state.unadGeminiBearer,
+      aiProvider: parsed.aiProvider && PROVIDERS.includes(parsed.aiProvider) ? parsed.aiProvider : state.aiProvider,
     }));
   }
 } catch {
@@ -451,7 +457,7 @@ useStore.subscribe((state) => {
   try {
     sessionStorage.setItem(
       SESSION_CREDENTIALS_KEY,
-      JSON.stringify({ apiKeys: state.apiKeys, unadGeminiBearer: state.unadGeminiBearer }),
+      JSON.stringify({ apiKeys: state.apiKeys, unadGeminiBearer: state.unadGeminiBearer, aiProvider: state.aiProvider }),
     );
   } catch {
     // Cuota llena o storage bloqueado: no es crítico.

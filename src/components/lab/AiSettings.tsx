@@ -15,9 +15,9 @@ const CONN_LABEL: Record<ConnStatus, string> = {
 const CONN_DOT: Record<ConnStatus, string> = { idle: 'bg-white/30', checking: 'bg-[#F29F05] animate-pulse', ok: 'bg-[#A8C63C]', error: 'bg-rose-500' };
 
 /**
- * Selector de proveedor de IA, igual al de la app Fase 1: por defecto la IA institucional
- * UNAD, cuyas credenciales pone el servidor. La prueba de conexión es manual para no gastar
- * una llamada por cada cambio.
+ * Selector de proveedor de IA, igual al de la app Fase 1: cada visita empieza con la IA
+ * institucional UNAD, cuyas credenciales pone el servidor. Su conexión se prueba sola al abrir
+ * el panel (no en cada carga de página, para no gastar una llamada por visita).
  */
 export const AiSettings: React.FC = () => {
   const { aiProvider, setAiProvider, apiKeys, setApiKey, providerModels, setProviderModel, ollamaUrl, setOllamaUrl } = useStore();
@@ -41,6 +41,12 @@ export const AiSettings: React.FC = () => {
       setError(e instanceof Error ? e.message : String(e));
     }
   }, []);
+
+  // La IA de la UNAD se verifica sola al abrir el panel; las demás, con «Probar», cuando ya
+  // tengan su clave completa (probar mientras se escribe solo mostraría errores).
+  useEffect(() => {
+    if (open && status === 'idle' && aiProvider === 'unadGemini') void test();
+  }, [open, status, aiProvider, test]);
 
   useEffect(() => {
     if (!open) return;
