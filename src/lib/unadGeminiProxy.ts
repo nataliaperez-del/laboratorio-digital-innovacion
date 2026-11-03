@@ -109,6 +109,37 @@ function parseProxyResponse(rawText: string, status: number): UnadGeminiGenerate
   return { text, finishReason: candidate?.finishReason ?? null };
 }
 
+/** Intentos ante un corte de conexión con el servidor (no ante respuestas de error, que se tratan aparte). */
+const NETWORK_ATTEMPTS = 3;
+
+export const NO_SERVER_MESSAGE =
+  'No hay conexión con el servidor del Laboratorio, que es el que habla con la IA de la UNAD. Revisa tu internet; si trabajas en local, que el servidor esté encendido (npm run dev).';
+
+/**
+ * POST al proxy. Si el navegador ni siquiera llega al servidor («Failed to fetch»: el servidor
+ * se está reiniciando, se apagó o se cortó la red), reintenta un par de veces con espera
+ * creciente y, si sigue sin poder, lo explica en vez de mostrar el error del navegador.
+ */
+export async function postToProxy(body: unknown, signal?: AbortSignal, wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))): Promise<Response> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await fetch('/api/unad-gemini', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        signal,
+      });
+    } catch (e) {
+      // «Detener generación» se propaga tal cual: no es un corte de red.
+      if (signal?.aborted || (e as Error)?.name === 'AbortError') throw e;
+      if (attempt >= NETWORK_ATTEMPTS) throw new Error(NO_SERVER_MESSAGE);
+      console.warn(`[IA] Sin conexión con el servidor (intento ${attempt}/${NETWORK_ATTEMPTS}); reintentando…`);
+      await wait(1500 * attempt);
+      if (signal?.aborted) throw new DOMException('Generación detenida.', 'AbortError');
+    }
+  }
+}
+
 /**
  * Envía un único turno usuario al proxy (formato compatible con el ejemplo institucional).
  */
@@ -189,12 +220,7 @@ export async function generateContentUnadGemini(
       tryBody.tools = [{ google_search: {} }];
     }
 
-    const res = await fetch('/api/unad-gemini', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(tryBody),
-      signal: options?.signal,
-    });
+    const res = await postToProxy(tryBody, options?.signal);
 
     lastRaw = await res.text();
     lastStatus = res.status;
