@@ -13,16 +13,25 @@ Cada herramienta funciona sola. Encadenarlas es opcional: cada una entrega su re
 
 ## ZOE
 
-ZOE es el schnauzer holográfico que vive en la interfaz; la referencia es `zoe_personality_character_bible_editable_v2.pptx`. Se comunica **solo por voz** y **subtítulos**: se le toca, saluda, escucha, responde y vuelve a escuchar. Tocarlo mientras habla lo interrumpe; dos silencios seguidos cierran la charla.
+ZOE es el schnauzer holográfico que vive en la interfaz; la referencia es `zoe_personality_character_bible_editable_v2.pptx` y la hoja de posturas del personaje. Se comunica **solo por voz** y **subtítulos**. El uso está explicado en el [manual de usuario](docs/manual-usuario.md).
 
-- **Inteligencia:** el mismo modelo institucional de las herramientas, con personalidad propia y especialidad en innovación (`src/services/zoeAi.ts`). Conoce la pantalla actual y el contenido real del resultado que hay en ella. Si la IA falla, lo dice.
-- **Órdenes directas:** «llévame al árbol», «pon el modo oscuro», «a dormir» se cumplen sin consultar a la IA (`src/lib/zoeContext.ts`).
-- **Animación:** capa procedimental sobre el clip de caminar del modelo (`ZoeCanvas3D.tsx`): respiración, mirada que sigue al puntero, cola en cadena, gestos al azar y estados de escucha, pensamiento, habla y alegría.
-- **Presentación:** `ZoeIntro.tsx`, seis escenas con el modelo 3D en vivo, narradas y con subtítulos. Se abre desde el inicio.
-- **Requisitos:** el reconocimiento de voz necesita Chrome o Edge y permiso de micrófono. La calidad de la voz es la del sistema operativo.
-- **Ojos:** se dibujan por shader sobre el modelo (`EYE_FRAGMENT` en `ZoeCanvas3D.tsx`): parpadeo irregular, mirada, pupila según el ánimo, sonrisa y ojos cerrados al dormir.
-- **Malla:** `public/assets/zoe/zoe.glb` ya está reparado. Si llega un modelo nuevo, se repara con `node scripts/reparar-malla-zoe.mjs entrada.glb salida.glb`, varias pasadas.
-- **Límites del modelo actual:** no tiene rig facial (no mueve la boca) ni los accesorios de la biblia (visor, chaleco), porque dependen del equipo 3D.
+- **Conocimiento y personalidad:** [`src/content/zoe/documento-maestro.md`](src/content/zoe/documento-maestro.md) reúne identidad, preguntas frecuentes, frases de motivación, cariño y agradecimiento, chistes y muletillas. La IA lo recibe completo en cada turno (`src/services/zoeAi.ts`): para enseñarle algo a ZOE se edita ese archivo, sin tocar código.
+- **Conversación:** tocarlo saluda y abre el micrófono (el permiso se pide en ese toque). Responde completo: si se le toca mientras habla, termina la idea y luego escucha. Si la frase de la persona queda cortada («quiero hacer un prototipo para…»), pregunta si ya terminó; «espera» le da tiempo (`seemsUnfinished`, `isDoneReply` y `wantsMoreTime` en `src/lib/zoeContext.ts`). Las frases largas se parten para que el navegador no las corte. Cada fallo del micrófono tiene su explicación: permiso, micrófono ausente o mudo, falta de HTTPS o de red.
+- **Órdenes directas:** «llévame al árbol», «pon el modo oscuro», «siéntate», «levántate», «camina» y «a dormir» se cumplen sin consultar a la IA.
+- **Vida propia:** pasea, cambia de postura y, de vez en cuando, busca el rincón de la pantalla con menos botones, da unas vueltas, se echa y duerme un rato (`ZoeFreePresence.tsx`).
+- **Modelo 3D:** `public/assets/zoe/zoe.glb` se genera con [`scripts/zoe/retopologia_zoe.py`](scripts/zoe/retopologia_zoe.py) a partir del modelo de Meshy:
+  - retopología cerrada (sin huecos ni piezas sueltas), 26 000 vértices, textura y relieve horneados (3,8 MB, antes 19,8 MB);
+  - rodilla, codo y cuello añadidos al esqueleto de Meshy, que unía fémur y tibia en un solo hueso;
+  - pesos de piel por calor de huesos;
+  - posturas «sit» y «lie» y caminata «walk» calculadas con cinemática inversa a partir de perros reales y de animación de referencia.
+  ```bash
+  blender -b --factory-startup --python scripts/zoe/retopologia_zoe.py -- entrada.glb public/assets/zoe/zoe.glb --renders capturas/
+  ```
+  Con `--renders` deja capturas de cada postura, del rostro y de la caminata para revisarlas antes de publicar. Se probó con Blender 4.5 LTS.
+- **Animación en la web (`ZoeCanvas3D.tsx`):** mezcla las posturas del modelo y suma respiración, mirada que sigue al puntero, cola en cadena y gestos según el ánimo, siempre en los ejes del perro. El pelaje se dibuja en capas sobre la piel; su largo sale del color (barba y cejas largas, sin pelo sobre el traje). Los ojos son un shader propio: parpadeo irregular, pupila según el ánimo, sonrisa y ojos cerrados al dormir.
+- **Presentación:** `ZoeIntro.tsx`, seis escenas con el modelo 3D en vivo, narradas y con subtítulos.
+- **Requisitos:** el reconocimiento de voz necesita Chrome o Edge, internet, HTTPS (o `localhost`) y permiso de micrófono. La voz es la del sistema operativo; queda pendiente una voz propia parecida a la del video de presentación.
+- **Límites:** la boca no se mueve al hablar (el modelo no trae mandíbula articulada).
 
 ## Puesta en marcha
 

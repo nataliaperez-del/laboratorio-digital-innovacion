@@ -12,9 +12,35 @@ function pickVoice(): SpeechSynthesisVoice | undefined {
   );
 }
 
-/** Frases por separado: Chrome corta las locuciones largas a los 15 segundos. */
+/** Una locución más larga que esto puede pasar de 15 segundos, y Chrome la corta a la mitad. */
+const MAX_UTTERANCE_CHARS = 180;
+
+/** Corta un tramo largo por sus comas y, si aún sobra, por palabras. */
+function splitLong(sentence: string): string[] {
+  const parts: string[] = [];
+  let current = '';
+  for (const word of sentence.split(/\s+/)) {
+    const candidate = current ? `${current} ${word}` : word;
+    // Se prefiere cortar justo después de una coma; si no hay, al llegar al límite.
+    if (candidate.length > MAX_UTTERANCE_CHARS && current) {
+      const comma = current.lastIndexOf(', ');
+      if (comma > MAX_UTTERANCE_CHARS * 0.4) {
+        parts.push(current.slice(0, comma + 1));
+        current = `${current.slice(comma + 2)} ${word}`;
+      } else {
+        parts.push(current);
+        current = word;
+      }
+    } else current = candidate;
+  }
+  if (current) parts.push(current);
+  return parts;
+}
+
+/** Frases por separado, y las muy largas partidas: así ninguna respuesta queda a medias. */
 export function splitSentences(text: string): string[] {
-  return (text.match(/[^.!?¡¿…\n]*[¡¿]?[^.!?…\n]+[.!?…]*\s*/g) ?? [text]).map((s) => s.trim()).filter(Boolean);
+  const sentences = (text.match(/[^.!?¡¿…\n]*[¡¿]?[^.!?…\n]+[.!?…]*\s*/g) ?? [text]).map((s) => s.trim()).filter(Boolean);
+  return sentences.flatMap((sentence) => (sentence.length <= MAX_UTTERANCE_CHARS ? [sentence] : splitLong(sentence)));
 }
 
 export type ZoeListenFailure = 'sin-permiso' | 'sin-microfono' | 'mic-mudo' | 'sin-https' | 'sin-red' | 'sin-voz' | 'error';
@@ -22,7 +48,7 @@ export type ZoeListenFailure = 'sin-permiso' | 'sin-microfono' | 'mic-mudo' | 's
 /** Espera a que la persona empiece a hablar; el reconocedor solo aguanta unos segundos y se reabre. */
 const LISTEN_WINDOW_MS = 12000;
 /** Silencio que da por terminada la frase: permite pausar a media oración sin que corte. */
-const END_OF_SPEECH_MS = 1300;
+const END_OF_SPEECH_MS = 1700;
 /** Por debajo de este volumen no entró sonido alguno: el problema es el micrófono, no la persona. */
 const SILENT_MIC_LEVEL = 0.002;
 

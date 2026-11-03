@@ -4,7 +4,7 @@ import type { ZoeSoulState } from './ZoeCanvas3D';
 import { splitSentences, useZoeVoice, type ZoeListenFailure } from './useZoeVoice';
 import type { ToolId } from '../layout/Header';
 import { askZoe } from '@/services/zoeAi';
-import { parseZoeCommand, TOOL_HINTS, TOOL_NAMES, type ZoeTurn } from '@/lib/zoeContext';
+import { isDoneReply, parseZoeCommand, seemsUnfinished, TOOL_HINTS, TOOL_NAMES, wantsMoreTime, type ZoeTurn } from '@/lib/zoeContext';
 
 // El modelo 3D y Three.js pesan: se descargan aparte, sin demorar la herramienta que se abrió.
 const ZoeCanvas3D = lazy(() => import('./ZoeCanvas3D'));
@@ -106,6 +106,9 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
   const talkingRef = useRef(false);
   talkingRef.current = talking;
   const historyRef = useRef<ZoeTurn[]>([]);
+  /** Lo que la persona va diciendo mientras ZOE le confirma si ya terminó. */
+  const pendingRef = useRef('');
+  const askedDoneRef = useRef(false);
   const [caption, setCaption] = useState<string | null>(null);
   const [heard, setHeard] = useState<string | null>(null);
   const silentTries = useRef(0);
@@ -235,6 +238,8 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
   const endConversation = useCallback(() => {
     setTalking(false);
     talkingRef.current = false;
+    pendingRef.current = '';
+    askedDoneRef.current = false;
     voice.stopListening();
     voice.stopSpeaking();
     setBehavior('idle');
@@ -299,6 +304,14 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
   const onListenFail = useCallback(
     (reason: ZoeListenFailure) => {
       setBehavior('idle');
+      if (reason === 'sin-voz' && pendingRef.current) {
+        // Se le preguntó si había terminado y guardó silencio: ya terminó.
+        const question = pendingRef.current;
+        pendingRef.current = '';
+        askedDoneRef.current = false;
+        void answer(question);
+        return;
+      }
       if (reason === 'sin-voz') {
         // Dos silencios seguidos: se da por terminada la charla sin insistir.
         silentTries.current += 1;
@@ -313,18 +326,44 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
         say(MIC_PROBLEMS[reason] ?? MIC_PROBLEMS.error!, false);
       }
     },
-    [endConversation, say],
+    [answer, endConversation, say],
   );
+
+  /**
+   * Turno de palabra: si la frase quedó cortada, ZOE pregunta si ya terminó antes de responder;
+   * si la persona pide tiempo, espera. Lo dicho en varias partes se junta en una sola pregunta.
+   */
+  const onHeard = (text: string) => {
+    silentTries.current = 0;
+    if (askedDoneRef.current && isDoneReply(text)) {
+      const question = pendingRef.current;
+      pendingRef.current = '';
+      askedDoneRef.current = false;
+      void answer(question);
+      return;
+    }
+    if (wantsMoreTime(text)) {
+      say('Tranquilo, tómate tu tiempo. Te escucho.');
+      return;
+    }
+    const full = `${pendingRef.current} ${text}`.trim();
+    if (!askedDoneRef.current && seemsUnfinished(full)) {
+      pendingRef.current = full;
+      askedDoneRef.current = true;
+      say('¿Ya terminaste? Si quieres, sigue: te escucho.');
+      return;
+    }
+    pendingRef.current = '';
+    askedDoneRef.current = false;
+    void answer(full);
+  };
 
   listenRef.current = () => {
     setBehavior('listening');
     setHeard(null);
     setCaption(null);
     voice.listen(
-      (text) => {
-        silentTries.current = 0;
-        void answer(text);
-      },
+      onHeard,
       onListenFail,
       setHeard,
       (level) => {
@@ -352,12 +391,13 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
     else say('¡Hola, hola! Cuéntame, ¿qué tenemos entre manos?');
   }, [onListenFail, say, voice, wake]);
 
-  /** Tocarlo: empieza a conversar; si está hablando, lo interrumpe y escucha; si escucha, termina. */
+  /** Tocarlo: empieza a conversar; si escucha, termina. Si está hablando no se le corta: termina la idea y luego escucha. */
   const onTouchZoe = useCallback(() => {
     if (!talkingRef.current) void startConversation();
     else if (voice.listening) endConversation();
+    else if (behavior === 'speaking') setHeard('Termino la idea y te escucho.');
     else listenRef.current();
-  }, [endConversation, startConversation, voice.listening]);
+  }, [behavior, endConversation, startConversation, voice.listening]);
 
   const pet = () => {
     wake();
@@ -511,7 +551,7 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
               <X className="w-3.5 h-3.5" aria-hidden="true" />
             </button>
           )}
-          {heard && status && <p className="text-[11px] italic text-brand-textMuted mb-1">«{heard}»</p>}
+          {heard && (status || behavior === 'speaking') && <p className="text-[11px] italic text-brand-textMuted mb-1">«{heard}»</p>}
           {status ? <p className={voice.listening ? 'zoe-status zoe-status-on' : 'zoe-status'}>{status}</p> : <p>{caption}</p>}
           {voice.listening && (
             <span className="zoe-level-track" aria-hidden="true">

@@ -100,7 +100,7 @@ export interface FuentesConexion {
   documentos: FuenteDocumentoMeta[];
 }
 
-interface AppState {
+export interface AppState {
   institutionalDriveBundle: InstitutionalDriveBundle | null;
   setInstitutionalDriveBundle: (bundle: InstitutionalDriveBundle | null) => void;
   /** Selector de fuentes primarias del territorio. No se persiste: arranca en 'sin_fuentes'. */

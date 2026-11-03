@@ -10,13 +10,195 @@ export interface ZoeCanvas3DProps {
   posture?: 'sitting' | 'standing' | 'lying';
   show360Environment?: boolean;
   petTrigger?: number;
+  /** Hacia dónde mira el cuerpo al caminar: -1 izquierda, 1 derecha, 0 de frente. */
   facing?: -1 | 0 | 1;
+  /** 0 = cuerpo sólido; 1 = malla de alambre, para la materialización de la presentación. */
+  wire?: number;
   framing?: 'full' | 'close';
 }
 
-const damp = (from: number, to: number, speed: number, dt: number) =>
-  from + (to - from) * (1 - Math.exp(-speed * dt));
+/** Interpolación independiente de los cuadros por segundo: de aquí sale la suavidad. */
+const damp = (from: number, to: number, speed: number, dt: number) => from + (to - from) * (1 - Math.exp(-speed * dt));
+const range = (min: number, max: number) => min + Math.random() * (max - min);
 
+/**
+ * El modelo (`public/assets/zoe/zoe.glb`) sale de `scripts/zoe/retopologia_zoe.py`: una sola piel
+ * cerrada, la caminata «walk» y las posturas «sit» y «lie» calculadas con las patas en el piso.
+ */
+const MODEL_URL = '/assets/zoe/zoe.glb';
+/** Alto y largo máximos de ZOE en la escena (la cámara ve ~1,6 de alto). */
+const FIT_HEIGHT = 1.16;
+const FIT_LENGTH = 1.42;
+
+interface PoseBone {
+  bone: THREE.Bone;
+  restQuat: THREE.Quaternion;
+  restPos: THREE.Vector3;
+  /** Orientación de reposo del padre en el espacio del perro: permite girar sin depender de los ejes del hueso. */
+  parent: THREE.Quaternion;
+  parentInv: THREE.Quaternion;
+}
+
+type PoseTarget = Map<string, { q?: THREE.Quaternion; p?: THREE.Vector3 }>;
+
+/** Primer fotograma de una postura del GLB, hueso por hueso. */
+function poseFromClip(clip: THREE.AnimationClip | undefined): PoseTarget {
+  const pose: PoseTarget = new Map();
+  for (const track of clip?.tracks ?? []) {
+    const dot = track.name.lastIndexOf('.');
+    const node = track.name.slice(0, dot);
+    const property = track.name.slice(dot + 1);
+    const entry = pose.get(node) ?? {};
+    if (property === 'quaternion') entry.q = new THREE.Quaternion().fromArray(track.values, 0);
+    else if (property === 'position') entry.p = new THREE.Vector3().fromArray(track.values, 0);
+    pose.set(node, entry);
+  }
+  return pose;
+}
+
+// ── Ojos vivos: se dibujan por píxel sobre los ojos pintados de la textura ──
+
+/** Centro del ojo pintado, en coordenadas del hueso de la cabeza (medido sobre el modelo). */
+const EYE_LOCAL = { x: 0.0245, y: 0.0385, z: 0.0255 };
+const EYE_RADIUS = 0.0285;
+const EYE_LIFT = 0.0062;
+const EYE_CAP_ANGLE = 0.9;
+
+const EYE_VERTEX = `
+  varying vec2 vP;
+  void main() {
+    vP = position.xy / ${Math.sin(EYE_CAP_ANGLE).toFixed(5)};
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`;
+
+const EYE_FRAGMENT = `
+  uniform vec2 uLook;
+  uniform float uBlink;
+  uniform float uSmile;
+  uniform float uDilate;
+  uniform float uShine;
+  uniform float uOpacity;
+  varying vec2 vP;
+
+  float glint(vec2 p, vec2 at, float r) { return smoothstep(r, r * 0.45, length(p - at)); }
+
+  void main() {
+    float rim = length(vP);
+    if (rim > 1.0) discard;
+    vec2 c = vP - uLook * 0.2;
+    float d = length(c);
+
+    // Iris grande y pupila amplia: es lo que da la mirada tierna.
+    vec3 col = vec3(0.02, 0.035, 0.09);
+    float fibers = 0.88 + 0.12 * sin(atan(c.y, c.x) * 26.0 + d * 9.0);
+    vec3 iris = mix(vec3(0.20, 0.66, 0.98), vec3(0.04, 0.18, 0.50), smoothstep(0.34, 0.86, d)) * fibers;
+    iris += vec3(0.05, 0.22, 0.34) * smoothstep(0.0, -0.9, c.y);
+    col = mix(col, iris, smoothstep(0.90, 0.85, d));
+    float pupil = 0.47 + uDilate * 0.15;
+    col = mix(col, vec3(0.006, 0.01, 0.03), smoothstep(pupil + 0.035, pupil - 0.035, d));
+
+    // Brillos húmedos: se mueven menos que el iris, como un reflejo real.
+    vec2 g = vP - uLook * 0.08;
+    col += vec3(1.0) * glint(g, vec2(-0.30, 0.36), 0.31 * uShine);
+    col += vec3(0.86, 0.96, 1.0) * glint(g, vec2(0.30, -0.28), 0.14 * (2.0 - uShine)) * 0.9;
+    col += vec3(0.7, 0.9, 1.0) * glint(g, vec2(0.08, 0.46), 0.07) * 0.8;
+
+    // Párpados: el superior baja al parpadear y el inferior sube al sonreír. Cerrados, se
+    // encuentran en una curva hacia abajo: la carita de dormir plácido.
+    float closed = -0.40 + 0.34 * vP.x * vP.x;
+    float upper = mix(1.08 - 0.26 * vP.x * vP.x, closed, uBlink);
+    float lower = mix(-1.08 + uSmile * 0.92 * (1.0 - 0.75 * vP.x * vP.x), closed, uBlink);
+    float toLid = min(upper - vP.y, vP.y - lower);
+    vec3 fur = mix(vec3(0.07, 0.17, 0.42), vec3(0.15, 0.30, 0.60), smoothstep(-1.0, 0.8, vP.y));
+    vec3 lid = mix(vec3(0.015, 0.03, 0.08), fur, smoothstep(-0.05, -0.20, toLid));
+    col = mix(col, lid, smoothstep(0.015, -0.015, toLid));
+
+    gl_FragColor = vec4(col, uOpacity * smoothstep(1.0, 0.92, rim));
+  }
+`;
+
+// ── Pelaje: capas («conchas») sobre la piel, la técnica de los juegos para el pelo corto ──
+
+/** Capas de pelo: menos en celulares para cuidar el rendimiento. */
+const FUR_SHELLS = typeof window !== 'undefined' && window.innerWidth < 768 ? 5 : 10;
+/** Largo máximo del pelo en metros del modelo (ZOE mide ~33 cm): barba y cejas llegan a esto. */
+const FUR_LENGTH = 0.0048;
+
+/** Ruido de mechones: cada píxel es un pelo con su propio largo. */
+function furNoiseTexture() {
+  const size = 256;
+  const data = new Uint8Array(size * size * 4);
+  for (let i = 0; i < size * size; i++) {
+    const v = Math.random() ** 1.6 * 255;
+    data.set([v, v, v, 255], i * 4);
+  }
+  const texture = new THREE.DataTexture(data, size, size);
+  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+  texture.magFilter = THREE.NearestFilter;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+/**
+ * Cuánto pelo hay en un punto, según el color horneado: el gris claro y el blanco (barba, cejas,
+ * patas) son pelo largo; el azul oscuro del traje y las líneas de neón no llevan pelo.
+ */
+const FUR_MASK_GLSL = `
+  float furLuma(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
+  float furAmount(vec3 c) {
+    float luma = furLuma(c);
+    float saturation = max(c.r, max(c.g, c.b)) - min(c.r, min(c.g, c.b));
+    return smoothstep(0.2, 0.42, luma) * (1.0 - smoothstep(0.32, 0.55, saturation));
+  }
+  float furLength(vec3 c) { return furAmount(c) * mix(0.3, 1.0, smoothstep(0.42, 0.72, furLuma(c))); }
+`;
+
+/** Material de una capa: se infla según el largo del pelo y descarta lo que no es mechón. */
+function furShellMaterial(base: THREE.MeshStandardMaterial, noise: THREE.Texture, layer: number) {
+  const material = base.clone();
+  material.transparent = false;
+  material.depthWrite = true;
+  material.onBeforeCompile = (shader) => {
+    shader.uniforms.uShell = { value: layer };
+    shader.uniforms.uFurLength = { value: FUR_LENGTH };
+    shader.uniforms.uFurNoise = { value: noise };
+    shader.uniforms.uFurSource = { value: base.map };
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', `#include <common>\nuniform float uShell;\nuniform float uFurLength;\nuniform sampler2D uFurSource;\n${FUR_MASK_GLSL}`)
+      .replace(
+        '#include <skinning_vertex>',
+        // Después del esqueleto: el pelo sigue a la piel en cada postura.
+        '#include <skinning_vertex>\ntransformed += normalize(objectNormal) * uFurLength * uShell * furLength(texture2D(uFurSource, uv).rgb);',
+      );
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', `#include <common>\nuniform float uShell;\nuniform sampler2D uFurNoise;\n${FUR_MASK_GLSL}`)
+      .replace(
+        '#include <map_fragment>',
+        `#include <map_fragment>
+        // Cada mechón llega hasta donde dice el ruido: los pelos se afinan hacia la punta.
+        float strand = texture2D(uFurNoise, vMapUv * 90.0).r;
+        if (strand * furAmount(diffuseColor.rgb) < uShell) discard;
+        // Raíz más oscura y puntas más claras: es lo que hace que se lea como pelo.
+        diffuseColor.rgb *= mix(0.7, 1.12, uShell);`,
+      );
+  };
+  material.customProgramCacheKey = () => 'zoe-fur-shell';
+  return material;
+}
+
+/** Huesos que se reinician cada cuadro antes de aplicar postura y gestos. */
+const TRACKED = [
+  'Hips', 'chest', 'neck', 'head', 'headend', 'tail', 'tailstart', 'tail1', 'tail2', 'tail3', 'earend', 'R_earend',
+  'backleg', 'backleg0', 'backlegknee', 'backleg1', 'backleg2', 'R_backleg', 'R_backleg0', 'R_backlegknee', 'R_backleg1', 'R_backleg2',
+  'frontleg', 'frontleg0', 'frontlegelbow', 'frontleg1', 'frontleg2', 'R_frontleg', 'R_frontleg0', 'R_frontlegelbow', 'R_frontleg1', 'R_frontleg2',
+];
+
+/**
+ * ZOE en 3D. Sobre la caminata y las posturas del modelo se suma una capa procedimental:
+ * respiración, mirada que sigue a la persona, cola en cadena, gestos según el ánimo y ojos vivos.
+ * Todos los giros se hacen en los ejes del perro, no en los del hueso: así no aparecen movimientos raros.
+ */
 export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
   behavior = 'idle',
   isWalking = false,
@@ -24,368 +206,522 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
   show360Environment = false,
   petTrigger,
   facing = 0,
+  wire = 0,
+  framing = 'full',
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const liveRef = useRef({ behavior, isWalking, posture, show360Environment, facing });
-  liveRef.current = { behavior, isWalking, posture, show360Environment, facing };
-
-  const petRef = useRef<() => void>(() => {});
+  const liveRef = useRef({ behavior, isWalking, posture, show360Environment, facing, wire, framing });
+  liveRef.current = { behavior, isWalking, posture, show360Environment, facing, wire, framing };
+  const petRef = useRef<() => void>(() => undefined);
 
   useEffect(() => {
-    if (petTrigger) {
-      petRef.current();
-    }
+    if (petTrigger) petRef.current();
   }, [petTrigger]);
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
-
     let width = container.clientWidth || 320;
     let height = container.clientHeight || 340;
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(27, width / height, 0.1, 100);
     camera.position.set(0, 0.02, 3.3);
-    camera.lookAt(0, 0, 0);
 
-    const renderer = new THREE.WebGLRenderer({
-      alpha: true,
-      antialias: true,
-      powerPreference: 'high-performance',
-    });
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'high-performance' });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.05;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
-
     container.innerHTML = '';
     container.appendChild(renderer.domElement);
 
-    // Iluminación equilibrada de estudio para resaltar la textura y geometría sin artefactos
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.4);
-    scene.add(ambientLight);
+    const disposables: Array<{ dispose: () => void }> = [];
+    const track = <T extends { dispose: () => void }>(x: T) => (disposables.push(x), x);
 
+    // Iluminación de estudio: resalta la textura y el relieve sin artefactos.
+    scene.add(new THREE.AmbientLight(0xffffff, 1.4));
     const keyLight = new THREE.DirectionalLight(0xdcf8ff, 1.5);
     keyLight.position.set(3, 4, 3);
     scene.add(keyLight);
-
     const rimLight = new THREE.DirectionalLight(0x27dcff, 1.2);
     rimLight.position.set(-3, 2, -3);
     scene.add(rimLight);
-
     const softFill = new THREE.DirectionalLight(0xb85eff, 0.6);
     softFill.position.set(0, -2, 2);
     scene.add(softFill);
 
-    // Disco sutil en el punto de apoyo en el piso
-    const contactGeo = new THREE.CircleGeometry(0.48, 32);
+    const contactGeo = track(new THREE.CircleGeometry(0.48, 32));
     contactGeo.rotateX(-Math.PI / 2);
-    const contactMat = new THREE.MeshBasicMaterial({
-      color: 0x27dcff,
-      transparent: true,
-      opacity: 0.18,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-    });
-    const contactMesh = new THREE.Mesh(contactGeo, contactMat);
-    contactMesh.position.y = -0.54;
-    scene.add(contactMesh);
-
+    const contactMat = track(new THREE.MeshBasicMaterial({ color: 0x27dcff, transparent: true, opacity: 0.18, blending: THREE.AdditiveBlending, depthWrite: false }));
+    const contact = new THREE.Mesh(contactGeo, contactMat);
+    contact.position.y = -0.54;
+    scene.add(contact);
     const pawLight = new THREE.PointLight(0x27dcff, 0.7, 2.5);
     pawLight.position.set(0, -0.5, 0.1);
     scene.add(pawLight);
 
-    // Entorno 360° holográfico opcional
-    const env360Group = new THREE.Group();
-    env360Group.visible = Boolean(show360Environment);
-    scene.add(env360Group);
+    // Entorno 360° holográfico opcional.
+    const env360 = new THREE.Group();
+    scene.add(env360);
+    const dome = new THREE.Mesh(track(new THREE.SphereGeometry(2.3, 24, 16)), track(new THREE.MeshBasicMaterial({ color: 0x27dcff, wireframe: true, transparent: true, opacity: 0.12, side: THREE.BackSide, blending: THREE.AdditiveBlending })));
+    env360.add(dome);
+    const ringGeo = track(new THREE.RingGeometry(0.82, 0.94, 48));
+    ringGeo.rotateX(-Math.PI / 2);
+    const ring = new THREE.Mesh(ringGeo, track(new THREE.MeshBasicMaterial({ color: 0x27dcff, transparent: true, opacity: 0.35, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false })));
+    ring.position.y = -0.53;
+    env360.add(ring);
+    const particlePositions = new Float32Array(50 * 3).map((_, i) => (i % 3 === 1 ? Math.random() * 2 - 0.5 : (Math.random() - 0.5) * 3));
+    const particleGeo = track(new THREE.BufferGeometry());
+    particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+    const particles = new THREE.Points(particleGeo, track(new THREE.PointsMaterial({ size: 0.035, color: 0x5ec2dd, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false })));
+    env360.add(particles);
 
-    const domeGeo = new THREE.SphereGeometry(2.3, 24, 16);
-    const domeMat = new THREE.MeshBasicMaterial({
-      color: 0x27dcff,
-      wireframe: true,
-      transparent: true,
-      opacity: 0.12,
-      side: THREE.BackSide,
-      blending: THREE.AdditiveBlending,
-    });
-    const domeMesh = new THREE.Mesh(domeGeo, domeMat);
-    env360Group.add(domeMesh);
-
-    const orbitalRingGeo = new THREE.RingGeometry(0.82, 0.94, 48);
-    orbitalRingGeo.rotateX(-Math.PI / 2);
-    const orbitalRingMat = new THREE.MeshBasicMaterial({
-      color: 0x27dcff,
-      transparent: true,
-      opacity: 0.35,
-      side: THREE.DoubleSide,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-    });
-    const orbitalRingMesh = new THREE.Mesh(orbitalRingGeo, orbitalRingMat);
-    orbitalRingMesh.position.y = -0.53;
-    env360Group.add(orbitalRingMesh);
-
-    // Partículas cuánticas en el entorno 360
-    const partCount = 50;
-    const partPos = new Float32Array(partCount * 3);
-    for (let i = 0; i < partCount * 3; i += 3) {
-      partPos[i] = (Math.random() - 0.5) * 3;
-      partPos[i + 1] = Math.random() * 2 - 0.5;
-      partPos[i + 2] = (Math.random() - 0.5) * 3;
-    }
-    const partGeo = new THREE.BufferGeometry();
-    partGeo.setAttribute('position', new THREE.BufferAttribute(partPos, 3));
-    const partMat = new THREE.PointsMaterial({
-      size: 0.035,
-      color: 0x5ec2dd,
-      transparent: true,
-      opacity: 0.55,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-    });
-    const partMesh = new THREE.Points(partGeo, partMat);
-    env360Group.add(partMesh);
-
-    // Contenedor principal de ZOE
     const zoeContainer = new THREE.Group();
-    zoeContainer.rotation.set(0, -0.35, 0);
     scene.add(zoeContainer);
 
+    let disposed = false;
     let zoeGroup: THREE.Group | null = null;
     let mixer: THREE.AnimationMixer | null = null;
     let walkAction: THREE.AnimationAction | null = null;
-
-    // Huesos clave para micro-gestos naturales en reposo
-    let headBone: THREE.Bone | null = null;
-    let headEndBone: THREE.Bone | null = null;
-    let chestBone: THREE.Bone | null = null;
-    let tailBone: THREE.Bone | null = null;
-
-    const baseHeadRot = new THREE.Euler();
-    const baseHeadEndRot = new THREE.Euler();
-    const baseChestRot = new THREE.Euler();
-    const baseTailRot = new THREE.Euler();
-
+    /** Huesos que mueve la caminata; los demás (rodilla, codo, cuello) siguen en reposo al andar. */
+    let walkBones = new Set<string>();
+    let sitPose: PoseTarget = new Map();
+    let liePose: PoseTarget = new Map();
+    const bones: Record<string, PoseBone> = {};
+    const bodyMaterials: THREE.MeshStandardMaterial[] = [];
+    let wireMaterial: THREE.MeshBasicMaterial | null = null;
+    const furShells: THREE.SkinnedMesh[] = [];
+    let eyeMaterial: THREE.ShaderMaterial | null = null;
+    const clock = new THREE.Clock();
+    let appearStart = -1;
     let sniffStart = -99;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
     petRef.current = () => {
       sniffStart = clock.getElapsedTime();
     };
 
-    const gltfLoader = new GLTFLoader();
-    gltfLoader.load(
-      '/assets/zoe/zoe.glb',
+    new GLTFLoader().load(
+      MODEL_URL,
       (gltf) => {
-        zoeGroup = gltf.scene;
+        if (disposed) return;
+        const group = gltf.scene;
+        zoeGroup = group;
 
-        // Centrado y escala precisa: 1.25 encuadra a ZOE grande y majestuoso
-        const bbox = new THREE.Box3().setFromObject(zoeGroup);
-        const bSize = bbox.getSize(new THREE.Vector3());
-        const bCenter = bbox.getCenter(new THREE.Vector3());
-        const maxD = Math.max(bSize.x, bSize.y, bSize.z) || 1;
-        const s = 1.26 / maxD;
+        const bbox = new THREE.Box3().setFromObject(group);
+        const size = bbox.getSize(new THREE.Vector3());
+        const center = bbox.getCenter(new THREE.Vector3());
+        // Se encaja por la altura (lo que se ve de frente) sin que el largo se salga al caminar de lado.
+        const s = Math.min(FIT_HEIGHT / (size.y || 1), FIT_LENGTH / (Math.max(size.x, size.z) || 1));
+        group.scale.setScalar(s);
+        group.position.set(-center.x * s, -center.y * s, -center.z * s);
+        zoeContainer.add(group);
+        const ground = -(size.y * s) * 0.5;
+        contact.position.y = ground;
+        pawLight.position.set(0, ground + 0.04, 0.15);
 
-        zoeGroup.scale.set(s, s, s);
-        zoeGroup.position.set(-bCenter.x * s, -bCenter.y * s, -bCenter.z * s);
-        zoeContainer.add(zoeGroup);
+        const clips = gltf.animations;
+        const walkClip = clips.find((c) => c.name === 'walk') ?? clips.find((c) => c.name !== 'sit' && c.name !== 'lie');
+        sitPose = poseFromClip(clips.find((c) => c.name === 'sit'));
+        liePose = poseFromClip(clips.find((c) => c.name === 'lie'));
+        if (walkClip) {
+          walkBones = new Set(walkClip.tracks.map((t) => t.name.slice(0, t.name.lastIndexOf('.'))));
+          mixer = new THREE.AnimationMixer(group);
+          walkAction = mixer.clipAction(walkClip);
+          walkAction.setEffectiveTimeScale(walkClip.name === 'walk' ? 1 : 0.85);
+        }
 
-        // Nivel de piso exacto bajo las 4 patas
-        const groundLevel = -(bSize.y * s) * 0.48;
-        contactMesh.position.y = groundLevel;
-        pawLight.position.set(0, groundLevel + 0.04, 0.15);
+        // La orientación de reposo se mide con el cuerpo de frente, en el espacio del perro.
+        const savedYaw = zoeContainer.rotation.y;
+        zoeContainer.rotation.y = 0;
+        group.updateWorldMatrix(true, true);
+        group.traverse((node) => {
+          if (!(node as THREE.Bone).isBone || !node.parent) return;
+          const parent = node.parent.getWorldQuaternion(new THREE.Quaternion());
+          bones[node.name] = { bone: node as THREE.Bone, restQuat: node.quaternion.clone(), restPos: node.position.clone(), parent, parentInv: parent.clone().invert() };
+        });
+        zoeContainer.rotation.y = savedYaw;
 
-        // Optimización de la malla: Preservar textura original limpia y sólida (sin transparencias rotas)
-        zoeGroup.traverse((node) => {
-          if ((node as THREE.Mesh).isMesh) {
-            const mesh = node as THREE.Mesh;
-            mesh.castShadow = false;
-            mesh.receiveShadow = false;
-
-            const origMat = mesh.material as THREE.MeshStandardMaterial;
-            // Material limpio y sólido: preserva la textura nativa de 25k polígonos
-            const solidMat = new THREE.MeshStandardMaterial({
-              map: origMat.map || null,
+        // Material sólido con la textura y el relieve horneados: la piel ya es cerrada, así que
+        // basta la cara frontal y no hay transparencias que rompan el dibujo.
+        wireMaterial = track(new THREE.MeshBasicMaterial({ color: 0x7fe9ff, wireframe: true, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }));
+        const skinned: THREE.SkinnedMesh[] = [];
+        group.traverse((node) => {
+          const mesh = node as THREE.SkinnedMesh;
+          if (!mesh.isMesh) return;
+          const original = mesh.material as THREE.MeshStandardMaterial;
+          const body = track(
+            new THREE.MeshStandardMaterial({
+              map: original.map,
+              normalMap: original.normalMap,
               roughness: 0.65,
               metalness: 0.05,
               emissive: new THREE.Color(0x04222b),
               emissiveIntensity: 0.2,
-              transparent: false,
-              depthWrite: true,
-              depthTest: true,
-              side: THREE.FrontSide,
-            });
-            mesh.material = solidMat;
-          }
-
-          if ((node as THREE.Bone).isBone) {
-            if (node.name === 'head') {
-              headBone = node as THREE.Bone;
-              baseHeadRot.copy(headBone.rotation);
-            } else if (node.name === 'headend') {
-              headEndBone = node as THREE.Bone;
-              baseHeadEndRot.copy(headEndBone.rotation);
-            } else if (node.name === 'chest') {
-              chestBone = node as THREE.Bone;
-              baseChestRot.copy(chestBone.rotation);
-            } else if (node.name === 'tail' || node.name === 'tailstart') {
-              tailBone = node as THREE.Bone;
-              baseTailRot.copy(tailBone.rotation);
-            }
-          }
+              transparent: true,
+              opacity: 0,
+            }),
+          );
+          original.dispose();
+          mesh.material = body;
+          bodyMaterials.push(body);
+          if (mesh.isSkinnedMesh) skinned.push(mesh);
         });
+        // La malla de alambre comparte esqueleto: se deforma igual que el cuerpo.
+        for (const mesh of skinned) {
+          const wireMesh = new THREE.SkinnedMesh(mesh.geometry, wireMaterial);
+          wireMesh.bind(mesh.skeleton, mesh.bindMatrix);
+          mesh.parent?.add(wireMesh);
+        }
 
-        // Configuración de animación de caminata oficial de 4 patas
-        if (gltf.animations && gltf.animations.length > 0) {
-          mixer = new THREE.AnimationMixer(zoeGroup);
-          walkAction = mixer.clipAction(gltf.animations[0]);
-          walkAction.setEffectiveTimeScale(0.85); // Ritmo de marcha noble y natural
-          if (liveRef.current.isWalking) {
-            walkAction.play();
+        // Pelaje en capas sobre la piel, con el mismo esqueleto: se mueve igual que el cuerpo.
+        const noise = track(furNoiseTexture());
+        for (const mesh of skinned) {
+          const base = mesh.material as THREE.MeshStandardMaterial;
+          for (let i = 1; i <= FUR_SHELLS; i++) {
+            const shellMaterial = track(furShellMaterial(base, noise, i / FUR_SHELLS));
+            const shell = new THREE.SkinnedMesh(mesh.geometry, shellMaterial);
+            shell.bind(mesh.skeleton, mesh.bindMatrix);
+            shell.renderOrder = i;
+            shell.frustumCulled = false;
+            mesh.parent?.add(shell);
+            furShells.push(shell);
           }
         }
+
+        const headPose = bones.head;
+        if (headPose) {
+          const headWorld = headPose.parent.clone().multiply(headPose.restQuat);
+          const headWorldInv = headWorld.clone().invert();
+          const headScale = headPose.bone.getWorldScale(new THREE.Vector3()).x;
+          const eyeGeometry = track(new THREE.SphereGeometry(1, 32, 20, 0, Math.PI * 2, 0, EYE_CAP_ANGLE));
+          eyeGeometry.rotateX(Math.PI / 2);
+          eyeMaterial = track(
+            new THREE.ShaderMaterial({
+              vertexShader: EYE_VERTEX,
+              fragmentShader: EYE_FRAGMENT,
+              transparent: true,
+              depthWrite: false,
+              uniforms: { uLook: { value: new THREE.Vector2() }, uBlink: { value: 0 }, uSmile: { value: 0 }, uDilate: { value: 0.4 }, uShine: { value: 1 }, uOpacity: { value: 0 } },
+            }),
+          );
+          const capRadius = EYE_RADIUS / Math.sin(EYE_CAP_ANGLE);
+          for (const side of [-1, 1]) {
+            const dir = new THREE.Vector3(side * 0.22, 0.02, 1).normalize();
+            const eye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+            eye.quaternion.copy(headWorldInv).multiply(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), dir));
+            eye.position
+              .set(side * EYE_LOCAL.x, EYE_LOCAL.y, EYE_LOCAL.z)
+              .add(dir.clone().applyQuaternion(headWorldInv).multiplyScalar((EYE_LIFT - capRadius) / headScale));
+            eye.scale.setScalar(capRadius / headScale);
+            headPose.bone.add(eye);
+          }
+        }
+        appearStart = clock.getElapsedTime();
       },
       undefined,
-      (err) => console.warn('[ZoeCanvas3D] Error cargando modelo:', err)
+      (err) => console.warn('[ZoeCanvas3D] No se pudo cargar el modelo:', err),
     );
 
-    // Seguimiento suave del puntero del mouse
-    const pointer = { x: 0, y: 0 };
-    const handlePointerMove = (e: MouseEvent) => {
-      const rect = container.getBoundingClientRect();
-      const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      const y = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
-      pointer.x = Math.max(-1, Math.min(1, x));
-      pointer.y = Math.max(-1, Math.min(1, y));
-    };
-    window.addEventListener('pointermove', handlePointerMove);
-
-    const handleResize = () => {
-      if (!container) return;
-      width = container.clientWidth || 320;
-      height = container.clientHeight || 340;
+    const onResize = () => {
+      width = container.clientWidth || width;
+      height = container.clientHeight || height;
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
       renderer.setSize(width, height);
     };
-    window.addEventListener('resize', handleResize);
+    const resizeObserver = new ResizeObserver(onResize);
+    resizeObserver.observe(container);
 
-    const clock = new THREE.Clock();
-    let animId: number;
-    let bodyYaw = -0.35;
-    let walkWeight = 0;
+    // Mirada: sigue el puntero mientras se mueve y, si se queda quieto, vuelve a lo suyo.
+    const pointer = { x: 0, y: 0, at: -99 };
+    const onPointerMove = (e: PointerEvent) => {
+      const rect = container.getBoundingClientRect();
+      pointer.x = THREE.MathUtils.clamp((e.clientX - (rect.left + rect.width / 2)) / 520, -1, 1);
+      pointer.y = THREE.MathUtils.clamp((e.clientY - (rect.top + rect.height * 0.3)) / 420, -1, 1);
+      pointer.at = clock.getElapsedTime();
+    };
+    window.addEventListener('pointermove', onPointerMove, { passive: true });
 
-    const animate = () => {
+    const q = new THREE.Quaternion();
+    const qTurn = new THREE.Quaternion();
+    const euler = new THREE.Euler();
+    /** Gira un hueso alrededor de los ejes del perro (x: asentir, y: voltear, z: ladear). */
+    const turn = (name: string, x: number, y: number, z: number) => {
+      const b = bones[name];
+      if (!b) return;
+      q.setFromEuler(euler.set(x, y, z));
+      qTurn.copy(b.parentInv).multiply(q).multiply(b.parent);
+      b.bone.quaternion.premultiply(qTurn);
+    };
+
+    const look = { yaw: 0, pitch: 0, until: 0 };
+    let nextGesture = range(3, 6);
+    let tailBurstUntil = 0;
+    const eye = { x: 0, y: 0, smile: 0, dilate: 0.4, sleepy: 0 };
+    let blinkStart = -9;
+    let nextBlink = range(1.5, 3.5);
+    let doubleBlink = false;
+    const saccade = { x: 0, y: 0, next: 0 };
+    const pose = { yaw: 0, pitch: 0, roll: 0, sit: 0, lie: 0, walk: 0, tailAmp: 0.08, tailSpeed: 2.4, tailPhase: 0, hop: 0, bodyYaw: -0.35, glow: 0.18, wire: 0, camZ: 3.3, camY: 0.02 };
+
+    let animId = 0;
+    let lastFrame = 0;
+    const FRAME_MS = 1000 / 30;
+
+    const animate = (now = 0) => {
       animId = requestAnimationFrame(animate);
-      const dt = clock.getDelta();
+      // ZOE acompaña, no es protagonista: 30 cuadros y en pausa si la pestaña no se ve.
+      if (document.hidden || now - lastFrame < FRAME_MS) return;
+      const dt = Math.min(0.1, (now - lastFrame) / 1000);
+      lastFrame = now;
       const t = clock.getElapsedTime();
       const state = liveRef.current;
+      const motion = reduceMotion ? 0 : 1;
+      const mood = state.behavior;
 
-      // Control fluido de la animación de caminata
-      const isWalking = Boolean(state.isWalking);
+      // Caminata: entra y sale con fundido y deja la pose limpia al terminar.
+      const walking = state.isWalking && motion > 0;
       if (walkAction) {
-        if (isWalking && !walkAction.isRunning()) {
-          walkAction.reset().fadeIn(0.25).play();
-        } else if (!isWalking && walkAction.isRunning()) {
-          walkAction.fadeOut(0.25);
-        }
+        if (walking && !walkAction.isRunning()) walkAction.reset().fadeIn(0.3).play();
+        else if (!walking && pose.walk > 0.5) walkAction.fadeOut(0.3);
+        pose.walk = walking ? Math.min(1, pose.walk + dt / 0.3) : Math.max(0, pose.walk - dt / 0.3);
+        if (!walking && pose.walk === 0 && walkAction.isRunning()) walkAction.stop();
       }
+      if (mixer && walkAction?.isRunning()) mixer.update(dt);
+      const clipActive = Boolean(walkAction?.isRunning());
 
-      walkWeight = damp(walkWeight, isWalking ? 1 : 0, 4, dt);
-      if (mixer && (walkAction?.isRunning() || walkWeight > 0.01)) {
-        mixer.update(dt);
-      }
-
-      // Entorno 360° opcional
-      env360Group.visible = Boolean(state.show360Environment);
-      if (state.show360Environment) {
-        domeMesh.rotation.y += 0.002;
-        orbitalRingMesh.rotation.z += 0.006;
-        partMesh.rotation.y += 0.003;
-        bodyYaw += 0.005; // Rotación orbital suave en 360°
-      } else {
-        const targetYaw = state.facing !== 0 ? state.facing * 1.1 : -0.35;
-        bodyYaw = damp(bodyYaw, targetYaw, 4, dt);
-      }
-      zoeContainer.rotation.y = bodyYaw;
-
-      // Micro-gestos naturales en reposo (cuando no está caminando)
-      const restFactor = 1 - walkWeight;
-      if (restFactor > 0.05) {
-        // 1. Respiración viva y suave en el pecho
-        if (chestBone) {
-          const breath = Math.sin(t * 1.6) * 0.018 * restFactor;
-          chestBone.rotation.x = baseChestRot.x + breath;
-        }
-
-        // 2. Movimiento sutil y sereno de la cola
-        if (tailBone) {
-          const wag = Math.sin(t * 2.4) * 0.07 * restFactor;
-          tailBone.rotation.y = baseTailRot.y + wag;
-        }
-
-        // 3. Cabeza atenta que sigue con dulzura el puntero
-        const lookYaw = damp(0, pointer.x * 0.28, 4, dt) * restFactor;
-        const lookPitch = damp(0, -pointer.y * 0.16, 4, dt) * restFactor;
-
-        // 4. Olfateo noble al acariciar (1.4 segundos de micro-pulsos curiosos)
-        const sniffElapsed = t - sniffStart;
-        if (sniffElapsed >= 0 && sniffElapsed < 1.4) {
-          const p = sniffElapsed / 1.4;
-          const lift = Math.sin(p * Math.PI) * 0.08;
-          const twitch = Math.sin(p * Math.PI * 6) * Math.sin(p * Math.PI) * 0.06;
-
-          if (headBone) {
-            headBone.rotation.x = baseHeadRot.x - lift;
-            headBone.rotation.y = baseHeadRot.y + lookYaw;
+      // Postura: se mezcla desde el reposo hacia «sentado» o «echado» del modelo.
+      pose.sit = damp(pose.sit, !walking && state.posture === 'sitting' ? 1 : 0, 3, dt);
+      pose.lie = damp(pose.lie, !walking && state.posture === 'lying' ? 1 : 0, 2, dt);
+      if (zoeGroup) {
+        for (const name of TRACKED) {
+          const b = bones[name];
+          // Mientras camina, la caminata manda en sus huesos; el resto vuelve a su reposo.
+          if (!b || (clipActive && walkBones.has(name))) continue;
+          b.bone.quaternion.copy(b.restQuat);
+          b.bone.position.copy(b.restPos);
+          for (const [target, amount] of [[sitPose, pose.sit], [liePose, pose.lie]] as const) {
+            const key = target.get(name);
+            if (!key || amount < 0.001) continue;
+            if (key.q) b.bone.quaternion.slerp(key.q, amount);
+            if (key.p) b.bone.position.lerp(key.p, amount);
           }
-          if (headEndBone) {
-            headEndBone.rotation.x = baseHeadEndRot.x + twitch;
-          }
-          contactMat.opacity = 0.18 + Math.sin(p * Math.PI) * 0.35;
-          pawLight.intensity = 0.7 + Math.sin(p * Math.PI) * 1.2;
+        }
+      }
+
+      // Gestos en reposo: voltear a mirar algo, mover la cola, olfatear.
+      if (mood === 'idle' && !walking && t > nextGesture && motion) {
+        const roll = Math.random();
+        if (roll < 0.5) {
+          look.yaw = range(-0.4, 0.4);
+          look.pitch = range(-0.12, 0.08);
+          look.until = t + range(1.2, 2.8);
+        } else if (roll < 0.8) {
+          tailBurstUntil = t + range(1, 2.2);
         } else {
-          if (headBone) {
-            headBone.rotation.x = baseHeadRot.x + lookPitch;
-            headBone.rotation.y = baseHeadRot.y + lookYaw;
-          }
-          if (headEndBone) {
-            headEndBone.rotation.copy(baseHeadEndRot);
-          }
-          contactMat.opacity = 0.18;
-          pawLight.intensity = 0.7;
+          sniffStart = t;
         }
+        nextGesture = t + range(2.8, 7.5);
+      }
+
+      let targetYaw = t < look.until ? look.yaw : 0;
+      let targetPitch = t < look.until ? look.pitch : 0;
+      let targetRoll = 0;
+      let tailAmp = 0.08;
+      let tailSpeed = 2.4;
+      let glow = 0.18;
+      let hop = 0;
+      if (t - pointer.at < 2.5) {
+        targetYaw = pointer.x * 0.5;
+        targetPitch = pointer.y * 0.22;
+      }
+      if (t < tailBurstUntil) {
+        tailAmp = 0.3;
+        tailSpeed = 9;
+      }
+      if (mood === 'listening') {
+        // Atento: cabeza ladeada hacia quien habla y pulso cian.
+        targetRoll = 0.2;
+        targetPitch = -0.04;
+        tailAmp = 0.05;
+        glow = 0.3 + Math.sin(t * 4) * 0.1 * motion;
+      } else if (mood === 'thinking') {
+        targetPitch = -0.2;
+        targetYaw = Math.sin(t * 0.8) * 0.16 * motion;
+        targetRoll = -0.06;
+        glow = 0.24;
+      } else if (mood === 'speaking') {
+        // Gesticula por frases: asiente y ladea a ritmo irregular, nunca como metrónomo.
+        const talk = Math.sin(t * 5.3) * 0.5 + Math.sin(t * 8.7) * 0.3 + Math.sin(t * 2.1) * 0.2;
+        targetPitch += talk * 0.06 * motion;
+        targetRoll = Math.sin(t * 1.3) * 0.08 * motion;
+        tailAmp = 0.17;
+        tailSpeed = 5.5;
+      } else if (mood === 'happy') {
+        targetPitch = -0.08;
+        tailAmp = 0.42;
+        tailSpeed = 13;
+        glow = 0.36;
+        hop = Math.abs(Math.sin(t * 6.5)) * 0.04 * motion * (1 - pose.lie);
+      } else if (mood === 'sleeping') {
+        // Dormido no sigue el puntero: la cabeza queda quieta, apenas ladeada.
+        targetPitch = 0.2;
+        targetYaw = 0;
+        targetRoll = 0.08;
+        tailAmp = 0;
+        glow = 0.08;
+      }
+
+      const sniff = t - sniffStart;
+      let sniffTwitch = 0;
+      if (sniff >= 0 && sniff < 1.5) {
+        const p = sniff / 1.5;
+        targetPitch -= Math.sin(p * Math.PI) * 0.1;
+        sniffTwitch = Math.sin(p * Math.PI * 7) * Math.sin(p * Math.PI) * 0.05;
+        glow += Math.sin(p * Math.PI) * 0.25;
+      }
+
+      pose.yaw = damp(pose.yaw, targetYaw * motion, 5, dt);
+      pose.pitch = damp(pose.pitch, targetPitch * motion, 6, dt);
+      pose.roll = damp(pose.roll, targetRoll * motion, 5, dt);
+      pose.tailAmp = damp(pose.tailAmp, tailAmp * motion, 3, dt);
+      pose.tailSpeed = damp(pose.tailSpeed, tailSpeed, 3, dt);
+      pose.tailPhase += pose.tailSpeed * dt;
+      pose.glow = damp(pose.glow, glow, 5, dt);
+      pose.hop = damp(pose.hop, hop, 12, dt);
+
+      if (zoeGroup) {
+        // Respiración repartida en pecho y cabeza: si solo se moviera la cabeza parecería muñeco.
+        const asleep = mood === 'sleeping';
+        const breath = Math.sin(t * (asleep ? 0.85 : 1.55)) * (asleep ? 0.03 : 0.016) * motion;
+        turn('chest', breath * 0.7, pose.yaw * 0.22, 0);
+        turn('head', pose.pitch + breath * 0.5, pose.yaw * 0.78, pose.roll);
+        turn('headend', sniffTwitch, 0, 0);
+        // Cola en cadena: la onda viaja de la base a la punta.
+        ['tailstart', 'tail1', 'tail2', 'tail3'].forEach((name, i) => {
+          turn(name, 0, Math.sin(pose.tailPhase - i * 0.65) * pose.tailAmp * (0.55 + i * 0.2), 0);
+        });
+      }
+
+      // Cuerpo: gira hacia donde camina; en 360° orbita despacio.
+      env360.visible = state.show360Environment;
+      if (state.show360Environment) {
+        dome.rotation.y += 0.09 * dt;
+        ring.rotation.z += 0.4 * dt;
+        particles.rotation.y += 0.1 * dt;
+        pose.bodyYaw += 0.3 * dt;
+      } else {
+        pose.bodyYaw = damp(pose.bodyYaw, state.facing !== 0 ? state.facing * 1.1 : -0.35, 4, dt);
+      }
+      zoeContainer.rotation.y = pose.bodyYaw;
+      zoeContainer.position.y = pose.hop;
+      contactMat.opacity = pose.glow;
+      pawLight.intensity = 0.4 + pose.glow * 1.8;
+
+      // Encuadre: «close» acerca la cámara a la cara para la presentación.
+      // Sentado o echado ocupa menos alto: la cámara se acerca para que no se vea diminuto.
+      const low = walking ? 0 : pose.lie;
+      const seated = walking ? 0 : pose.sit;
+      pose.camZ = damp(pose.camZ, state.framing === 'close' ? 1.7 : 3.2 - seated * 0.1 - low * 0.4, 2.5, dt);
+      pose.camY = damp(pose.camY, state.framing === 'close' ? 0.28 : 0.02 - seated * 0.06 - low * 0.15, 2.5, dt);
+      camera.position.set(0, pose.camY, pose.camZ);
+      camera.lookAt(0, pose.camY * 0.9, 0);
+
+      if (eyeMaterial) {
+        // La mirada se adelanta a la cabeza: primero miran los ojos y luego voltea.
+        if (t > saccade.next) {
+          saccade.x = range(-0.1, 0.1);
+          saccade.y = range(-0.07, 0.07);
+          saccade.next = t + range(0.7, 2.6);
+        }
+        let lookX = saccade.x + targetYaw * 1.5;
+        let lookY = saccade.y - targetPitch * 1.5;
+        let smile = 0;
+        let dilate = 0.4;
+        if (mood === 'listening') dilate = 0.85;
+        else if (mood === 'thinking') {
+          lookX = Math.sin(t * 0.7) * 0.35;
+          lookY = 0.55;
+          dilate = 0.25;
+        } else if (mood === 'speaking') {
+          smile = 0.18 + Math.max(0, Math.sin(t * 1.7)) * 0.16;
+          dilate = 0.6;
+        } else if (mood === 'happy') {
+          smile = 0.82;
+          dilate = 1;
+        }
+        eye.x = damp(eye.x, THREE.MathUtils.clamp(lookX, -0.8, 0.8), 16, dt);
+        eye.y = damp(eye.y, THREE.MathUtils.clamp(lookY, -0.7, 0.7), 16, dt);
+        eye.smile = damp(eye.smile, smile, 8, dt);
+        eye.dilate = damp(eye.dilate, dilate, 4, dt);
+        eye.sleepy = damp(eye.sleepy, mood === 'sleeping' ? 1 : 0, 3, dt);
+
+        if (t > nextBlink) {
+          blinkStart = t;
+          doubleBlink = Math.random() < 0.22;
+          // Al escuchar parpadea menos; al pensar, más seguido.
+          nextBlink = t + (mood === 'listening' ? range(3.5, 7) : mood === 'thinking' ? range(1.2, 3) : range(2.2, 5.5));
+        }
+        const BLINK = 0.16;
+        const since = t - blinkStart;
+        const pulse = (x: number) => (x >= 0 && x < BLINK ? Math.sin((x / BLINK) * Math.PI) : 0);
+        const blink = Math.max(pulse(since), doubleBlink ? pulse(since - BLINK * 1.5) : 0);
+
+        const u = eyeMaterial.uniforms;
+        u.uLook.value.set(eye.x, eye.y);
+        // El margen asegura que cierren del todo: la interpolación nunca llega exacta a 1.
+        u.uBlink.value = Math.min(1, Math.max(blink, eye.sleepy) * 1.08);
+        u.uSmile.value = eye.smile;
+        u.uDilate.value = eye.dilate;
+        // El brillo tiembla apenas, como un ojo húmedo: es lo que los hace parecer vivos.
+        u.uShine.value = 1 + Math.sin(t * 1.9) * 0.05 + Math.sin(t * 3.1) * 0.03;
+      }
+
+      // Aparición gradual y paso de alambre a cuerpo sólido.
+      pose.wire = damp(pose.wire, state.wire, 2.4, dt);
+      if (appearStart >= 0) {
+        const appear = reduceMotion ? 1 : Math.min(1, (t - appearStart) / 0.9);
+        const solid = appear * (1 - pose.wire);
+        for (const m of bodyMaterials) {
+          m.opacity = solid;
+          // Opaco del todo en cuanto se puede: así no se ordena como transparente.
+          m.transparent = solid < 0.995;
+          m.depthWrite = solid > 0.5;
+        }
+        if (wireMaterial) wireMaterial.opacity = pose.wire * 0.75 * appear;
+        // El pelo aparece solo con el cuerpo sólido: durante la materialización estorbaría.
+        for (const shell of furShells) shell.visible = solid > 0.98;
+        if (eyeMaterial) eyeMaterial.uniforms.uOpacity.value = solid;
       }
 
       renderer.render(scene, camera);
     };
-
-    animate();
+    animId = requestAnimationFrame(animate);
 
     return () => {
+      disposed = true;
       cancelAnimationFrame(animId);
-      window.removeEventListener('pointermove', handlePointerMove);
-      window.removeEventListener('resize', handleResize);
+      resizeObserver.disconnect();
+      window.removeEventListener('pointermove', onPointerMove);
+      mixer?.stopAllAction();
+      zoeGroup?.traverse((node) => {
+        const mesh = node as THREE.Mesh;
+        if (!mesh.isMesh) return;
+        mesh.geometry.dispose();
+        const material = mesh.material as THREE.MeshStandardMaterial;
+        material.map?.dispose();
+        material.normalMap?.dispose();
+      });
+      disposables.forEach((d) => d.dispose());
       renderer.dispose();
-      contactGeo.dispose();
-      contactMat.dispose();
-      domeGeo.dispose();
-      domeMat.dispose();
-      orbitalRingGeo.dispose();
-      orbitalRingMat.dispose();
-      partGeo.dispose();
-      partMat.dispose();
+      container.innerHTML = '';
     };
   }, []);
 
-  return (
-    <div
-      ref={containerRef}
-      className="relative w-full h-full flex items-center justify-center cursor-pointer select-none bg-transparent"
-      title="Zoe · Asistente IA"
-    />
-  );
+  return <div ref={containerRef} className="relative w-full h-full select-none bg-transparent" aria-hidden="true" />;
 };
 
 export default ZoeCanvas3D;

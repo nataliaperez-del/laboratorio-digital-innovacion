@@ -12,6 +12,7 @@ export const TOOL_NAMES: Record<ToolId, string> = {
   ideacion: 'Ideación',
   arbol: 'Árbol de Innovación',
   prototipado: 'Prototipado',
+  banco: 'Banco Unificado de Innovación',
 };
 
 export const TOOL_HINTS: Record<ToolId, string> = {
@@ -21,6 +22,7 @@ export const TOOL_HINTS: Record<ToolId, string> = {
   ideacion: 'Dame un tema o un archivo y buscamos la vocación y tres caminos posibles.',
   arbol: 'Con un tema basta: de las tendencias globales llegamos hasta los frutos.',
   prototipado: 'Escribe una idea o elige un fruto del árbol y armamos su plan.',
+  banco: 'Aquí se guardan tus ejercicios completos, tus insignias y tus certificados.',
 };
 
 /** Estado del trabajo en curso, solo con lo que ZOE necesita. */
@@ -90,6 +92,29 @@ export function parseZoeCommand(text: string): ZoeCommand | null {
   if (!NAVIGATION_VERB.test(t) || t.endsWith('?')) return null;
   const hit = TOOL_WORDS.find(([re]) => re.test(t));
   return hit ? { type: 'navigate', tool: hit[1] } : null;
+}
+
+// ── Turno de palabra: ZOE no responde a una idea a medias ──
+
+/** Palabras con las que nadie termina una frase: si la pausa llega después, la persona sigue pensando. */
+const DANGLING = /\b(y|o|e|u|ni|pero|que|de|del|la|el|los|las|un|una|unos|unas|en|con|para|por|porque|como|cuando|donde|entonces|si|pues|mi|tu|su|este|esta|ese|esa|sobre|a|al|más|muy|también|o sea|es decir|digamos)$/i;
+
+/** ¿La frase dictada parece cortada? Entonces ZOE pregunta antes de contestar. */
+export function seemsUnfinished(text: string): boolean {
+  const t = text.trim().replace(/[.,;:¿?¡!…\s]+$/, '');
+  if (!t) return false;
+  return DANGLING.test(t) || /\b(eh+|em+|mm+|este+)$/i.test(t);
+}
+
+/** Respuesta corta a «¿ya terminaste?». */
+export function isDoneReply(text: string): boolean {
+  const t = text.trim().toLowerCase();
+  return t.split(/\s+/).length <= 5 && /^(s[ií]|ya|listo|eso es todo|es todo|termin[eé]|ya termin[eé]|nada m[aá]s|correcto|exacto|as[ií] es)(?=$|[\s,.;!?¡¿])/.test(t);
+}
+
+/** La persona pide tiempo: ZOE espera en vez de contestar. */
+export function wantsMoreTime(text: string): boolean {
+  return /^(zoe[,\s]+)?(espera|esp[eé]rame|un momento|un segundo|d[eé]jame pensar|d[eé]jame terminar|no he terminado|todav[ií]a no)\b/i.test(text.trim());
 }
 
 export interface ZoeTurn {

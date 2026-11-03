@@ -668,7 +668,7 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
                     </div>
                     <div className="flex items-center justify-between text-[11px] text-brand-textMuted">
                       <span>{p.category}</span>
-                      <span className="font-mono text-[#E024A5]">TRL {p.trl}</span>
+                      <span className="font-mono text-[#E024A5]">TRL {p.trlTarget}</span>
                     </div>
                   </div>
                 ))}
@@ -683,7 +683,7 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
                     <header className="flex flex-wrap items-start justify-between gap-3 pb-3 border-b border-white/10">
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2 mb-1">
-                          <span className="lab-chip text-[#E024A5] border-[#E024A5]/30">TRL {activePlan.trl}</span>
+                          <span className="lab-chip text-[#E024A5] border-[#E024A5]/30">TRL {activePlan.trlTarget}</span>
                           <span className="lab-chip">{activePlan.category}</span>
                           <span className="lab-chip">{activePlan.scope}</span>
                         </div>
@@ -741,13 +741,10 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
               type="button"
               onClick={() => {
                 openCertificatePrintWindow({
+                  // El certificado muestra la insignia más reciente y el territorio como equipo.
                   recipientName: prompt0Data.labName || 'Equipo Innovador UNAD',
-                  territoryName: prompt0Data.municipality || 'Territorio Regional',
-                  department: prompt0Data.department || '',
-                  zonaUNAD: prompt0Data.zonaUNAD || 'UNAD',
-                  rank: gamification.currentRank,
-                  totalXp: gamification.totalXp,
-                  unlockedBadgeIds: gamification.unlockedBadgeIds,
+                  teamName: prompt0Data.municipality ? `Equipo ${prompt0Data.municipality}` : undefined,
+                  badgeId: gamification.unlockedBadgeIds[gamification.unlockedBadgeIds.length - 1],
                 });
               }}
               className="metal px-4 py-2 text-xs font-bold flex items-center gap-2 cursor-pointer"
@@ -858,9 +855,9 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
                           +{badge.xp} XP
                         </span>
                         {isUnlocked ? (
-                          <CheckCircle2 className="w-4 h-4 text-[#A8C63C]" title="Insignia desbloqueada" />
+                          <CheckCircle2 className="w-4 h-4 text-[#A8C63C]" aria-label="Insignia desbloqueada" />
                         ) : (
-                          <Lock className="w-3.5 h-3.5 text-white/40" title="Insignia bloqueada" />
+                          <Lock className="w-3.5 h-3.5 text-white/40" aria-label="Insignia bloqueada" />
                         )}
                       </div>
                     </div>

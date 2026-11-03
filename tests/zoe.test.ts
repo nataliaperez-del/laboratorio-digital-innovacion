@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cleanZoeReply, describeWork, parseZoeCommand } from '@/lib/zoeContext';
+import { cleanZoeReply, describeWork, isDoneReply, parseZoeCommand, seemsUnfinished, wantsMoreTime } from '@/lib/zoeContext';
 import { recognitionLang, splitSentences } from '@/components/zoe/useZoeVoice';
 
 describe('órdenes de voz', () => {
@@ -54,5 +54,30 @@ describe('contexto de ZOE', () => {
     expect(full).toContain('Pitalito, Huila: 12 bloques, 1 por revisar');
     expect(full).toContain('tema elegido «Biofábricas»');
     expect(full).toContain('Plan A');
+  });
+});
+
+describe('turno de palabra', () => {
+  it('detecta una frase cortada por una pausa', () => {
+    expect(seemsUnfinished('quiero hacer un prototipo para')).toBe(true);
+    expect(seemsUnfinished('el municipio de Pitalito y')).toBe(true);
+    expect(seemsUnfinished('¿qué es un árbol de innovación?')).toBe(false);
+    expect(seemsUnfinished('ayúdame con la ficha base')).toBe(false);
+  });
+
+  it('reconoce cuando la persona confirma que terminó o pide tiempo', () => {
+    expect(isDoneReply('sí, ya')).toBe(true);
+    expect(isDoneReply('listo')).toBe(true);
+    expect(isDoneReply('sí quiero agregar que el territorio es rural y tiene café')).toBe(false);
+    expect(wantsMoreTime('espera, déjame pensar')).toBe(true);
+    expect(wantsMoreTime('esperanza es el municipio')).toBe(false);
+  });
+
+  it('parte las frases muy largas para que el navegador no las corte', () => {
+    const long = Array.from({ length: 12 }, (_, i) => `idea número ${i + 1} con algo de contexto`).join(', ') + '.';
+    const parts = splitSentences(long);
+    expect(parts.length).toBeGreaterThan(1);
+    expect(parts.every((p) => p.length <= 200)).toBe(true);
+    expect(parts.join(' ').replace(/\s+/g, ' ')).toBe(long);
   });
 });
