@@ -383,5 +383,3 @@ export const IdeacionEstrategicaView: React.FC<Props> = ({ onNavigate }) => {
     </div>
   );
 };
-
-export default IdeacionEstrategicaView;

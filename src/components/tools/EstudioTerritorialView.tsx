@@ -762,5 +762,3 @@ export const EstudioTerritorialView: React.FC<Props> = ({ onNavigate }) => {
     </div>
   );
 };
-
-export default EstudioTerritorialView;

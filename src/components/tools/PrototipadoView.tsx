@@ -422,5 +422,3 @@ export const PrototipadoView: React.FC<Props> = ({ onNavigate }) => {
     </div>
   );
 };
-
-export default PrototipadoView;

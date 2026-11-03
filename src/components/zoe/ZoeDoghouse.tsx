@@ -100,5 +100,3 @@ export const ZoeDoghouse: React.FC<Props> = ({ occupied, onCall }) => {
     </button>
   );
 };
-
-export default ZoeDoghouse;

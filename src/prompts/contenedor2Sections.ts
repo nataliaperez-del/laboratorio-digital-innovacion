@@ -398,11 +398,6 @@ export function contenedor2Heading(point: Contenedor2Point): string {
   return `## ${point.number}. ${point.title}`;
 }
 
-/** La ESTRUCTURA DE SALIDA completa, para que cada llamada sepa dónde encaja su bloque. */
-export function buildContenedor2OutputStructureBlock(): string {
-  return CONTENEDOR2_SECTIONS.map((point) => `${contenedor2Heading(point)}  → ${point.phase}`).join('\n');
-}
-
 /**
  * Extrae un punto de entrega del Contenedor 2 ya redactado, por su título.
  *

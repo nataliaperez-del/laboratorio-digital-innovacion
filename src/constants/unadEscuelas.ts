@@ -7,24 +7,3 @@ export const UNAD_ESCUELAS: readonly string[] = [
   'Escuela de Ciencias Jurídicas y Políticas',
   'Escuela de Ciencias Sociales, Artes y Humanidades',
 ] as const;
-
-/**
- * Sigla de escuela → denominación completa. El código de cada proyecto del registro
- * SIGIIP incluye la sigla de la escuela que lo formuló (p. ej. `PI39ZAOECEDU2026`),
- * y es la única vía para atribuir escuela a un proyecto: el registro no trae ese campo.
- */
-export const UNAD_ESCUELA_BY_SIGLA: Readonly<Record<string, string>> = {
-  ECACEN: UNAD_ESCUELAS[0],
-  ECAPMA: UNAD_ESCUELAS[1],
-  ECBTI: UNAD_ESCUELAS[2],
-  ECEDU: UNAD_ESCUELAS[3],
-  ECJP: UNAD_ESCUELAS[4],
-  ECSAH: UNAD_ESCUELAS[5],
-  /** Aparece en el Estatuto Organizacional sin denominación desarrollada en las fuentes cargadas. */
-  ECISA: 'Escuela codificada como ECISA (denominación completa pendiente de verificación institucional)',
-};
-
-/** Lista en viñetas para insertar en un prompt. */
-export function formatEscuelasForPrompt(): string {
-  return UNAD_ESCUELAS.map((e) => `- ${e}`).join('\n');
-}

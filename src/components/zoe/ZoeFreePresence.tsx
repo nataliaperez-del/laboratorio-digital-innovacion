@@ -864,5 +864,3 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
     </>
   );
 };
-
-export default ZoeFreePresence;

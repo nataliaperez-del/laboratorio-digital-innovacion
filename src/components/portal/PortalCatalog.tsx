@@ -258,5 +258,3 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
     </div>
   );
 };
-
-export default PortalCatalog;

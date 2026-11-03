@@ -823,5 +823,3 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
     </div>
   );
 };
-
-export default BancoInnovacionView;

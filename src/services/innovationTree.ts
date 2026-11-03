@@ -2,15 +2,8 @@
  * Árbol de Innovación: el proceso 10 → 5 → 3 de la app Fase 1 para cualquier tema.
  * Produce el documento formal por partes y, al final, el grafo que dibuja la vista interactiva.
  */
-import {
-  beginGenerationFlow,
-  callAI,
-  defaultCallOptions,
-  GenerationCancelledError,
-  leerNucleoTexto,
-  parseJsonResponse,
-  stripOuterMarkdownFence,
-} from '@/services/ai';
+import { beginGenerationFlow, callAI, defaultCallOptions, GenerationCancelledError, leerNucleoTexto, parseJsonResponse } from '@/services/ai';
+import { generateReviewedPart } from '@/services/reviewedPart';
 import { useStore } from '@/store/useStore';
 import { getMaxThemeStepContainerChars, truncateContainerForDocument } from '@/lib/promptBudget';
 import { buildTreeFromMarkdown, parseTreeGraph, type TreeGraph } from '@/lib/innovationTreeGraph';
@@ -23,7 +16,6 @@ import {
   buildTreeGraphPrompt,
   INNOVATION_TREE_PARTS,
   reviewInnovationTreePart,
-  sanitizePartMarkdown,
   type GenerationPartProgress,
   type GenerationPartResult,
   type TreePromptInputs,
@@ -90,34 +82,15 @@ async function prepareContext(request: InnovationTreeRequest): Promise<TreeConte
 async function generatePart(ctx: TreeContext, partIndex: number, previous: string): Promise<GenerationPartResult> {
   const meta = INNOVATION_TREE_PARTS[partIndex];
   if (!meta) throw new Error(`Parte de árbol inválida: ${partIndex + 1}`);
-  const prompt = buildInnovationTreePartPrompt(ctx.inputs, partIndex, previous);
-
-  let markdown = '';
-  let review: ReturnType<typeof reviewInnovationTreePart>;
-  try {
-    markdown = sanitizePartMarkdown(stripOuterMarkdownFence(await callAI(prompt, ctx.options)));
-    review = reviewInnovationTreePart(partIndex, markdown);
-  } catch (e) {
-    if (e instanceof GenerationCancelledError) throw e;
-    return { number: meta.number, title: meta.title, markdown: '', status: 'failed', issue: e instanceof Error ? e.message : String(e) };
-  }
-
-  if (review.status !== 'ok') {
-    try {
-      const repaired = sanitizePartMarkdown(
-        stripOuterMarkdownFence(await callAI(prompt + buildInnovationTreeSelfRepairSuffix(partIndex, review.issue || ''), ctx.options)),
-      );
-      const second = reviewInnovationTreePart(partIndex, repaired);
-      if (second.status === 'ok' || !markdown) {
-        markdown = repaired;
-        review = second;
-      }
-    } catch (e) {
-      if (e instanceof GenerationCancelledError) throw e;
-      console.warn(`[Árbol] El reintento de ${meta.title} tampoco funcionó.`);
-    }
-  }
-  return { number: meta.number, title: meta.title, markdown, status: review.status, issue: review.issue };
+  return generateReviewedPart({
+    number: meta.number,
+    title: meta.title,
+    prompt: buildInnovationTreePartPrompt(ctx.inputs, partIndex, previous),
+    options: ctx.options,
+    review: (markdown) => reviewInnovationTreePart(partIndex, markdown),
+    repairSuffix: (issue) => buildInnovationTreeSelfRepairSuffix(partIndex, issue),
+    logTag: 'Árbol',
+  });
 }
 
 /**

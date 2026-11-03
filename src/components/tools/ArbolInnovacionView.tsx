@@ -529,5 +529,3 @@ export const ArbolInnovacionView: React.FC<Props> = ({ onNavigate }) => {
     </div>
   );
 };
-
-export default ArbolInnovacionView;

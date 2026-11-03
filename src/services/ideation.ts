@@ -3,7 +3,8 @@
  * independiente. El insumo puede ser un tema, un archivo, una señal del Observatorio o
  * el Estudio Territorial.
  */
-import { beginGenerationFlow, callAI, defaultCallOptions, GenerationCancelledError, leerNucleoTexto, stripOuterMarkdownFence } from '@/services/ai';
+import { beginGenerationFlow, defaultCallOptions, leerNucleoTexto } from '@/services/ai';
+import { generateReviewedPart } from '@/services/reviewedPart';
 import { useStore, type Prompt0Data } from '@/store/useStore';
 import { getMaxThemeStepContainerChars, truncateAtBoundary, truncateContainerForDocument } from '@/lib/promptBudget';
 import { fichaIdentity } from '@/lib/fichaIdentity';
@@ -13,7 +14,6 @@ import {
   buildThemeVocationPartPrompt,
   buildVocationSelfRepairSuffix,
   reviewVocationPart,
-  sanitizePartMarkdown,
   VOCATION_PARTS,
   type GenerationPartProgress,
   type GenerationPartResult,
@@ -80,34 +80,15 @@ async function prepareVocationContext(source: InputSource): Promise<VocationCont
 async function generateVocationPart(ctx: VocationContext, partIndex: number, previous: string): Promise<GenerationPartResult> {
   const meta = VOCATION_PARTS[partIndex];
   if (!meta) throw new Error(`Parte de vocación inválida: ${partIndex + 1}`);
-  const prompt = buildThemeVocationPartPrompt(ctx.inputs, partIndex, previous);
-
-  let markdown = '';
-  let review: ReturnType<typeof reviewVocationPart>;
-  try {
-    markdown = sanitizePartMarkdown(stripOuterMarkdownFence(await callAI(prompt, ctx.options)));
-    review = reviewVocationPart(partIndex, markdown);
-  } catch (e) {
-    if (e instanceof GenerationCancelledError) throw e;
-    return { number: meta.number, title: meta.title, markdown: '', status: 'failed', issue: e instanceof Error ? e.message : String(e) };
-  }
-
-  if (review.status !== 'ok') {
-    try {
-      const repaired = sanitizePartMarkdown(
-        stripOuterMarkdownFence(await callAI(prompt + buildVocationSelfRepairSuffix(partIndex, review.issue || ''), ctx.options)),
-      );
-      const second = reviewVocationPart(partIndex, repaired);
-      if (second.status === 'ok' || !markdown) {
-        markdown = repaired;
-        review = second;
-      }
-    } catch (e) {
-      if (e instanceof GenerationCancelledError) throw e;
-      console.warn(`[Ideación] El reintento de ${meta.title} tampoco funcionó.`);
-    }
-  }
-  return { number: meta.number, title: meta.title, markdown, status: review.status, issue: review.issue };
+  return generateReviewedPart({
+    number: meta.number,
+    title: meta.title,
+    prompt: buildThemeVocationPartPrompt(ctx.inputs, partIndex, previous),
+    options: ctx.options,
+    review: (markdown) => reviewVocationPart(partIndex, markdown),
+    repairSuffix: (issue) => buildVocationSelfRepairSuffix(partIndex, issue),
+    logTag: 'Ideación',
+  });
 }
 
 export async function generateThemeVocationAndOptions(source: InputSource, onProgress?: (p: GenerationPartProgress) => void): Promise<GeneratedDocument> {
