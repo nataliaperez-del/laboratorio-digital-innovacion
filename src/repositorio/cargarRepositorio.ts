@@ -22,10 +22,7 @@ export function cargarManifest(): Promise<Manifest> {
   manifestPromesa = (async () => {
     const res = await fetch(REPO_MANIFEST_URL, { cache: 'no-cache' });
     if (!res.ok) {
-      throw new Error(
-        `No se pudo leer el manifiesto del núcleo (${REPO_MANIFEST_URL}, HTTP ${res.status}). ` +
-          `Ejecuta «npm run sellar» para regenerarlo.`,
-      );
+      throw new Error(`No se pudo leer el manifiesto del núcleo (${REPO_MANIFEST_URL}, HTTP ${res.status}). ` + `Ejecuta «npm run sellar» para regenerarlo.`);
     }
     const manifest = (await res.json()) as Manifest;
     manifestCache = manifest;
@@ -42,11 +39,7 @@ export function cargarManifest(): Promise<Manifest> {
 }
 
 /** Metadatos de recursos según filtro. Requiere el manifiesto ya cargado (usa `cargarManifest` antes). */
-export function listarRecursos(filtro?: {
-  grupo?: GrupoRepositorio;
-  tipo?: TipoRecurso;
-  soloVigentes?: boolean;
-}): RecursoMeta[] {
+export function listarRecursos(filtro?: { grupo?: GrupoRepositorio; tipo?: TipoRecurso; soloVigentes?: boolean }): RecursoMeta[] {
   if (!manifestCache) {
     throw new Error('El manifiesto del núcleo no está cargado. Llama a cargarManifest() antes de listarRecursos().');
   }
@@ -82,9 +75,7 @@ async function descargarRuta(ruta: string): Promise<string> {
 /** Contenido de un recurso por su id (p. ej. `generales.vocacion_cip`). Lanza si el id no existe. */
 export async function cargarRecurso(id: string): Promise<string> {
   const manifest = await cargarManifest();
-  const meta = (REPO_GRUPOS as readonly GrupoRepositorio[])
-    .flatMap((g) => manifest.grupos[g] ?? [])
-    .find((r) => r.id === id);
+  const meta = (REPO_GRUPOS as readonly GrupoRepositorio[]).flatMap((g) => manifest.grupos[g] ?? []).find((r) => r.id === id);
   if (!meta) throw new Error(`Recurso del núcleo no encontrado: «${id}».`);
   return descargarRuta(meta.ruta);
 }
@@ -93,9 +84,7 @@ export async function cargarRecurso(id: string): Promise<string> {
 export async function cargarGrupo(grupo: GrupoRepositorio): Promise<Recurso[]> {
   await cargarManifest();
   const metas = listarRecursos({ grupo, soloVigentes: true });
-  const recursos = await Promise.all(
-    metas.map(async (meta) => ({ meta, texto: await descargarRuta(meta.ruta) })),
-  );
+  const recursos = await Promise.all(metas.map(async (meta) => ({ meta, texto: await descargarRuta(meta.ruta) })));
   return recursos;
 }
 

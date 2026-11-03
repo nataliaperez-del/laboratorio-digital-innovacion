@@ -207,9 +207,40 @@ export function warmZoeVoice(): void {
 // los silencios y clics propios de cada frase y abreviaturas que cortaban la oración.
 
 /** Abreviaturas tras las que un punto no cierra la oración («No.» solo antes de un número: «claro que no.» sí cierra). */
-const ABBREVIATIONS = new Set(['sr', 'sra', 'srta', 'dr', 'dra', 'lic', 'ing', 'prof', 'aprox', 'núm', 'num', 'pág', 'pag', 'ej', 'ud', 'uds', 'vs', 'cap', 'art', 'av', 'tel']);
+const ABBREVIATIONS = new Set([
+  'sr',
+  'sra',
+  'srta',
+  'dr',
+  'dra',
+  'lic',
+  'ing',
+  'prof',
+  'aprox',
+  'núm',
+  'num',
+  'pág',
+  'pag',
+  'ej',
+  'ud',
+  'uds',
+  'vs',
+  'cap',
+  'art',
+  'av',
+  'tel',
+]);
 /** espeak lee estas abreviaturas como fin de oración: se escriben completas. */
-const EXPANSIONS: Record<string, string> = { sr: 'señor', sra: 'señora', srta: 'señorita', dr: 'doctor', dra: 'doctora', aprox: 'aproximadamente', núm: 'número', pág: 'página' };
+const EXPANSIONS: Record<string, string> = {
+  sr: 'señor',
+  sra: 'señora',
+  srta: 'señorita',
+  dr: 'doctor',
+  dra: 'doctora',
+  aprox: 'aproximadamente',
+  núm: 'número',
+  pág: 'página',
+};
 /** Una oración más larga que esto se parte por su «;» o su «,» más central. */
 const MAX_SENTENCE_CHARS = 400;
 /** La primera parte se dice corta: es la que hace esperar mientras se genera. */
@@ -217,18 +248,20 @@ const QUICK_START_CHARS = 100;
 
 /** El texto como se debe pronunciar: sin formato ni emojis, sin abreviaturas que corten y con pausas donde hay puntos suspensivos. */
 export function speechText(text: string): string {
-  return text
-    .replace(/[*_#`~>|]+/g, ' ')
-    .replace(/\p{Extended_Pictographic}/gu, '')
-    .replace(/innova\s?hub\s?360/gi, 'Innova Jab tres sesenta')
-    .replace(/\by\/o\b/gi, 'y o')
-    .replace(/\b(Sr|Sra|Srta|Dr|Dra|aprox|Aprox|Núm|núm|Pág|pág)\.\s?/g, (_, word: string) => `${EXPANSIONS[word.toLowerCase()]} `)
-    .replace(/\bNo\.\s?(?=\d)/g, 'número ')
-    // Puntos suspensivos: en medio, una pausa breve (espeak pegaba las palabras); al final, un punto.
-    .replace(/(\.\.\.|…)\s*$/, '.')
-    .replace(/(\.\.\.|…)(?=\s*\S)/g, ',')
-    .replace(/\s{2,}/g, ' ')
-    .trim();
+  return (
+    text
+      .replace(/[*_#`~>|]+/g, ' ')
+      .replace(/\p{Extended_Pictographic}/gu, '')
+      .replace(/innova\s?hub\s?360/gi, 'Innova Jab tres sesenta')
+      .replace(/\by\/o\b/gi, 'y o')
+      .replace(/\b(Sr|Sra|Srta|Dr|Dra|aprox|Aprox|Núm|núm|Pág|pág)\.\s?/g, (_, word: string) => `${EXPANSIONS[word.toLowerCase()]} `)
+      .replace(/\bNo\.\s?(?=\d)/g, 'número ')
+      // Puntos suspensivos: en medio, una pausa breve (espeak pegaba las palabras); al final, un punto.
+      .replace(/(\.\.\.|…)\s*$/, '.')
+      .replace(/(\.\.\.|…)(?=\s*\S)/g, ',')
+      .replace(/\s{2,}/g, ' ')
+      .trim()
+  );
 }
 
 /** Parte una oración demasiado larga por el «;» o la «,» más cercana a su mitad. */

@@ -86,11 +86,7 @@ export function getMaxC2TerritorialPromptDocCharsForContainer(provider: AIProvid
  * no partir una fase o un criterio de calidad a media frase. El aviso resultante se
  * incrusta en el prompt para que el modelo sepa que el texto llegó incompleto.
  */
-export function truncateAtBoundary(
-  text: string,
-  maxChars: number,
-  label: string,
-): { text: string; wasTruncated: boolean; notice: string } {
+export function truncateAtBoundary(text: string, maxChars: number, label: string): { text: string; wasTruncated: boolean; notice: string } {
   if (text.length <= maxChars) return { text, wasTruncated: false, notice: '' };
   const head = text.slice(0, maxChars);
   // Se busca el corte limpio en el último 20% para no perder demasiado contenido.
@@ -105,10 +101,7 @@ export function truncateAtBoundary(
   };
 }
 
-export function truncateContainerForDocument(
-  containerData: string,
-  maxChars: number,
-): { text: string; wasTruncated: boolean; notice: string } {
+export function truncateContainerForDocument(containerData: string, maxChars: number): { text: string; wasTruncated: boolean; notice: string } {
   if (containerData.length <= maxChars) {
     return { text: containerData, wasTruncated: false, notice: '' };
   }

@@ -74,25 +74,45 @@ export const RadarView: React.FC<Props> = ({ onNavigate }) => {
       </ToolHeader>
 
       <ErrorNotice message={error} onClose={() => setError(null)} />
-      {error && <button type="button" className="lab-btn" onClick={load}>Reintentar</button>}
-      {!feed && !error && <p className="lab-panel text-sm text-brand-textMuted" role="status">Leyendo el Radar del Observatorio…</p>}
+      {error && (
+        <button type="button" className="lab-btn" onClick={load}>
+          Reintentar
+        </button>
+      )}
+      {!feed && !error && (
+        <p className="lab-panel text-sm text-brand-textMuted" role="status">
+          Leyendo el Radar del Observatorio…
+        </p>
+      )}
 
       {feed && (
         <>
           <div className="lab-panel flex flex-wrap items-center gap-3">
-            <SegmentedControl<'radar' | 'lista'> label="Vista" value={view} onChange={setView} options={[{ value: 'radar', label: 'Radar' }, { value: 'lista', label: 'Lista' }]} />
+            <SegmentedControl<'radar' | 'lista'>
+              label="Vista"
+              value={view}
+              onChange={setView}
+              options={[
+                { value: 'radar', label: 'Radar' },
+                { value: 'lista', label: 'Lista' },
+              ]}
+            />
             <label className="text-xs text-brand-textMuted flex items-center gap-2">
               Área
               <select className="lab-input py-1.5" value={area} onChange={(e) => setArea(e.target.value)}>
                 <option value="todas">Todas</option>
-                {areas.map((a) => <option key={a}>{a}</option>)}
+                {areas.map((a) => (
+                  <option key={a}>{a}</option>
+                ))}
               </select>
             </label>
             <label className="text-xs text-brand-textMuted flex items-center gap-2">
               Prioridad
               <select className="lab-input py-1.5" value={priority} onChange={(e) => setPriority(e.target.value)}>
                 <option value="todas">Todas</option>
-                {priorities.map((p) => <option key={p}>{p}</option>)}
+                {priorities.map((p) => (
+                  <option key={p}>{p}</option>
+                ))}
               </select>
             </label>
             <span className="ml-auto text-xs text-brand-textMuted m" aria-live="polite">
@@ -104,19 +124,36 @@ export const RadarView: React.FC<Props> = ({ onNavigate }) => {
             <div className="lg:col-span-8 min-w-0">
               {view === 'radar' ? (
                 <div className="lab-tree-canvas p-3">
-                  <RadarScope all={feed.senales} visibleIds={visibleIds} activeId={activeId} relatedIds={active?.relacionadas ?? []} colorOf={colorOf} onSelect={(s) => setActiveId(s.id)} />
+                  <RadarScope
+                    all={feed.senales}
+                    visibleIds={visibleIds}
+                    activeId={activeId}
+                    relatedIds={active?.relacionadas ?? []}
+                    colorOf={colorOf}
+                    onSelect={(s) => setActiveId(s.id)}
+                  />
                   <div className="flex flex-wrap gap-4 px-2 pb-1 text-xs text-[#CFE6EE]">
                     <span>Sector: área · Cerca del centro: más impacto · Tamaño: más adopción</span>
                     {Object.entries(PRIORITY_COLOR).map(([k, c]) => (
-                      <span key={k} className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ background: c }} aria-hidden="true" /> Prioridad {k}</span>
+                      <span key={k} className="flex items-center gap-1.5">
+                        <span className="w-2.5 h-2.5 rounded-full" style={{ background: c }} aria-hidden="true" /> Prioridad {k}
+                      </span>
                     ))}
                   </div>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {signals.map((s) => (
-                    <button key={s.id} type="button" aria-pressed={s.id === activeId} className={`lab-card text-left ${s.id === activeId ? 'is-selected' : ''}`} onClick={() => setActiveId(s.id)}>
-                      <span className="text-[11px] text-brand-textMuted block">{s.area} · {s.accion}</span>
+                    <button
+                      key={s.id}
+                      type="button"
+                      aria-pressed={s.id === activeId}
+                      className={`lab-card text-left ${s.id === activeId ? 'is-selected' : ''}`}
+                      onClick={() => setActiveId(s.id)}
+                    >
+                      <span className="text-[11px] text-brand-textMuted block">
+                        {s.area} · {s.accion}
+                      </span>
                       <span className="text-sm font-bold text-white sy block">{s.nombre}</span>
                       <span className="text-xs text-brand-textSecondary line-clamp-2">{s.descripcion}</span>
                     </button>
@@ -142,23 +179,40 @@ export const RadarView: React.FC<Props> = ({ onNavigate }) => {
                     ['Evidencia', active.evidencia],
                     ['Área', active.area],
                   ].map(([k, v]) => (
-                    <div key={k}><dt className="text-brand-textMuted">{k}</dt><dd className="font-semibold text-white">{v || '—'}</dd></div>
+                    <div key={k}>
+                      <dt className="text-brand-textMuted">{k}</dt>
+                      <dd className="font-semibold text-white">{v || '—'}</dd>
+                    </div>
                   ))}
                 </dl>
-                {active.casos.length > 0 && <p className="text-xs text-brand-textSecondary"><strong className="text-white">Casos:</strong> {active.casos.join(' · ')}</p>}
+                {active.casos.length > 0 && (
+                  <p className="text-xs text-brand-textSecondary">
+                    <strong className="text-white">Casos:</strong> {active.casos.join(' · ')}
+                  </p>
+                )}
                 {related.length > 0 && (
                   <div>
                     <span className="text-[11px] font-semibold text-brand-textMuted block mb-1">Señales relacionadas</span>
                     <div className="flex flex-wrap gap-1.5">
-                      {related.map((r) => <button key={r.id} type="button" className="lab-chip lab-chip-btn" onClick={() => setActiveId(r.id)}>{r.nombre}</button>)}
+                      {related.map((r) => (
+                        <button key={r.id} type="button" className="lab-chip lab-chip-btn" onClick={() => setActiveId(r.id)}>
+                          {r.nombre}
+                        </button>
+                      ))}
                     </div>
                   </div>
                 )}
                 <div className="pt-2 border-t border-white/10 space-y-2">
                   <span className="text-[11px] font-semibold text-brand-textMuted block">Usar esta señal en el Laboratorio</span>
-                  <button type="button" className="lab-btn w-full" onClick={() => toIdeation(active)}><BrainCircuit className="w-4 h-4" aria-hidden="true" /> Ideación</button>
-                  <button type="button" className="lab-btn w-full" onClick={() => toTree(active)}><Trees className="w-4 h-4" aria-hidden="true" /> Árbol de Innovación</button>
-                  <button type="button" className="lab-btn w-full" onClick={() => toPrototype(active)}><Rocket className="w-4 h-4" aria-hidden="true" /> Prototipado</button>
+                  <button type="button" className="lab-btn w-full" onClick={() => toIdeation(active)}>
+                    <BrainCircuit className="w-4 h-4" aria-hidden="true" /> Ideación
+                  </button>
+                  <button type="button" className="lab-btn w-full" onClick={() => toTree(active)}>
+                    <Trees className="w-4 h-4" aria-hidden="true" /> Árbol de Innovación
+                  </button>
+                  <button type="button" className="lab-btn w-full" onClick={() => toPrototype(active)}>
+                    <Rocket className="w-4 h-4" aria-hidden="true" /> Prototipado
+                  </button>
                 </div>
               </aside>
             )}

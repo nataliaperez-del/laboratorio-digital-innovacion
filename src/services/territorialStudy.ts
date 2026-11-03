@@ -2,14 +2,7 @@
  * Estudio Territorial: el mismo diagnóstico de la app Fase 1 (metodología MDVT en doce puntos
  * de entrega, procedencia de fuentes, autoevaluación y regeneración por bloque).
  */
-import {
-  beginGenerationFlow,
-  callAI,
-  GenerationCancelledError,
-  getUnadGeminiMaxOutputTokens,
-  leerNucleoTexto,
-  stripOuterMarkdownFence,
-} from '@/services/ai';
+import { beginGenerationFlow, callAI, GenerationCancelledError, getUnadGeminiMaxOutputTokens, leerNucleoTexto, stripOuterMarkdownFence } from '@/services/ai';
 import { useStore, type AIProvider, type Prompt0Data } from '@/store/useStore';
 import { getMaxC2TerritorialPromptDocCharsForContainer, getMaxCombinedSourceChars, truncateAtBoundary } from '@/lib/promptBudget';
 import {
@@ -61,9 +54,7 @@ function buildProcedenceSystemBlock(procedencia: Procedencia): string {
 
   const docs = procedencia.fuentesPropias.documentos;
   const inventario = docs.length
-    ? docs
-        .map((d) => `- ${d.nombre} (${d.mimeType}${d.modificado ? `, modificado ${d.modificado}` : ''})`)
-        .join('\n')
+    ? docs.map((d) => `- ${d.nombre} (${d.mimeType}${d.modificado ? `, modificado ${d.modificado}` : ''})`).join('\n')
     : '- (sin documentos legibles en el inventario)';
   return [
     '══════════════════════════════════════════════════',
@@ -87,19 +78,11 @@ interface Contenedor2Context {
   procedencia: Procedencia;
 }
 
-async function prepareContenedor2Context(
-  prompt0Data: Prompt0Data,
-  institutionalDriveText?: string,
-  procedenciaArg?: Procedencia,
-): Promise<Contenedor2Context> {
+async function prepareContenedor2Context(prompt0Data: Prompt0Data, institutionalDriveText?: string, procedenciaArg?: Procedencia): Promise<Contenedor2Context> {
   const { aiProvider, institutionalDriveBundle, fuentesMode, fuentesConexion } = useStore.getState();
   await cargarManifest();
-  const procedencia =
-    procedenciaArg ?? construirProcedencia({ manifest: manifestActual(), fuentesMode, fuentesConexion });
-  const driveCombined =
-    (institutionalDriveText && institutionalDriveText.trim()) ||
-    institutionalDriveBundle?.text?.trim() ||
-    '';
+  const procedencia = procedenciaArg ?? construirProcedencia({ manifest: manifestActual(), fuentesMode, fuentesConexion });
+  const driveCombined = (institutionalDriveText && institutionalDriveText.trim()) || institutionalDriveBundle?.text?.trim() || '';
   const territoryMatch = findTerritoryMatch(institutionalDriveBundle?.territories, prompt0Data.municipality || '');
   const territory = territoryMatch?.sources ?? null;
   const identity = fichaIdentity(prompt0Data);
@@ -110,11 +93,7 @@ async function prepareContenedor2Context(
   }
 
   const maxMeth = getMaxC2TerritorialPromptDocCharsForContainer(aiProvider);
-  const methodology = truncateAtBoundary(
-    c2Methodology.trim(),
-    maxMeth,
-    'Marco metodológico del Estudio Territorial',
-  );
+  const methodology = truncateAtBoundary(c2Methodology.trim(), maxMeth, 'Marco metodológico del Estudio Territorial');
   const instructionSlice = methodology.text + methodology.notice;
   if (methodology.wasTruncated) {
     console.warn(
@@ -122,10 +101,7 @@ async function prepareContenedor2Context(
     );
   }
 
-  const maxSources = Math.max(
-    getMaxCombinedSourceChars(aiProvider) - methodology.text.length,
-    Math.floor(getMaxCombinedSourceChars(aiProvider) * 0.3),
-  );
+  const maxSources = Math.max(getMaxCombinedSourceChars(aiProvider) - methodology.text.length, Math.floor(getMaxCombinedSourceChars(aiProvider) * 0.3));
 
   let territoryTrimmed = '';
   let territoryNotice = '';
@@ -147,17 +123,13 @@ async function prepareContenedor2Context(
   const instTrimmed = institutionalBlock.text;
   const budgetNotice = institutionalBlock.notice;
   if (institutionalBlock.includedFiles.length) {
-    console.info(
-      `[Contenedor 2] Fuentes generales enviadas al modelo: ${institutionalBlock.includedFiles.join(', ')}`,
-    );
+    console.info(`[Contenedor 2] Fuentes generales enviadas al modelo: ${institutionalBlock.includedFiles.join(', ')}`);
   }
   focusMatchedFiles = [...focusMatchedFiles, ...institutionalBlock.keywordMatchedFiles];
   if (identity.focusText) {
     console.info(
       `[Contenedor 2] Tema previsto «${identity.focusText}»: ${
-        focusMatchedFiles.length
-          ? `lo mencionan ${focusMatchedFiles.join(', ')}`
-          : 'ningún archivo del repositorio lo menciona'
+        focusMatchedFiles.length ? `lo mencionan ${focusMatchedFiles.join(', ')}` : 'ningún archivo del repositorio lo menciona'
       }.`,
     );
   }
@@ -264,11 +236,7 @@ ${instTrimmed}
   };
 }
 
-async function generateContenedor2Section(
-  ctx: Contenedor2Context,
-  point: Contenedor2Point,
-  previousMarkdown: string,
-): Promise<Contenedor2SectionResult> {
+async function generateContenedor2Section(ctx: Contenedor2Context, point: Contenedor2Point, previousMarkdown: string): Promise<Contenedor2SectionResult> {
   if (point.kind === 'app') {
     const md = buildContenedor2AppPoint(point, previousMarkdown);
     return {
@@ -329,10 +297,7 @@ async function generateContenedor2Section(
           previousMarkdown + (repairedBlock ? '\n\n' + repairedBlock : ''),
           ctx.identity.displayName,
         );
-        const repairPrompt =
-          part === 0
-            ? basePrompt + buildContenedor2SelfRepairSuffix(point, review.issue || '')
-            : basePrompt;
+        const repairPrompt = part === 0 ? basePrompt + buildContenedor2SelfRepairSuffix(point, review.issue || '') : basePrompt;
         const repairedRaw = await callAI(repairPrompt, {
           googleSearch: true,
           ...(ctx.aiProvider === 'unadGemini' ? { maxOutputTokens: getUnadGeminiMaxOutputTokens() } : {}),

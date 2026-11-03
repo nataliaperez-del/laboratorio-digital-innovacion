@@ -151,9 +151,18 @@ export function parseInsightCards(markdown: string): InsightCard[] {
   for (const block of buildDocumentPlan(markdown).blocks) {
     if (block.kind !== 'list') continue;
     for (const item of block.items) {
-      const bold = item.inline.filter((n) => n.bold).map((n) => n.text).join('').replace(/[:.]\s*$/, '').trim();
+      const bold = item.inline
+        .filter((n) => n.bold)
+        .map((n) => n.text)
+        .join('')
+        .replace(/[:.]\s*$/, '')
+        .trim();
       const full = inlineToPlainText(item.inline);
-      cards.push(bold && bold.length <= 90 ? { title: bold, body: full.slice(bold.length).replace(/^[\s:.—–-]+/, '') } : { title: full.slice(0, 80), body: full.length > 80 ? full : '' });
+      cards.push(
+        bold && bold.length <= 90
+          ? { title: bold, body: full.slice(bold.length).replace(/^[\s:.—–-]+/, '') }
+          : { title: full.slice(0, 80), body: full.length > 80 ? full : '' },
+      );
     }
   }
   return cards.length >= 2 ? cards : [];

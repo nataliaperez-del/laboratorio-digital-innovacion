@@ -12,7 +12,9 @@
     "deploy:package": "npm run build && node scripts/empaquetar-hostinger.mjs",
     "sellar": "node scripts/sellar-repositorio.mjs",
     "predev": "node scripts/sellar-repositorio.mjs",
-    "prebuild": "node scripts/sellar-repositorio.mjs"
+    "prebuild": "node scripts/sellar-repositorio.mjs",
+    "format": "prettier --write \"src/**/*.{ts,tsx}\" \"tests/**/*.ts\" \"scripts/*.mjs\" vite.config.ts vite-plugin-unad-gemini-proxy.ts",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"tests/**/*.ts\" \"scripts/*.mjs\" vite.config.ts vite-plugin-unad-gemini-proxy.ts"
   },
   "dependencies": {
     "@google/genai": "^1.29.0",
@@ -41,6 +43,7 @@
     "@types/three": "^0.174.0",
     "@vercel/node": "^5.3.0",
     "autoprefixer": "^10.4.21",
+    "prettier": "3.3.3",
     "tailwindcss": "^4.1.14",
     "typescript": "~5.8.2",
     "vitest": "^3.2.7"

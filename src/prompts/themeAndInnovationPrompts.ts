@@ -58,7 +58,10 @@ ${prev}
 /** Sanitiza una parte eliminando cercas, rayas y líneas de borde. */
 export function sanitizePartMarkdown(markdown: string): string {
   let text = markdown.trim();
-  text = text.replace(/^```(?:markdown)?\r?\n/i, '').replace(/\r?\n```$/i, '').trim();
+  text = text
+    .replace(/^```(?:markdown)?\r?\n/i, '')
+    .replace(/\r?\n```$/i, '')
+    .trim();
   text = text.replace(/^[═─—_\-]{3,}\s*$/gm, '');
   text = text.replace(/^\s*([-*_])\1{2,}\s*$/gm, '');
   text = text.replace(/\n{3,}/g, '\n\n');
@@ -178,11 +181,7 @@ ${institutionalVocacionPromptText.trim()}
 `.trim();
 }
 
-export function buildThemeVocationPartPrompt(
-  inputs: VocationPromptInputs,
-  partIndex: number,
-  previousMarkdown: string,
-): string {
+export function buildThemeVocationPartPrompt(inputs: VocationPromptInputs, partIndex: number, previousMarkdown: string): string {
   const meta = VOCATION_PARTS[partIndex];
   if (!meta) throw new Error(`Parte de vocación inválida: ${partIndex}`);
 

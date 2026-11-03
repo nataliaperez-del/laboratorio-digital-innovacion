@@ -50,7 +50,13 @@ const MAX_BY_LEVEL: Record<TreeLevel, number> = { suelo: 8, raiz: 6, tronco: 1, 
 
 /** Padre por defecto de cada nivel, para reparar derivaciones perdidas. */
 const PARENT_LEVEL: Partial<Record<TreeLevel, TreeLevel>> = {
-  global: 'tronco', nacional: 'global', territorial: 'nacional', hoja: 'territorial', fruto: 'hoja', raiz: 'tronco', suelo: 'tronco',
+  global: 'tronco',
+  nacional: 'global',
+  territorial: 'nacional',
+  hoja: 'territorial',
+  fruto: 'hoja',
+  raiz: 'tronco',
+  suelo: 'tronco',
 };
 
 const text = (v: unknown): string => (typeof v === 'string' ? v.trim() : '');
@@ -122,9 +128,7 @@ export function parseTreeGraph(tema: string, raw: unknown): TreeGraph {
       derivan: [],
       fuentes: strings(item.fuentes),
       alertas: strings(item.alertas),
-      ...(nivel === 'fruto'
-        ? { tipo_fruto: fruitType(item.tipo_fruto), solucion: text(item.solucion), impacto_esperado: text(item.impacto_esperado) }
-        : {}),
+      ...(nivel === 'fruto' ? { tipo_fruto: fruitType(item.tipo_fruto), solucion: text(item.solucion), impacto_esperado: text(item.impacto_esperado) } : {}),
     });
   }
   if (!nodos.some((n) => n.nivel === 'global') || !nodos.some((n) => n.nivel === 'fruto')) {
@@ -135,26 +139,23 @@ export function parseTreeGraph(tema: string, raw: unknown): TreeGraph {
 
 // ─── Reconstrucción desde el documento ─────────────────────────────────────
 
-const clean = (s: string): string =>
-  s
-    .replace(/==/g, '')
-    .replace(/[*_`]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
+const clean = (s: string): string => s.replace(/==/g, '').replace(/[*_`]/g, '').replace(/\s+/g, ' ').trim();
 
-const normalize = (s: string): string =>
-  clean(s)
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase();
+const normalize = (s: string): string => clean(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
 /** Índice de la tendencia del nivel padre con el nombre más parecido; 0 si no hay parecido. */
 function bestMatch(name: string, candidates: readonly TreeNode[]): TreeNode | undefined {
-  const words = new Set(normalize(name).split(/[^a-z0-9]+/).filter((w) => w.length > 3));
+  const words = new Set(
+    normalize(name)
+      .split(/[^a-z0-9]+/)
+      .filter((w) => w.length > 3),
+  );
   let best: TreeNode | undefined;
   let score = 0;
   for (const c of candidates) {
-    const hits = normalize(c.nombre).split(/[^a-z0-9]+/).filter((w) => words.has(w)).length;
+    const hits = normalize(c.nombre)
+      .split(/[^a-z0-9]+/)
+      .filter((w) => words.has(w)).length;
     if (hits > score) {
       best = c;
       score = hits;
@@ -230,14 +231,18 @@ export function buildTreeFromMarkdown(tema: string, markdown: string): TreeGraph
     const d = column(table, ...descCol);
     for (const row of table.rows) {
       if (!row[n]) continue;
-      push(nivel, row[n], d >= 0 ? row[d] ?? '' : '', bestMatch(row[n], parents()));
+      push(nivel, row[n], d >= 0 ? (row[d] ?? '') : '', bestMatch(row[n], parents()));
     }
   };
 
   const level = (nivel: TreeLevel) => nodos.filter((x) => x.nivel === nivel);
   addLevel(find('tendencia global'), ['tendencia global'], ['descripcion'], 'global', () => [trunk]);
-  addLevel(find('tendencia seleccionada', 'razon de pertinencia'), ['tendencia seleccionada', 'tendencia'], ['razon', 'pertinencia'], 'nacional', () => level('global'));
-  addLevel(find('justificacion territorial', 'problema que atiende'), ['tendencia territorial', 'tendencia'], ['justificacion'], 'territorial', () => level('nacional'));
+  addLevel(find('tendencia seleccionada', 'razon de pertinencia'), ['tendencia seleccionada', 'tendencia'], ['razon', 'pertinencia'], 'nacional', () =>
+    level('global'),
+  );
+  addLevel(find('justificacion territorial', 'problema que atiende'), ['tendencia territorial', 'tendencia'], ['justificacion'], 'territorial', () =>
+    level('nacional'),
+  );
 
   const conversion = find('oportunidad de innovacion');
   if (conversion) {

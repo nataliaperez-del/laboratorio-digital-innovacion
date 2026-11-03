@@ -11,7 +11,10 @@ afterEach(() => {
 describe('conexión con el proxy de IA', () => {
   it('reintenta si el servidor no responde y sigue cuando vuelve', async () => {
     vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-    const fetch = vi.fn().mockRejectedValueOnce(new TypeError('Failed to fetch')).mockResolvedValueOnce(new Response('{}', { status: 200 }));
+    const fetch = vi
+      .fn()
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      .mockResolvedValueOnce(new Response('{}', { status: 200 }));
     vi.stubGlobal('fetch', fetch);
     const res = await postToProxy({ contents: [] }, undefined, noWait);
     expect(res.status).toBe(200);

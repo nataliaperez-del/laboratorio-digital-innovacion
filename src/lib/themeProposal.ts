@@ -22,8 +22,7 @@ const TITLE_SEPARATOR = String.raw`\s*\**\s*[:.\-–—)]*\s*\**\s*`;
 const BOLD_LEVEL = 7;
 
 /** Títulos que cierran o suceden a la sección de opciones (no son opciones). */
-const CLOSING_TITLE =
-  /(verificaci|traspaso|alineaci|siguiente\s+paso|cierre|s[ií]ntesis|alertas?|fuentes|referencias|anexo)/i;
+const CLOSING_TITLE = /(verificaci|traspaso|alineaci|siguiente\s+paso|cierre|s[ií]ntesis|alertas?|fuentes|referencias|anexo)/i;
 
 /**
  * Encabezado de una opción en cualquiera de las formas que produce el modelo:
@@ -47,19 +46,13 @@ function themeHeadingRegex(): RegExp {
  * del título. Evita confundir una mención en prosa («la opción 2 exige…») con un título.
  */
 function isLabelledThemeLine(line: string): boolean {
-  return (
-    /^\s*(?:#{2,6}\s|[-*+]\s|\d+[.)]\s|\*\*)/.test(line) || /\d\s*\**\s*[:.\-–—)]/.test(line)
-  );
+  return /^\s*(?:#{2,6}\s|[-*+]\s|\d+[.)]\s|\*\*)/.test(line) || /\d\s*\**\s*[:.\-–—)]/.test(line);
 }
 
 /** Título de opción sin numeración, rótulo ni negrillas. */
 function cleanThemeTitle(raw: string, index: number): string {
   const label = new RegExp(
-    String.raw`^\s*` +
-      SECTION_NUMBER +
-      String.raw`(?:${THEME_LABEL}\s*(?:de\s+)?(?:tema\s*)?(?:n[.°º]?\s*)?\d*` +
-      TITLE_SEPARATOR +
-      String.raw`)?`,
+    String.raw`^\s*` + SECTION_NUMBER + String.raw`(?:${THEME_LABEL}\s*(?:de\s+)?(?:tema\s*)?(?:n[.°º]?\s*)?\d*` + TITLE_SEPARATOR + String.raw`)?`,
     'i',
   );
   const cleaned = raw.replace(/\*+/g, '').replace(label, '').trim();
@@ -75,9 +68,7 @@ function cleanThemeTitle(raw: string, index: number): string {
 function makeTheme(rawTitle: string, body: string, index: number): ParsedTheme {
   const inline =
     rawTitle.match(/^\s*\*\*\s*(.+?)\s*\*\*\s*[:—–]?\s*(.*)$/) ??
-    (rawTitle.replace(/\*+/g, '').trim().length > 90
-      ? rawTitle.match(/^\s*(.+?)\s*(?:[—–]|\s-\s|:)\s*(.+)$/)
-      : null);
+    (rawTitle.replace(/\*+/g, '').trim().length > 90 ? rawTitle.match(/^\s*(.+?)\s*(?:[—–]|\s-\s|:)\s*(.+)$/) : null);
 
   const title = cleanThemeTitle(inline ? inline[1] : rawTitle, index);
   const lead = inline ? inline[2].trim() : '';
@@ -127,7 +118,7 @@ function themesFromHeadings(md: string): { start: number; themes: ParsedTheme[] 
     const start = (m.index ?? 0) + m[0].length;
     // El cuerpo termina en la siguiente opción o en la próxima sección posterior,
     // lo que ocurra primero (clave para la última opción, que si no llegaría al final).
-    const nextThemeStart = i < matches.length - 1 ? matches[i + 1].index ?? md.length : md.length;
+    const nextThemeStart = i < matches.length - 1 ? (matches[i + 1].index ?? md.length) : md.length;
     const end = Math.min(nextThemeStart, themeBodyEnd(md, start));
     return makeTheme(m[2] ?? '', md.slice(start, end).trim(), i);
   });
@@ -188,9 +179,7 @@ interface OptionsSection {
  */
 function findOptionsSections(md: string): OptionsSection[] {
   const headings = documentHeadings(md);
-  const candidates = headings
-    .map((heading, i) => ({ heading, i }))
-    .filter(({ heading }) => isOptionsSectionTitle(heading.text));
+  const candidates = headings.map((heading, i) => ({ heading, i })).filter(({ heading }) => isOptionsSectionTitle(heading.text));
 
   const sections = candidates.map(({ heading, i }) => {
     const sectionNumber = topSectionNumber(heading.text);
@@ -236,18 +225,12 @@ function themesFromSectionItems(md: string, section: OptionsSection): ParsedThem
     return items;
   };
 
-  const candidates = [
-    collect(/^#{2,6}\s+(.+?)\s*$/gm, 1),
-    collect(/^\*\*\s*(.+?)\s*\*\*[:.]?\s*$/gm, 1),
-    collect(/^\s*(\d)[.)]\s+(.+?)\s*$/gm, 2, true),
-  ];
+  const candidates = [collect(/^#{2,6}\s+(.+?)\s*$/gm, 1), collect(/^\*\*\s*(.+?)\s*\*\*[:.]?\s*$/gm, 1), collect(/^\s*(\d)[.)]\s+(.+?)\s*$/gm, 2, true)];
 
   const items = candidates.find((list) => list.length === 3);
   if (!items) return null;
 
-  return items.map((item, i) =>
-    makeTheme(item.title, md.slice(item.bodyStart, items[i + 1]?.index ?? section.end).trim(), i),
-  );
+  return items.map((item, i) => makeTheme(item.title, md.slice(item.bodyStart, items[i + 1]?.index ?? section.end).trim(), i));
 }
 
 /** Celdas de una fila de tabla Markdown, sin las barras de los extremos. */
@@ -262,9 +245,7 @@ function tableCells(line: string): string[] {
 /** Último recurso: la sección presenta las opciones como filas de una tabla. */
 function themesFromTable(md: string, section: OptionsSection): ParsedTheme[] | null {
   const lines = md.slice(section.start, section.end).split(/\r?\n/);
-  const headerIndex = lines.findIndex(
-    (line, i) => /^\s*\|/.test(line) && /^\s*\|[\s:|-]+\|\s*$/.test(lines[i + 1] ?? ''),
-  );
+  const headerIndex = lines.findIndex((line, i) => /^\s*\|/.test(line) && /^\s*\|[\s:|-]+\|\s*$/.test(lines[i + 1] ?? ''));
   if (headerIndex < 0) return null;
 
   const headers = tableCells(lines[headerIndex]).map((h) => h.replace(/\*+/g, '').trim());
@@ -277,9 +258,7 @@ function themesFromTable(md: string, section: OptionsSection): ParsedTheme[] | n
 
   return rows.slice(0, 3).map((row, i) => {
     // La primera columna suele ser solo el rótulo de la opción («Opción 2», «2»).
-    const isLabelColumn = new RegExp(`^(?:${THEME_LABEL}\\b.*)?\\s*\\d?\\s*$`, 'i').test(
-      row[0]?.replace(/\*+/g, '') ?? '',
-    );
+    const isLabelColumn = new RegExp(`^(?:${THEME_LABEL}\\b.*)?\\s*\\d?\\s*$`, 'i').test(row[0]?.replace(/\*+/g, '') ?? '');
     const titleColumn = isLabelColumn ? 1 : 0;
     const body = row
       .map((cell, column) => {

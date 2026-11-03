@@ -96,7 +96,9 @@ Sin declarar.`);
   it('lee el nivel declarado y los elementos separados por <br>, como responde el modelo real', () => {
     const pillars = parsePillars('### Pilar 1: Capital humano\nTexto.\n**Nivel de evidencia declarada:** Medio');
     expect(pillars[0]).toMatchObject({ evidence: 'medio', shortTitle: 'Capital humano' });
-    const variants = parsePillars('### A\nTexto. Nivel de evidencia de este pilar: Alto.\n\n### B\nTexto.\n\n**Nivel de evidencia: bajo**\n\n### C\nLa zona evidencia vacíos altos.');
+    const variants = parsePillars(
+      '### A\nTexto. Nivel de evidencia de este pilar: Alto.\n\n### B\nTexto.\n\n**Nivel de evidencia: bajo**\n\n### C\nLa zona evidencia vacíos altos.',
+    );
     expect(variants.map((p) => p.evidence)).toEqual(['alto', 'bajo', null]);
     const foda = parseFoda(`| Categoría FODA | Componentes | Evidencia | Fuente |
 |---|---|---|---|
@@ -112,7 +114,9 @@ Sin declarar.`);
   });
 
   it('cuenta las alertas reales y las etiqueta', () => {
-    const alerts = parseAlerts('a ==⚠️ ALERTA DE VERIFICACIÓN HUMANA: sin PIB (VACÍO-VERIFICAR)== b ==⚠️ ALERTA DE VERIFICACIÓN HUMANA: dato viejo (REQUIERE CONTRASTE)==');
+    const alerts = parseAlerts(
+      'a ==⚠️ ALERTA DE VERIFICACIÓN HUMANA: sin PIB (VACÍO-VERIFICAR)== b ==⚠️ ALERTA DE VERIFICACIÓN HUMANA: dato viejo (REQUIERE CONTRASTE)==',
+    );
     expect(alerts).toEqual([
       { label: 'VACÍO-VERIFICAR', detail: 'sin PIB' },
       { label: 'REQUIERE CONTRASTE', detail: 'dato viejo' },
@@ -160,7 +164,12 @@ describe('prototipado', () => {
 
   it('conserva el origen y genera un informe con cronograma', () => {
     const plan = normalizePrototypePlan(
-      { name: 'Plan', hypothesis: 'H', phases: [{ fase: 'Fase 1', semanas: 'Semanas 1-2', actividades: 'A', entregables: ['E'] }], risks: [{ riesgo: 'R', mitigacion: 'M' }] },
+      {
+        name: 'Plan',
+        hypothesis: 'H',
+        phases: [{ fase: 'Fase 1', semanas: 'Semanas 1-2', actividades: 'A', entregables: ['E'] }],
+        risks: [{ riesgo: 'R', mitigacion: 'M' }],
+      },
       BRIEF,
     );
     expect(plan.origin.code).toBe('FR-01');

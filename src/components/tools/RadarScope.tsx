@@ -143,10 +143,24 @@ export const RadarScope: React.FC<Props> = ({ all, visibleIds, activeId, related
     <div className="radar-scope">
       <div className="radar-scope-stage">
         <canvas ref={canvasRef} className="radar-scope-canvas" aria-hidden="true" />
-        <svg viewBox={`0 0 ${VIEW} ${VIEW}`} className="radar-scope-svg select-none" role="group" aria-label="Radar de señales del Observatorio. Cada sector es un área; cuanto más cerca del centro, mayor impacto territorial.">
+        <svg
+          viewBox={`0 0 ${VIEW} ${VIEW}`}
+          className="radar-scope-svg select-none"
+          role="group"
+          aria-label="Radar de señales del Observatorio. Cada sector es un área; cuanto más cerca del centro, mayor impacto territorial."
+        >
           {/* Retícula: anillos de alcance, sectores y marcas de rumbo. */}
           {[0.25, 0.5, 0.75, 1].map((f) => (
-            <circle key={f} cx={CENTER} cy={CENTER} r={RADIUS * f} fill="none" stroke="#9FE8FF" strokeOpacity={f === 1 ? 0.65 : 0.2} strokeWidth={f === 1 ? 2 : 1} />
+            <circle
+              key={f}
+              cx={CENTER}
+              cy={CENTER}
+              r={RADIUS * f}
+              fill="none"
+              stroke="#9FE8FF"
+              strokeOpacity={f === 1 ? 0.65 : 0.2}
+              strokeWidth={f === 1 ? 2 : 1}
+            />
           ))}
           {Array.from({ length: 72 }, (_, i) => {
             const major = i % 6 === 0;
@@ -169,16 +183,33 @@ export const RadarScope: React.FC<Props> = ({ all, visibleIds, activeId, related
               </g>
             );
           })}
-          {[{ f: 0.25, t: 'Impacto alto' }, { f: 0.75, t: 'Impacto bajo' }].map(({ f, t }) => (
-            <text key={t} x={CENTER + 6} y={CENTER - RADIUS * f - 6} fontSize="14" fill="#9FE8FF" fillOpacity="0.72">{t}</text>
+          {[
+            { f: 0.25, t: 'Impacto alto' },
+            { f: 0.75, t: 'Impacto bajo' },
+          ].map(({ f, t }) => (
+            <text key={t} x={CENTER + 6} y={CENTER - RADIUS * f - 6} fontSize="14" fill="#9FE8FF" fillOpacity="0.72">
+              {t}
+            </text>
           ))}
 
           {/* Enlaces de la señal fijada con sus relacionadas. */}
-          {active && relatedIds.map((id) => {
-            const other = plotOf.get(id);
-            if (!other || !visibleIds.has(id)) return null;
-            return <line key={id} x1={toView(active.x)} y1={toView(active.y)} x2={toView(other.x)} y2={toView(other.y)} stroke="#9FE8FF" strokeOpacity="0.45" strokeDasharray="5 5" />;
-          })}
+          {active &&
+            relatedIds.map((id) => {
+              const other = plotOf.get(id);
+              if (!other || !visibleIds.has(id)) return null;
+              return (
+                <line
+                  key={id}
+                  x1={toView(active.x)}
+                  y1={toView(active.y)}
+                  x2={toView(other.x)}
+                  y2={toView(other.y)}
+                  stroke="#9FE8FF"
+                  strokeOpacity="0.45"
+                  strokeDasharray="5 5"
+                />
+              );
+            })}
 
           {plots.map((plot) => {
             const signal = byId.get(plot.id);
@@ -225,7 +256,9 @@ export const RadarScope: React.FC<Props> = ({ all, visibleIds, activeId, related
       </div>
 
       <div className="radar-scope-readout" aria-hidden="true">
-        <span><b>{shownCount}</b> contactos en pantalla</span>
+        <span>
+          <b>{shownCount}</b> contactos en pantalla
+        </span>
         {lastContact && contact ? (
           <span className="radar-scope-contact">
             Último contacto: <b>{lastContact.nombre}</b> · rumbo {String(Math.round(contact.bearing)).padStart(3, '0')}° · impacto {lastContact.impacto}%

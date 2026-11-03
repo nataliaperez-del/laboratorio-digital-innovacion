@@ -17,11 +17,7 @@ function pickVoice(): SpeechSynthesisVoice | undefined {
   const voices = window.speechSynthesis.getVoices();
   const latin = (v: SpeechSynthesisVoice) => /^es-(419|MX|CO|US|AR|CL|PE|VE)/i.test(v.lang);
   const male = (v: SpeechSynthesisVoice) => /raul|jorge|diego|carlos|alonso|gonzalo|male|natural/i.test(v.name);
-  return (
-    voices.find((v) => latin(v) && male(v)) ||
-    voices.find(latin) ||
-    voices.find((v) => v.lang.toLowerCase().startsWith('es'))
-  );
+  return voices.find((v) => latin(v) && male(v)) || voices.find(latin) || voices.find((v) => v.lang.toLowerCase().startsWith('es'));
 }
 
 /** Una locución más larga que esto puede pasar de 15 segundos, y Chrome la corta a la mitad (solo para la voz del sistema). */
@@ -328,7 +324,10 @@ export function useZoeVoice() {
         };
         recognition.onresult = (event: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => {
           if (!isCurrent()) return;
-          spoken = Array.from(event.results, (result) => result[0]?.transcript ?? '').join(' ').replace(/\s+/g, ' ').trim();
+          spoken = Array.from(event.results, (result) => result[0]?.transcript ?? '')
+            .join(' ')
+            .replace(/\s+/g, ' ')
+            .trim();
           onPartial?.(spoken);
           window.clearTimeout(endTimer);
           endTimer = window.setTimeout(finish, END_OF_SPEECH_MS);

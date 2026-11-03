@@ -156,7 +156,12 @@ export class ZoeClipDirector {
 
   /** Clip que se repite mientras el cuerpo está en un estado. */
   private loopOf(state: ZoeBodyState): Step {
-    const loop = (role: ClipRole | 'rest', fade = FADE): Step => ({ action: this.actions.get(role) ?? this.actions.get('rest')!, direction: 1, loop: true, fade });
+    const loop = (role: ClipRole | 'rest', fade = FADE): Step => ({
+      action: this.actions.get(role) ?? this.actions.get('rest')!,
+      direction: 1,
+      loop: true,
+      fade,
+    });
     const hold = (role: ClipRole): Step => ({ action: this.actions.get(role)!, direction: 1, loop: false, fade: FADE });
     switch (state) {
       case 'walk':

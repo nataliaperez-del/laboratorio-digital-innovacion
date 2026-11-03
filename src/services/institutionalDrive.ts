@@ -6,8 +6,7 @@ import { getCachedDriveFile, pruneDriveCache, setCachedDriveFile } from '@/lib/d
  * https://drive.google.com/drive/folders/1fWqgAlPTjjDi_ZLb6CfU0sFLG7bOKZ5g
  * Se puede cambiar sin tocar código con VITE_DRIVE_FOLDER_ID en .env.local.
  */
-export const INSTITUTIONAL_DRIVE_FOLDER_ID =
-  import.meta.env.VITE_DRIVE_FOLDER_ID?.trim() || '1fWqgAlPTjjDi_ZLb6CfU0sFLG7bOKZ5g';
+export const INSTITUTIONAL_DRIVE_FOLDER_ID = import.meta.env.VITE_DRIVE_FOLDER_ID?.trim() || '1fWqgAlPTjjDi_ZLb6CfU0sFLG7bOKZ5g';
 
 /** Límite de caracteres del bloque Drive en el prompt (evita exceder contexto del modelo). Por defecto 900000; opcional: VITE_MAX_INSTITUTIONAL_CHARS en .env.local */
 export function getMaxInstitutionalTextChars(): number {
@@ -123,15 +122,11 @@ export interface TerritoryMatch {
  * declarar esa trazabilidad, y quedarse con la primera coincidencia en silencio ocultaría
  * justo lo que hay que reportar.
  */
-export function findTerritoryMatch(
-  territories: DriveTerritorySources[] | undefined | null,
-  municipality: string,
-): TerritoryMatch | null {
+export function findTerritoryMatch(territories: DriveTerritorySources[] | undefined | null, municipality: string): TerritoryMatch | null {
   if (!territories?.length || !municipality.trim()) return null;
   const want = normalizeTerritoryName(municipality);
   if (!want) return null;
-  const segmentsOf = (t: DriveTerritorySources) =>
-    (t.folderNames?.length ? t.folderNames : [t.name]).map(normalizeTerritoryName);
+  const segmentsOf = (t: DriveTerritorySources) => (t.folderNames?.length ? t.folderNames : [t.name]).map(normalizeTerritoryName);
 
   const byTier: [TerritoryMatchTier, DriveTerritorySources[]][] = [
     ['exact', territories.filter((t) => normalizeTerritoryName(t.name) === want)],
@@ -146,10 +141,7 @@ export function findTerritoryMatch(
   return null;
 }
 
-export function findTerritorySources(
-  territories: DriveTerritorySources[] | undefined | null,
-  municipality: string,
-): DriveTerritorySources | null {
+export function findTerritorySources(territories: DriveTerritorySources[] | undefined | null, municipality: string): DriveTerritorySources | null {
   return findTerritoryMatch(territories, municipality)?.sources ?? null;
 }
 
@@ -271,12 +263,7 @@ export function requestDriveReadonlyToken(): Promise<string> {
     const client = window.google!.accounts.oauth2.initTokenClient({
       client_id: clientId,
       scope: 'https://www.googleapis.com/auth/drive.readonly',
-      callback: (resp: {
-        access_token?: string;
-        expires_in?: number;
-        error?: string;
-        error_description?: string;
-      }) => {
+      callback: (resp: { access_token?: string; expires_in?: number; error?: string; error_description?: string }) => {
         if (resp.error) {
           reject(new Error(resp.error_description || resp.error));
           return;
@@ -300,11 +287,7 @@ export function requestDriveReadonlyToken(): Promise<string> {
             ),
           );
         } else if (err?.type === 'popup_closed') {
-          reject(
-            new Error(
-              'La ventana de Google se cerró antes de completar el acceso. Pulsa de nuevo "Conectar Contenedor 1" y elige tu cuenta.',
-            ),
-          );
+          reject(new Error('La ventana de Google se cerró antes de completar el acceso. Pulsa de nuevo "Conectar Contenedor 1" y elige tu cuenta.'));
         } else {
           reject(new Error(`No se pudo completar el acceso a Google: ${err?.message || err?.type || 'error desconocido'}`));
         }
@@ -324,8 +307,7 @@ async function listFilesInFolder(folderId: string, token: string): Promise<Drive
   do {
     const params = new URLSearchParams({
       q,
-      fields:
-        'nextPageToken, files(id, name, mimeType, size, modifiedTime, shortcutDetails(targetId, targetMimeType))',
+      fields: 'nextPageToken, files(id, name, mimeType, size, modifiedTime, shortcutDetails(targetId, targetMimeType))',
       pageSize: '100',
       // Sin estos dos parámetros, la API omite todo lo que viva en una unidad compartida.
       supportsAllDrives: 'true',
@@ -369,9 +351,7 @@ async function resolveShortcut(item: DriveFileMeta, token: string): Promise<Driv
   if (!targetId) return null;
   const meta = await fetchFileMeta(targetId, token);
   if (!meta) {
-    return item.shortcutDetails?.targetMimeType
-      ? { ...item, id: targetId, mimeType: item.shortcutDetails.targetMimeType }
-      : null;
+    return item.shortcutDetails?.targetMimeType ? { ...item, id: targetId, mimeType: item.shortcutDetails.targetMimeType } : null;
   }
   return { ...meta, name: meta.name || item.name };
 }
@@ -398,9 +378,7 @@ async function collectSupportedFilesRecursive(
   visitedFolderIds: Set<string> = new Set(),
 ): Promise<CollectStats> {
   if (depth > MAX_FOLDER_DEPTH) {
-    errors.push(
-      `[aviso] Profundidad de carpetas mayor a ${MAX_FOLDER_DEPTH} en una rama; esa rama no se siguió.`,
-    );
+    errors.push(`[aviso] Profundidad de carpetas mayor a ${MAX_FOLDER_DEPTH} en una rama; esa rama no se siguió.`);
     return stats;
   }
   // Los accesos directos pueden formar ciclos entre carpetas.
@@ -412,9 +390,7 @@ async function collectSupportedFilesRecursive(
   const items = await listFilesInFolder(folderId, token);
   for (const item of items) {
     if (acc.length >= MAX_FILES_TO_PROCESS) {
-      errors.push(
-        `[aviso] Se alcanzó el límite de ${MAX_FILES_TO_PROCESS} archivos; puede haber más en la carpeta.`,
-      );
+      errors.push(`[aviso] Se alcanzó el límite de ${MAX_FILES_TO_PROCESS} archivos; puede haber más en la carpeta.`);
       return stats;
     }
     let entry = item;
@@ -427,16 +403,7 @@ async function collectSupportedFilesRecursive(
       entry = resolved;
     }
     if (entry.mimeType === FOLDER_MIME) {
-      await collectSupportedFilesRecursive(
-        entry.id,
-        token,
-        depth + 1,
-        acc,
-        errors,
-        [...pathParts, entry.name],
-        stats,
-        visitedFolderIds,
-      );
+      await collectSupportedFilesRecursive(entry.id, token, depth + 1, acc, errors, [...pathParts, entry.name], stats, visitedFolderIds);
     } else if (isSupportedMime(entry)) {
       acc.push({ ...entry, folderPath: pathParts });
     } else {
@@ -447,12 +414,7 @@ async function collectSupportedFilesRecursive(
   return stats;
 }
 
-async function recognizeImageOcr(
-  ocrWorker: TesseractWorker,
-  buffer: ArrayBuffer,
-  mimeType: string,
-  label: string,
-): Promise<string> {
+async function recognizeImageOcr(ocrWorker: TesseractWorker, buffer: ArrayBuffer, mimeType: string, label: string): Promise<string> {
   const blob = new Blob([buffer], { type: mimeType });
   const {
     data: { text },
@@ -464,11 +426,7 @@ async function recognizeImageOcr(
   return trimmed;
 }
 
-async function extractOneFile(
-  file: DriveFileMeta,
-  token: string,
-  ocrState: { worker: TesseractWorker | null },
-): Promise<{ text: string; error?: string }> {
+async function extractOneFile(file: DriveFileMeta, token: string, ocrState: { worker: TesseractWorker | null }): Promise<{ text: string; error?: string }> {
   if (file.mimeType === FOLDER_MIME) {
     return { text: '', error: undefined };
   }
@@ -621,9 +579,7 @@ function territoryFolderNamesFromPaths(folderPaths: string[]): string[] {
   return all.filter((p) => !all.some((other) => other !== p && other.startsWith(`${p}/`)));
 }
 
-export async function loadInstitutionalDocumentsFromDrive(
-  folderId: string = INSTITUTIONAL_DRIVE_FOLDER_ID,
-): Promise<LoadInstitutionalDriveResult> {
+export async function loadInstitutionalDocumentsFromDrive(folderId: string = INSTITUTIONAL_DRIVE_FOLDER_ID): Promise<LoadInstitutionalDriveResult> {
   await loadGoogleIdentityScript();
   const token = await requestDriveReadonlyToken();
 
@@ -636,10 +592,7 @@ export async function loadInstitutionalDocumentsFromDrive(
   const fileNames: string[] = [];
   const documents: DriveDocumentMeta[] = [];
   const filePaths: string[] = [];
-  const territoryMap = new Map<
-    string,
-    { name: string; chunks: string[]; fileNames: string[]; folderNames: Set<string> }
-  >();
+  const territoryMap = new Map<string, { name: string; chunks: string[]; fileNames: string[]; folderNames: Set<string> }>();
   let fromCacheCount = 0;
 
   try {
@@ -663,8 +616,7 @@ export async function loadInstitutionalDocumentsFromDrive(
         const territory = territoryNameForFile(file);
         if (territory) {
           const key = normalizeTerritoryName(territory.name);
-          const entry =
-            territoryMap.get(key) || { name: territory.name, chunks: [], fileNames: [], folderNames: new Set<string>() };
+          const entry = territoryMap.get(key) || { name: territory.name, chunks: [], fileNames: [], folderNames: new Set<string>() };
           entry.chunks.push(text);
           entry.fileNames.push(file.name);
           for (const seg of territory.segments) entry.folderNames.add(seg);
@@ -693,9 +645,7 @@ export async function loadInstitutionalDocumentsFromDrive(
 
   // La lectura desde caché local es un detalle interno: no se notifica al usuario.
   if (fromCacheCount > 0) {
-    console.info(
-      `[Contenedor 1] ${fromCacheCount} de ${fileNames.length} archivos se leyeron desde la caché local.`,
-    );
+    console.info(`[Contenedor 1] ${fromCacheCount} de ${fileNames.length} archivos se leyeron desde la caché local.`);
   }
 
   let combined = chunks.join('\n');
@@ -739,14 +689,7 @@ export function extractDriveFolderId(input: string): string | null {
 }
 
 /** Estados de la conexión de fuentes propias que la Fase 2 traduce a un indicador (bombillo). */
-export type EstadoConexionFuentes =
-  | 'CONECTADA'
-  | 'VACIA'
-  | 'SIN_PERMISO'
-  | 'NO_ENCONTRADA'
-  | 'SESION_CADUCADA'
-  | 'ACCESO_REVOCADO'
-  | 'ERROR_RED';
+export type EstadoConexionFuentes = 'CONECTADA' | 'VACIA' | 'SIN_PERMISO' | 'NO_ENCONTRADA' | 'SESION_CADUCADA' | 'ACCESO_REVOCADO' | 'ERROR_RED';
 
 /** Error de conexión con un `code` estable para pintar el estado correcto en la interfaz. */
 export class DriveFolderError extends Error {
@@ -781,45 +724,38 @@ export async function connectOwnSourcesFolder(folderId: string): Promise<{
 }> {
   await loadGoogleIdentityScript();
   let token: string;
-    try {
-      token = await requestDriveReadonlyToken();
-    } catch (e) {
-      throw new DriveFolderError(
-        'SESION_CADUCADA',
-        e instanceof Error ? e.message : 'No se pudo renovar el acceso a Google Drive.',
-      );
-    }
-    // Comprobación previa: existencia y permiso de la carpeta, para distinguir 403/404.
-    let meta: Response;
-    try {
-      const params = new URLSearchParams({ fields: 'id, name, mimeType', supportsAllDrives: 'true' });
-      meta = await fetch(
-        `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(folderId)}?${params}`,
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
-    } catch {
-      throw new DriveFolderError('ERROR_RED', 'No se pudo contactar con Google Drive. Revisa tu conexión.');
-    }
-    if (!meta.ok) {
-      const code = estadoDesdeHttp(meta.status);
-      const mensajes: Record<EstadoConexionFuentes, string> = {
-        CONECTADA: '',
-        VACIA: '',
-        SIN_PERMISO: 'La carpeta existe pero tu cuenta no tiene permiso para leerla. Pide acceso o compártela con tu correo institucional.',
-        NO_ENCONTRADA: 'No se encontró ninguna carpeta con ese enlace. Verifica que sea correcto y que no esté en la papelera.',
-        SESION_CADUCADA: 'La sesión de Google caducó. Vuelve a ingresar y reintenta.',
-        ACCESO_REVOCADO: 'Se revocó el acceso a Drive. Vuelve a ingresar y otorga permiso de lectura.',
-        ERROR_RED: 'No se pudo contactar con Google Drive. Revisa tu conexión.',
-      };
-      throw new DriveFolderError(code, mensajes[code]);
-    }
-    const info = (await meta.json()) as { mimeType?: string };
-    if (info.mimeType && info.mimeType !== FOLDER_MIME && info.mimeType !== SHORTCUT_MIME) {
-      throw new DriveFolderError(
-        'NO_ENCONTRADA',
-        'El enlace apunta a un archivo, no a una carpeta. Pega el enlace de la carpeta que contiene tus fuentes.',
-      );
-    }
+  try {
+    token = await requestDriveReadonlyToken();
+  } catch (e) {
+    throw new DriveFolderError('SESION_CADUCADA', e instanceof Error ? e.message : 'No se pudo renovar el acceso a Google Drive.');
+  }
+  // Comprobación previa: existencia y permiso de la carpeta, para distinguir 403/404.
+  let meta: Response;
+  try {
+    const params = new URLSearchParams({ fields: 'id, name, mimeType', supportsAllDrives: 'true' });
+    meta = await fetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(folderId)}?${params}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  } catch {
+    throw new DriveFolderError('ERROR_RED', 'No se pudo contactar con Google Drive. Revisa tu conexión.');
+  }
+  if (!meta.ok) {
+    const code = estadoDesdeHttp(meta.status);
+    const mensajes: Record<EstadoConexionFuentes, string> = {
+      CONECTADA: '',
+      VACIA: '',
+      SIN_PERMISO: 'La carpeta existe pero tu cuenta no tiene permiso para leerla. Pide acceso o compártela con tu correo institucional.',
+      NO_ENCONTRADA: 'No se encontró ninguna carpeta con ese enlace. Verifica que sea correcto y que no esté en la papelera.',
+      SESION_CADUCADA: 'La sesión de Google caducó. Vuelve a ingresar y reintenta.',
+      ACCESO_REVOCADO: 'Se revocó el acceso a Drive. Vuelve a ingresar y otorga permiso de lectura.',
+      ERROR_RED: 'No se pudo contactar con Google Drive. Revisa tu conexión.',
+    };
+    throw new DriveFolderError(code, mensajes[code]);
+  }
+  const info = (await meta.json()) as { mimeType?: string };
+  if (info.mimeType && info.mimeType !== FOLDER_MIME && info.mimeType !== SHORTCUT_MIME) {
+    throw new DriveFolderError('NO_ENCONTRADA', 'El enlace apunta a un archivo, no a una carpeta. Pega el enlace de la carpeta que contiene tus fuentes.');
+  }
 
   let result: LoadInstitutionalDriveResult;
   try {
@@ -847,10 +783,34 @@ function fileKey(name: string): string {
  * Se descartan al comparar por términos.
  */
 const GENERIC_NAME_TOKENS = new Set([
-  'PROMPT', 'PROMPTS', 'INSTRUCCION', 'INSTRUCCIONES', 'DOCUMENTO', 'DOCUMENTOS',
-  'ARCHIVO', 'FORMATO', 'VERSION', 'ACTUALIZADA', 'ACTUALIZADO', 'ACTUALIZACION',
-  'FINAL', 'COPIA', 'COPY', 'V1', 'V2', 'V3', 'V4', 'UNAD',
-  'DE', 'DEL', 'LA', 'EL', 'LOS', 'LAS', 'Y', 'PARA',
+  'PROMPT',
+  'PROMPTS',
+  'INSTRUCCION',
+  'INSTRUCCIONES',
+  'DOCUMENTO',
+  'DOCUMENTOS',
+  'ARCHIVO',
+  'FORMATO',
+  'VERSION',
+  'ACTUALIZADA',
+  'ACTUALIZADO',
+  'ACTUALIZACION',
+  'FINAL',
+  'COPIA',
+  'COPY',
+  'V1',
+  'V2',
+  'V3',
+  'V4',
+  'UNAD',
+  'DE',
+  'DEL',
+  'LA',
+  'EL',
+  'LOS',
+  'LAS',
+  'Y',
+  'PARA',
 ]);
 
 /** Términos que sí distinguen a este archivo de los demás del repositorio. */
@@ -891,11 +851,7 @@ function nameMatchTier(nameKey: string, candidateKey: string): NameMatchTier | n
  * a las listas de prioridad/exclusión del bloque institucional, donde un falso positivo
  * descartaría en silencio una fuente real del territorio.
  */
-export function findByReferenceName<T>(
-  items: readonly T[],
-  nameOf: (item: T) => string,
-  candidates: string[],
-): T | null {
+export function findByReferenceName<T>(items: readonly T[], nameOf: (item: T) => string, candidates: string[]): T | null {
   const candidateKeys = candidates.map(fileKey).filter(Boolean);
   for (const tier of NAME_MATCH_TIERS) {
     for (const candidateKey of candidateKeys) {
@@ -940,10 +896,7 @@ function scanBundleSections(bundleText: string): { name: string; marker: string;
  * Busca un archivo dentro del bloque combinado devuelto por `loadInstitutionalDocumentsFromDrive`,
  * probando varios nombres candidatos (vigente + históricos) y sin exigir que la extensión coincida.
  */
-export function extractFirstInstitutionalFileFromBundle(
-  bundleText: string,
-  fileNames: string[],
-): string | null {
+export function extractFirstInstitutionalFileFromBundle(bundleText: string, fileNames: string[]): string | null {
   if (!bundleText.trim()) return null;
   const sections = scanBundleSections(bundleText).filter((s) => s.text);
   if (!sections.length) return null;
@@ -1021,9 +974,7 @@ export function buildPrioritizedInstitutionalBlock(
     return keys.some((k) => key === k || key.startsWith(k));
   };
 
-  const usable = sections
-    .filter((s) => s.text && !matches(s.name, excludeKeys))
-    .map((s) => ({ ...s, hits: keywordHits(s.text, keywords) }));
+  const usable = sections.filter((s) => s.text && !matches(s.name, excludeKeys)).map((s) => ({ ...s, hits: keywordHits(s.text, keywords) }));
   const keywordMatchedFiles = usable.filter((s) => s.hits > 0).map((s) => s.name);
   // Orden estable: el criterio principal sigue siendo la prioridad por nombre de archivo.
   const byKeywords = (a: { hits: number }, b: { hits: number }) => b.hits - a.hits;

@@ -16,7 +16,9 @@ describe('las manos de ZOE', () => {
   });
 
   it('descarta acciones inválidas y una pantalla que no existe', () => {
-    const reply = parseAgentReply('{"decir": "Vamos.", "acciones": [{"hacer": "ir", "herramienta": "cocina"}, {"hacer": "volar"}, {"hacer": "ir", "herramienta": "arbol"}], "seguir": true}');
+    const reply = parseAgentReply(
+      '{"decir": "Vamos.", "acciones": [{"hacer": "ir", "herramienta": "cocina"}, {"hacer": "volar"}, {"hacer": "ir", "herramienta": "arbol"}], "seguir": true}',
+    );
     expect(reply.acciones).toEqual([{ hacer: 'ir', herramienta: 'arbol' }]);
     expect(reply.seguir).toBe(true);
   });

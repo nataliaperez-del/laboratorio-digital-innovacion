@@ -34,17 +34,30 @@ function isAlertOnly(nodes: readonly InlineNode[]): boolean {
 const Block: React.FC<{ block: PlanBlock }> = ({ block }) => {
   switch (block.kind) {
     case 'heading':
-      return <h4 className="text-sm font-bold text-white sy mt-3"><InlineText nodes={block.inline} /></h4>;
+      return (
+        <h4 className="text-sm font-bold text-white sy mt-3">
+          <InlineText nodes={block.inline} />
+        </h4>
+      );
     case 'paragraph':
       if (isAlertOnly(block.inline)) {
         return (
           <div className="lab-callout" role="note">
             <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
-            <span>{block.inline.map((n) => n.text).join('').replace(/^⚠️\s*/, '')}</span>
+            <span>
+              {block.inline
+                .map((n) => n.text)
+                .join('')
+                .replace(/^⚠️\s*/, '')}
+            </span>
           </div>
         );
       }
-      return <p className="text-sm leading-relaxed text-brand-textSecondary"><InlineText nodes={block.inline} /></p>;
+      return (
+        <p className="text-sm leading-relaxed text-brand-textSecondary">
+          <InlineText nodes={block.inline} />
+        </p>
+      );
     case 'list': {
       const Tag = block.ordered ? 'ol' : 'ul';
       return (
@@ -52,14 +65,22 @@ const Block: React.FC<{ block: PlanBlock }> = ({ block }) => {
           {block.items.map((item, i) => (
             <li key={i}>
               <InlineText nodes={item.inline} />
-              {item.children.map((c, j) => <Block key={j} block={c} />)}
+              {item.children.map((c, j) => (
+                <Block key={j} block={c} />
+              ))}
             </li>
           ))}
         </Tag>
       );
     }
     case 'quote':
-      return <blockquote className="border-l-2 border-[var(--brand-teal-text)] pl-3 space-y-2">{block.blocks.map((b, i) => <Block key={i} block={b} />)}</blockquote>;
+      return (
+        <blockquote className="border-l-2 border-[var(--brand-teal-text)] pl-3 space-y-2">
+          {block.blocks.map((b, i) => (
+            <Block key={i} block={b} />
+          ))}
+        </blockquote>
+      );
     case 'code':
       return <pre className="lab-code text-xs whitespace-pre-wrap p-3 rounded-lg">{block.text}</pre>;
     case 'rule':
@@ -78,11 +99,23 @@ export const DataTable: React.FC<{ title?: string; header: InlineNode[][]; rows:
     <div className="lab-table-wrap">
       <table className="lab-table">
         <thead>
-          <tr>{header.map((cell, i) => <th key={i} scope="col"><InlineText nodes={cell} /></th>)}</tr>
+          <tr>
+            {header.map((cell, i) => (
+              <th key={i} scope="col">
+                <InlineText nodes={cell} />
+              </th>
+            ))}
+          </tr>
         </thead>
         <tbody>
           {rows.map((row, i) => (
-            <tr key={i}>{row.map((cell, j) => <td key={j}><InlineText nodes={cell} /></td>)}</tr>
+            <tr key={i}>
+              {row.map((cell, j) => (
+                <td key={j}>
+                  <InlineText nodes={cell} />
+                </td>
+              ))}
+            </tr>
           ))}
         </tbody>
       </table>
@@ -132,11 +165,27 @@ export const RichDocument: React.FC<{ markdown: string; dropTitle?: boolean }> =
     <div className="space-y-3">
       {groups.map((group, i) =>
         group.title ? (
-          <Disclosure key={i} defaultOpen={groups.length <= 3} title={<span className="font-semibold text-white sy text-sm"><InlineText nodes={group.title} /></span>}>
-            <div className="space-y-3">{group.blocks.map((b, j) => <Block key={j} block={b} />)}</div>
+          <Disclosure
+            key={i}
+            defaultOpen={groups.length <= 3}
+            title={
+              <span className="font-semibold text-white sy text-sm">
+                <InlineText nodes={group.title} />
+              </span>
+            }
+          >
+            <div className="space-y-3">
+              {group.blocks.map((b, j) => (
+                <Block key={j} block={b} />
+              ))}
+            </div>
           </Disclosure>
         ) : (
-          <div key={i} className="space-y-3">{group.blocks.map((b, j) => <Block key={j} block={b} />)}</div>
+          <div key={i} className="space-y-3">
+            {group.blocks.map((b, j) => (
+              <Block key={j} block={b} />
+            ))}
+          </div>
         ),
       )}
     </div>

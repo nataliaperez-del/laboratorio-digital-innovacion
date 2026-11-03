@@ -53,9 +53,16 @@ describe('contexto de ZOE', () => {
     expect(empty).toContain('Sin Estudio Territorial');
     expect(empty).toContain('Sin árbol');
     const full = describeWork({
-      municipality: 'Pitalito', department: 'Huila', studyBlocks: 12, studyIssues: 1,
-      ideationSource: 'Café', hasProposal: true, chosenTheme: 'Biofábricas',
-      treeTheme: 'Café', treeCounts: { frutos: 3, territorial: 3 }, prototypes: ['Plan A'],
+      municipality: 'Pitalito',
+      department: 'Huila',
+      studyBlocks: 12,
+      studyIssues: 1,
+      ideationSource: 'Café',
+      hasProposal: true,
+      chosenTheme: 'Biofábricas',
+      treeTheme: 'Café',
+      treeCounts: { frutos: 3, territorial: 3 },
+      prototypes: ['Plan A'],
     });
     expect(full).toContain('Pitalito, Huila: 12 bloques, 1 por revisar');
     expect(full).toContain('tema elegido «Biofábricas»');
@@ -91,7 +98,20 @@ describe('turno de palabra', () => {
 describe('director de clips', () => {
   it('reconoce los clips de un autorig de cuadrúpedos (afk.ai)', () => {
     const roles = pickClips(['Idle', 'Idle Alert', 'Walk', 'Trot', 'Sit', 'Lie Down', 'Sleep', 'Tail Wag', 'Play Bow', 'Beg', 'Ear Scratch', 'Shake', 'Bark']);
-    expect(roles).toMatchObject({ idle: 'Idle', alert: 'Idle Alert', walk: 'Walk', trot: 'Trot', sit: 'Sit', lie: 'Lie Down', sleep: 'Sleep', happy: 'Tail Wag', play: 'Play Bow', wave: 'Beg', scratch: 'Ear Scratch', shake: 'Shake' });
+    expect(roles).toMatchObject({
+      idle: 'Idle',
+      alert: 'Idle Alert',
+      walk: 'Walk',
+      trot: 'Trot',
+      sit: 'Sit',
+      lie: 'Lie Down',
+      sleep: 'Sleep',
+      happy: 'Tail Wag',
+      play: 'Play Bow',
+      wave: 'Beg',
+      scratch: 'Ear Scratch',
+      shake: 'Shake',
+    });
   });
 
   it('entiende los nombres de este proyecto y los prefijos de Blender', () => {

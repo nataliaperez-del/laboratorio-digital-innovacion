@@ -49,13 +49,7 @@ export const BADGE_UNIT_THEMES: Record<string, { primary: string; glow: string; 
   },
 };
 
-const BaseImageBadge: React.FC<InternalBadgeProps> = ({
-  assetName,
-  title,
-  size = 96,
-  className = '',
-  isUnlocked = true,
-}) => {
+const BaseImageBadge: React.FC<InternalBadgeProps> = ({ assetName, title, size = 96, className = '', isUnlocked = true }) => {
   const pngSrc = `/assets/badges/${assetName}.png`;
   const webpSrc = `/assets/badges/${assetName}.webp`;
   const theme = BADGE_UNIT_THEMES[assetName] || {
@@ -172,11 +166,7 @@ export const BadgeGraphicRenderer: React.FC<{
 /**
  * Emblema de Rango para la cabecera, perfil y modal.
  */
-export const RankEmblem: React.FC<{ level: number; size?: number; className?: string }> = ({
-  level,
-  size = 64,
-  className = '',
-}) => {
+export const RankEmblem: React.FC<{ level: number; size?: number; className?: string }> = ({ level, size = 64, className = '' }) => {
   switch (level) {
     case 1:
       return <PioneroTerritorialBadge size={size} className={className} isUnlocked={true} />;

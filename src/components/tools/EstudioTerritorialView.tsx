@@ -10,18 +10,19 @@ import { connectOwnSourcesFolder, DriveFolderError, extractDriveFolderId } from 
 import { CONTENEDOR2_SECTIONS, type Contenedor2SectionResult } from '@/prompts/contenedor2Sections';
 import { estudioReport } from '@/lib/labReports';
 import { readInputFile, INPUT_FILE_ACCEPT } from '@/lib/readInputFile';
-import {
-  EVIDENCE_SCORE,
-  parseAlerts,
-  parseFoda,
-  parseInsightCards,
-  parsePillars,
-  parseSources,
-  type FodaMatrix,
-  type Pillar,
-} from '@/lib/territorialInsights';
+import { EVIDENCE_SCORE, parseAlerts, parseFoda, parseInsightCards, parsePillars, parseSources, type FodaMatrix, type Pillar } from '@/lib/territorialInsights';
 import { Disclosure, RichDocument } from '@/components/lab/RichDocument';
-import { BancoStatus, ClearButton, EmptyState, ErrorNotice, GenerationProgress, ReportActions, SectionReview, ToolHeader, type ProgressState } from '@/components/lab/common';
+import {
+  BancoStatus,
+  ClearButton,
+  EmptyState,
+  ErrorNotice,
+  GenerationProgress,
+  ReportActions,
+  SectionReview,
+  ToolHeader,
+  type ProgressState,
+} from '@/components/lab/common';
 import type { ToolId } from '@/components/layout/Header';
 
 const ZONAS_UNAD = [
@@ -69,7 +70,9 @@ const FodaView: React.FC<{ matrix: FodaMatrix }> = ({ matrix }) => (
         </h4>
         {matrix[key].length ? (
           <ul className="space-y-1.5 text-sm text-brand-textSecondary leading-snug list-disc pl-4">
-            {matrix[key].map((item, i) => <li key={i}>{item}</li>)}
+            {matrix[key].map((item, i) => (
+              <li key={i}>{item}</li>
+            ))}
           </ul>
         ) : (
           <p className="text-xs text-brand-textMuted">El estudio no declaró elementos en este cuadrante.</p>
@@ -88,7 +91,10 @@ const PillarsView: React.FC<{ pillars: Pillar[]; markdown: string }> = ({ pillar
           <button key={i} type="button" className="lab-card text-left" aria-expanded={open === i} onClick={() => setOpen(open === i ? null : i)}>
             <span className="text-sm font-bold text-white sy block mb-2">{p.shortTitle}</span>
             <span className="block h-1.5 rounded-full bg-white/10 overflow-hidden" aria-hidden="true">
-              <span className="block h-full bg-gradient-to-r from-[#2E9CBA] to-[#A8C63C]" style={{ width: `${p.evidence ? EVIDENCE_SCORE[p.evidence] : 0}%` }} />
+              <span
+                className="block h-full bg-gradient-to-r from-[#2E9CBA] to-[#A8C63C]"
+                style={{ width: `${p.evidence ? EVIDENCE_SCORE[p.evidence] : 0}%` }}
+              />
             </span>
             <span className="text-[11px] text-brand-textMuted mt-1.5 block">Evidencia: {p.evidence ?? 'no declarada'}</span>
           </button>
@@ -144,7 +150,11 @@ const BlockContent: React.FC<{ number: number; markdown: string }> = ({ number, 
   if (sources.length) {
     return (
       <ol className="space-y-2 text-sm text-brand-textSecondary list-decimal pl-5">
-        {sources.map((s, i) => <li key={i} className="break-words">{s}</li>)}
+        {sources.map((s, i) => (
+          <li key={i} className="break-words">
+            {s}
+          </li>
+        ))}
       </ol>
     );
   }
@@ -221,7 +231,12 @@ const OwnSources: React.FC<{ disabled: boolean; onError: (m: string) => void }> 
         verificadoEn: new Date().toISOString(),
         documentos: [
           ...(fuentesConexion?.documentos ?? []),
-          ...read.map((r) => ({ id: r.file.name, nombre: r.file.name, mimeType: r.file.type || 'archivo', modificado: new Date(r.file.lastModified).toISOString() })),
+          ...read.map((r) => ({
+            id: r.file.name,
+            nombre: r.file.name,
+            mimeType: r.file.type || 'archivo',
+            modificado: new Date(r.file.lastModified).toISOString(),
+          })),
         ],
       });
       setState('ok');
@@ -240,8 +255,12 @@ const OwnSources: React.FC<{ disabled: boolean; onError: (m: string) => void }> 
           <BookOpen className="w-4 h-4 text-[var(--brand-olive)]" aria-hidden="true" /> Fuentes primarias del territorio
         </h3>
         <div className="lab-seg" role="group" aria-label="Fuentes primarias">
-          <button type="button" aria-pressed={fuentesMode === 'sin_fuentes'} disabled={disabled} onClick={() => selectMode('sin_fuentes')}>Sin fuentes propias</button>
-          <button type="button" aria-pressed={fuentesMode === 'con_fuentes'} disabled={disabled} onClick={() => selectMode('con_fuentes')}>Con fuentes propias</button>
+          <button type="button" aria-pressed={fuentesMode === 'sin_fuentes'} disabled={disabled} onClick={() => selectMode('sin_fuentes')}>
+            Sin fuentes propias
+          </button>
+          <button type="button" aria-pressed={fuentesMode === 'con_fuentes'} disabled={disabled} onClick={() => selectMode('con_fuentes')}>
+            Con fuentes propias
+          </button>
         </div>
       </div>
       <p className="text-xs text-brand-textMuted leading-relaxed">
@@ -252,9 +271,19 @@ const OwnSources: React.FC<{ disabled: boolean; onError: (m: string) => void }> 
       {fuentesMode === 'con_fuentes' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           <div className="space-y-2">
-            <label className="text-xs font-semibold text-white block" htmlFor="fuentes-url">Carpeta de Google Drive</label>
+            <label className="text-xs font-semibold text-white block" htmlFor="fuentes-url">
+              Carpeta de Google Drive
+            </label>
             <div className="flex gap-2">
-              <input id="fuentes-url" type="url" className="lab-input" placeholder="https://drive.google.com/drive/folders/…" value={url} onChange={(e) => setUrl(e.target.value)} disabled={disabled} />
+              <input
+                id="fuentes-url"
+                type="url"
+                className="lab-input"
+                placeholder="https://drive.google.com/drive/folders/…"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                disabled={disabled}
+              />
               <button type="button" className="lab-btn shrink-0" disabled={disabled || !url.trim() || state === 'checking'} onClick={() => void connect()}>
                 <Link2 className="w-4 h-4" aria-hidden="true" /> {state === 'checking' ? 'Verificando…' : 'Conectar'}
               </button>
@@ -262,14 +291,28 @@ const OwnSources: React.FC<{ disabled: boolean; onError: (m: string) => void }> 
             {state === 'empty' && <p className="text-xs text-[#F3C26B]">La carpeta se abre pero no tiene documentos legibles.</p>}
           </div>
           <div className="space-y-2">
-            <label className="text-xs font-semibold text-white block" htmlFor="fuentes-archivos">O carga los archivos directamente</label>
-            <input id="fuentes-archivos" type="file" multiple accept={INPUT_FILE_ACCEPT} className="lab-input" disabled={disabled || uploading} onChange={(e) => void upload(e.target.files)} />
+            <label className="text-xs font-semibold text-white block" htmlFor="fuentes-archivos">
+              O carga los archivos directamente
+            </label>
+            <input
+              id="fuentes-archivos"
+              type="file"
+              multiple
+              accept={INPUT_FILE_ACCEPT}
+              className="lab-input"
+              disabled={disabled || uploading}
+              onChange={(e) => void upload(e.target.files)}
+            />
           </div>
         </div>
       )}
       {docs.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
-          {docs.map((d) => <span key={d.id} className="lab-chip">{d.nombre}</span>)}
+          {docs.map((d) => (
+            <span key={d.id} className="lab-chip">
+              {d.nombre}
+            </span>
+          ))}
           <button type="button" className="lab-btn lab-btn-sm" disabled={disabled} onClick={reset}>
             <Trash2 className="w-3 h-3" aria-hidden="true" /> Quitar
           </button>
@@ -395,7 +438,12 @@ export const EstudioTerritorialView: React.FC<Props> = ({ onNavigate }) => {
 
   const sendToIdeation = () => {
     const current = useStore.getState().ideationSource;
-    if (current?.kind !== 'estudio' && useStore.getState().themeProposalMarkdown.trim() && !window.confirm('Ya hay un resultado en Ideación. ¿Quieres reemplazarlo por uno basado en este estudio?')) return;
+    if (
+      current?.kind !== 'estudio' &&
+      useStore.getState().themeProposalMarkdown.trim() &&
+      !window.confirm('Ya hay un resultado en Ideación. ¿Quieres reemplazarlo por uno basado en este estudio?')
+    )
+      return;
     setIdeationResult({ kind: 'estudio', label: `Estudio Territorial de ${prompt0Data.municipality}`, text: containerData }, '', []);
     onNavigate('ideacion');
   };
@@ -438,46 +486,105 @@ export const EstudioTerritorialView: React.FC<Props> = ({ onNavigate }) => {
           <form onSubmit={saveFicha} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="lg:col-span-2">
-                <label className="lab-label" htmlFor="ficha-nombre">Nombre del proyecto o idea</label>
-                <input id="ficha-nombre" className="lab-input" value={form.labName} onChange={(e) => setForm({ ...form, labName: e.target.value })} placeholder="Ej: Bioinnovación Sabana Centro" />
+                <label className="lab-label" htmlFor="ficha-nombre">
+                  Nombre del proyecto o idea
+                </label>
+                <input
+                  id="ficha-nombre"
+                  className="lab-input"
+                  value={form.labName}
+                  onChange={(e) => setForm({ ...form, labName: e.target.value })}
+                  placeholder="Ej: Bioinnovación Sabana Centro"
+                />
                 <div className="flex flex-wrap items-center gap-3 mt-1.5 text-[11px] text-brand-textMuted">
                   <span>Lo escrito es:</span>
-                  {([['nombre', 'Solo un nombre'], ['tema', 'Un tema a verificar']] as const).map(([value, label]) => (
+                  {(
+                    [
+                      ['nombre', 'Solo un nombre'],
+                      ['tema', 'Un tema a verificar'],
+                    ] as const
+                  ).map(([value, label]) => (
                     <label key={value} className="flex items-center gap-1.5 cursor-pointer">
-                      <input type="radio" name="labNameKind" checked={(form.labNameKind ?? 'nombre') === value} onChange={() => setForm({ ...form, labNameKind: value })} />
+                      <input
+                        type="radio"
+                        name="labNameKind"
+                        checked={(form.labNameKind ?? 'nombre') === value}
+                        onChange={() => setForm({ ...form, labNameKind: value })}
+                      />
                       {label}
                     </label>
                   ))}
                 </div>
               </div>
               <div>
-                <label className="lab-label" htmlFor="ficha-zona">Zona UNAD *</label>
+                <label className="lab-label" htmlFor="ficha-zona">
+                  Zona UNAD *
+                </label>
                 <select id="ficha-zona" required className="lab-input" value={form.zonaUNAD} onChange={(e) => setForm({ ...form, zonaUNAD: e.target.value })}>
                   <option value="">Selecciona la zona…</option>
-                  {ZONAS_UNAD.map((z) => <option key={z}>{z}</option>)}
+                  {ZONAS_UNAD.map((z) => (
+                    <option key={z}>{z}</option>
+                  ))}
                 </select>
               </div>
               <div>
-                <label className="lab-label" htmlFor="ficha-depto">Departamento *</label>
-                <select id="ficha-depto" required className="lab-input" value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value, municipality: '' })}>
+                <label className="lab-label" htmlFor="ficha-depto">
+                  Departamento *
+                </label>
+                <select
+                  id="ficha-depto"
+                  required
+                  className="lab-input"
+                  value={form.department}
+                  onChange={(e) => setForm({ ...form, department: e.target.value, municipality: '' })}
+                >
                   <option value="">Selecciona…</option>
-                  {DIVIPOLA_DEPARTMENT_NAMES.map((d) => <option key={d}>{d}</option>)}
+                  {DIVIPOLA_DEPARTMENT_NAMES.map((d) => (
+                    <option key={d}>{d}</option>
+                  ))}
                 </select>
               </div>
               <div>
-                <label className="lab-label" htmlFor="ficha-muni">Municipio *</label>
-                <select id="ficha-muni" required disabled={!form.department} className="lab-input" value={form.municipality} onChange={(e) => setForm({ ...form, municipality: e.target.value })}>
+                <label className="lab-label" htmlFor="ficha-muni">
+                  Municipio *
+                </label>
+                <select
+                  id="ficha-muni"
+                  required
+                  disabled={!form.department}
+                  className="lab-input"
+                  value={form.municipality}
+                  onChange={(e) => setForm({ ...form, municipality: e.target.value })}
+                >
                   <option value="">{form.department ? 'Selecciona…' : 'Primero el departamento'}</option>
-                  {municipalities.map((m) => <option key={m}>{m}</option>)}
+                  {municipalities.map((m) => (
+                    <option key={m}>{m}</option>
+                  ))}
                 </select>
               </div>
               <div>
-                <label className="lab-label" htmlFor="ficha-enlace">Capital o nodo de enlace</label>
-                <input id="ficha-enlace" className="lab-input" value={form.capitalSede || ''} onChange={(e) => setForm({ ...form, capitalSede: e.target.value })} placeholder="Ej: Tunja" />
+                <label className="lab-label" htmlFor="ficha-enlace">
+                  Capital o nodo de enlace
+                </label>
+                <input
+                  id="ficha-enlace"
+                  className="lab-input"
+                  value={form.capitalSede || ''}
+                  onChange={(e) => setForm({ ...form, capitalSede: e.target.value })}
+                  placeholder="Ej: Tunja"
+                />
               </div>
               <div>
-                <label className="lab-label" htmlFor="ficha-lugar">Ubicación específica</label>
-                <input id="ficha-lugar" className="lab-input" value={form.specificLocation || ''} onChange={(e) => setForm({ ...form, specificLocation: e.target.value })} placeholder="Vereda, localidad o sede" />
+                <label className="lab-label" htmlFor="ficha-lugar">
+                  Ubicación específica
+                </label>
+                <input
+                  id="ficha-lugar"
+                  className="lab-input"
+                  value={form.specificLocation || ''}
+                  onChange={(e) => setForm({ ...form, specificLocation: e.target.value })}
+                  placeholder="Vereda, localidad o sede"
+                />
               </div>
               <label className="flex items-center gap-2 text-xs text-white self-end pb-2.5 cursor-pointer">
                 <input type="checkbox" checked={Boolean(form.isCapital)} onChange={(e) => setForm({ ...form, isCapital: e.target.checked })} />
@@ -485,8 +592,21 @@ export const EstudioTerritorialView: React.FC<Props> = ({ onNavigate }) => {
               </label>
             </div>
             <div className="flex justify-end gap-2">
-              {prompt0Data.municipality && <button type="button" className="lab-btn" onClick={() => { setForm({ ...prompt0Data }); setEditing(false); }}>Cancelar</button>}
-              <button type="submit" className="metal px-5 py-2 text-xs font-bold flex items-center gap-2"><Save className="w-4 h-4" aria-hidden="true" /> Guardar ficha</button>
+              {prompt0Data.municipality && (
+                <button
+                  type="button"
+                  className="lab-btn"
+                  onClick={() => {
+                    setForm({ ...prompt0Data });
+                    setEditing(false);
+                  }}
+                >
+                  Cancelar
+                </button>
+              )}
+              <button type="submit" className="metal px-5 py-2 text-xs font-bold flex items-center gap-2">
+                <Save className="w-4 h-4" aria-hidden="true" /> Guardar ficha
+              </button>
             </div>
           </form>
         ) : (
@@ -513,7 +633,13 @@ export const EstudioTerritorialView: React.FC<Props> = ({ onNavigate }) => {
           <ShieldCheck className="w-4 h-4 text-[var(--brand-olive)] shrink-0" aria-hidden="true" />
           {nucleus ? `Núcleo metodológico listo (${nucleus}). No hace falta conectar nada para empezar.` : 'Cargando el núcleo metodológico…'}
         </p>
-        <button type="button" className="metal px-6 py-3 text-xs font-bold flex items-center gap-2 disabled:opacity-40" disabled={busy || editing || !prompt0Data.municipality || !nucleus || !fuentesListas} title={!fuentesListas ? 'Conecta tus fuentes o elige «Sin fuentes propias»' : undefined} onClick={() => void generate()}>
+        <button
+          type="button"
+          className="metal px-6 py-3 text-xs font-bold flex items-center gap-2 disabled:opacity-40"
+          disabled={busy || editing || !prompt0Data.municipality || !nucleus || !fuentesListas}
+          title={!fuentesListas ? 'Conecta tus fuentes o elige «Sin fuentes propias»' : undefined}
+          onClick={() => void generate()}
+        >
           <Sparkles className="w-4 h-4" aria-hidden="true" />
           {hasStudy ? 'Regenerar estudio completo' : 'Generar Estudio Territorial'}
         </button>
@@ -525,9 +651,20 @@ export const EstudioTerritorialView: React.FC<Props> = ({ onNavigate }) => {
         <>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3" aria-label="Resumen del estudio">
             {[
-              ['Bloques completos', `${contenedor2Sections.length - issues}/${contenedor2Sections.length}`, issues ? 'Hay bloques por revisar' : 'Autoevaluación superada'],
+              [
+                'Bloques completos',
+                `${contenedor2Sections.length - issues}/${contenedor2Sections.length}`,
+                issues ? 'Hay bloques por revisar' : 'Autoevaluación superada',
+              ],
               ['Alertas a verificar', String(alerts.length), alerts.length ? 'Revísalas antes de citar' : 'Inusual: revisa las fuentes'],
-              ['Fuentes propias', String(fuentesConexion?.documentos.length ?? (containerProcedencia?.fuentesPropias.modo === 'con_fuentes' ? containerProcedencia.fuentesPropias.documentos.length : 0)), containerProcedencia?.fuentesPropias.modo === 'con_fuentes' ? 'Inventariadas en el informe' : 'Solo fuentes públicas'],
+              [
+                'Fuentes propias',
+                String(
+                  fuentesConexion?.documentos.length ??
+                    (containerProcedencia?.fuentesPropias.modo === 'con_fuentes' ? containerProcedencia.fuentesPropias.documentos.length : 0),
+                ),
+                containerProcedencia?.fuentesPropias.modo === 'con_fuentes' ? 'Inventariadas en el informe' : 'Solo fuentes públicas',
+              ],
               ['Fases MDVT', String(PHASES.filter((p) => p.startsWith('Fase')).length), 'Caracterización a contraste'],
             ].map(([k, v, hint]) => (
               <div key={k} className="lab-card">
@@ -538,7 +675,13 @@ export const EstudioTerritorialView: React.FC<Props> = ({ onNavigate }) => {
             ))}
           </div>
 
-          <SectionReview title="Revisión automática" sections={contenedor2Sections} busyIndex={busyIndex} disabled={busy} onRegenerate={(i) => void regenerate(i)} />
+          <SectionReview
+            title="Revisión automática"
+            sections={contenedor2Sections}
+            busyIndex={busyIndex}
+            disabled={busy}
+            onRegenerate={(i) => void regenerate(i)}
+          />
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             <nav className="lg:col-span-4 space-y-3 lg:sticky lg:top-4" aria-label="Bloques del estudio">
@@ -549,10 +692,20 @@ export const EstudioTerritorialView: React.FC<Props> = ({ onNavigate }) => {
                     {CONTENEDOR2_SECTIONS.filter((s) => s.phase === phase).map((s) => {
                       const result = contenedor2Sections.find((r) => r.number === s.number);
                       return (
-                        <button key={s.number} type="button" aria-current={active === s.number} className={`lab-navitem ${active === s.number ? 'is-active' : ''}`} onClick={() => setActive(s.number)}>
+                        <button
+                          key={s.number}
+                          type="button"
+                          aria-current={active === s.number}
+                          className={`lab-navitem ${active === s.number ? 'is-active' : ''}`}
+                          onClick={() => setActive(s.number)}
+                        >
                           <span className="m text-[11px] opacity-70 w-5 shrink-0">{s.number}</span>
                           <span className="min-w-0 flex-1 text-left">{s.title}</span>
-                          {result?.status === 'ok' ? <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-[var(--brand-olive)]" aria-label="Completo" /> : <span className="w-2 h-2 rounded-full bg-[#F29F05] shrink-0" aria-label="Por revisar" />}
+                          {result?.status === 'ok' ? (
+                            <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-[var(--brand-olive)]" aria-label="Completo" />
+                          ) : (
+                            <span className="w-2 h-2 rounded-full bg-[#F29F05] shrink-0" aria-label="Por revisar" />
+                          )}
                         </button>
                       );
                     })}
@@ -585,9 +738,15 @@ export const EstudioTerritorialView: React.FC<Props> = ({ onNavigate }) => {
                 <p className="text-sm text-[#F3C26B]">{section?.issue || 'Este bloque quedó vacío. Usa «Rehacer bloque».'}</p>
               )}
               <div className="flex items-center justify-between pt-3 border-t border-white/10 text-xs">
-                <button type="button" className="lab-btn lab-btn-sm" disabled={active <= 1} onClick={() => setActive((a) => a - 1)}>← Anterior</button>
-                <span className="m text-brand-textMuted">{active} / {CONTENEDOR2_SECTIONS.length}</span>
-                <button type="button" className="lab-btn lab-btn-sm" disabled={active >= CONTENEDOR2_SECTIONS.length} onClick={() => setActive((a) => a + 1)}>Siguiente →</button>
+                <button type="button" className="lab-btn lab-btn-sm" disabled={active <= 1} onClick={() => setActive((a) => a - 1)}>
+                  ← Anterior
+                </button>
+                <span className="m text-brand-textMuted">
+                  {active} / {CONTENEDOR2_SECTIONS.length}
+                </span>
+                <button type="button" className="lab-btn lab-btn-sm" disabled={active >= CONTENEDOR2_SECTIONS.length} onClick={() => setActive((a) => a + 1)}>
+                  Siguiente →
+                </button>
               </div>
             </article>
           </div>
@@ -595,7 +754,8 @@ export const EstudioTerritorialView: React.FC<Props> = ({ onNavigate }) => {
       ) : (
         !progress && (
           <EmptyState title="Aún no hay estudio">
-            Completa la Ficha Base y pulsa «Generar Estudio Territorial». Verás aquí los doce puntos con su matriz FODA, los pilares y las alertas; en Word o PDF sale el informe formal.
+            Completa la Ficha Base y pulsa «Generar Estudio Territorial». Verás aquí los doce puntos con su matriz FODA, los pilares y las alertas; en Word o
+            PDF sale el informe formal.
           </EmptyState>
         )
       )}

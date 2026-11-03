@@ -41,11 +41,7 @@ const GRUPOS_ORDEN = ['CONTENEDOR_1', 'CONTENEDOR_2', 'GENERALES'];
 const EXT_ACEPTADAS = new Set(['.txt', '.md', '.json']);
 const BASURA_EXACTA = new Set(['.DS_Store', 'desktop.ini', 'Thumbs.db']);
 const esBasura = (nombre) =>
-  BASURA_EXACTA.has(nombre) ||
-  nombre.startsWith('.') ||
-  nombre.startsWith('_') ||
-  nombre.startsWith('~$') ||
-  nombre.endsWith('.tmp');
+  BASURA_EXACTA.has(nombre) || nombre.startsWith('.') || nombre.startsWith('_') || nombre.startsWith('~$') || nombre.endsWith('.tmp');
 
 const avisos = [];
 
@@ -256,9 +252,12 @@ function calcularVersion(grupos) {
   }
   if (!previo?.version) return '1.0.0';
 
-  const listar = (m) =>
-    GRUPOS_ORDEN.flatMap((g) => (m.grupos?.[g] ?? []).filter((r) => r.vigente));
-  const rutasDe = (lista) => lista.map((r) => r.ruta).sort().join('|');
+  const listar = (m) => GRUPOS_ORDEN.flatMap((g) => (m.grupos?.[g] ?? []).filter((r) => r.vigente));
+  const rutasDe = (lista) =>
+    lista
+      .map((r) => r.ruta)
+      .sort()
+      .join('|');
   const hashesDe = (lista) =>
     lista
       .map((r) => `${r.ruta}=${r.hash}`)
@@ -268,7 +267,9 @@ function calcularVersion(grupos) {
   const actual = listar({ grupos });
   const anterior = listar(previo);
 
-  const [maj, min, pat] = String(previo.version).split('.').map((n) => Number(n) || 0);
+  const [maj, min, pat] = String(previo.version)
+    .split('.')
+    .map((n) => Number(n) || 0);
   if (rutasDe(actual) !== rutasDe(anterior)) return `${maj}.${min + 1}.0`;
   if (hashesDe(actual) !== hashesDe(anterior)) return `${maj}.${min}.${pat + 1}`;
   return previo.version;

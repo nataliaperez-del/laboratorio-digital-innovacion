@@ -78,15 +78,9 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
   });
 
   // Selección activa por pestaña
-  const [selectedStudyId, setSelectedStudyId] = useState<string | null>(
-    savedStudies[0]?.id ?? (containerData.trim() ? 'current' : null),
-  );
-  const [selectedIdeationId, setSelectedIdeationId] = useState<string | null>(
-    savedIdeations[0]?.id ?? (themeProposalMarkdown.trim() ? 'current' : null),
-  );
-  const [selectedTreeId, setSelectedTreeId] = useState<string | null>(
-    savedTrees[0]?.id ?? (treeGraph ? 'current' : null),
-  );
+  const [selectedStudyId, setSelectedStudyId] = useState<string | null>(savedStudies[0]?.id ?? (containerData.trim() ? 'current' : null));
+  const [selectedIdeationId, setSelectedIdeationId] = useState<string | null>(savedIdeations[0]?.id ?? (themeProposalMarkdown.trim() ? 'current' : null));
+  const [selectedTreeId, setSelectedTreeId] = useState<string | null>(savedTrees[0]?.id ?? (treeGraph ? 'current' : null));
   const [selectedPrototypeId, setSelectedPrototypeId] = useState<string | null>(prototypes[0]?.id ?? null);
 
   const tabs = [
@@ -151,9 +145,7 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
               aria-selected={isActive}
               onClick={() => setActiveTab(t.id)}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer border ${
-                isActive
-                  ? 'scale-[1.02] shadow-lg'
-                  : 'bg-white/5 border-white/10 text-brand-textSecondary hover:text-white hover:bg-white/10'
+                isActive ? 'scale-[1.02] shadow-lg' : 'bg-white/5 border-white/10 text-brand-textSecondary hover:text-white hover:bg-white/10'
               }`}
               style={
                 isActive
@@ -190,11 +182,7 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
             <EmptyState title="No hay estudios territoriales en el Banco">
               Cuando generes un Estudio Territorial completo en el taller, guárdalo para consultarlo aquí en cualquier momento.
               <div className="pt-3">
-                <button
-                  type="button"
-                  onClick={() => onNavigate('estudio')}
-                  className="metal px-4 py-2 text-xs font-bold flex items-center gap-2 mx-auto"
-                >
+                <button type="button" onClick={() => onNavigate('estudio')} className="metal px-4 py-2 text-xs font-bold flex items-center gap-2 mx-auto">
                   Ir al Taller de Estudio <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -203,9 +191,7 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
               {/* Lista lateral de estudios archivados */}
               <aside className="lg:col-span-4 space-y-2.5">
-                <span className="text-[11px] uppercase tracking-wider text-[#A8C63C] font-bold block mb-1">
-                  Estudios Registrados
-                </span>
+                <span className="text-[11px] uppercase tracking-wider text-[#A8C63C] font-bold block mb-1">Estudios Registrados</span>
 
                 {/* Si hay un estudio en la sesión actual pero no guardado formalmente */}
                 {containerData.trim() && (
@@ -219,9 +205,7 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
                   >
                     <div className="flex items-center justify-between text-xs font-bold text-white mb-1">
                       <span>{prompt0Data.municipality || 'Sesión Activa'}</span>
-                      <span className="text-[10px] text-[#A8C63C] px-1.5 py-0.2 rounded bg-[#A8C63C]/20 border border-[#A8C63C]/40">
-                        En Taller
-                      </span>
+                      <span className="text-[10px] text-[#A8C63C] px-1.5 py-0.2 rounded bg-[#A8C63C]/20 border border-[#A8C63C]/40">En Taller</span>
                     </div>
                     <p className="text-[11px] text-brand-textMuted line-clamp-1">
                       {prompt0Data.department} · {prompt0Data.zonaUNAD}
@@ -274,7 +258,7 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
                       containerData,
                       sections: contenedor2Sections,
                     }
-                  : savedStudies.find((s) => s.id === selectedStudyId) ?? savedStudies[0];
+                  : (savedStudies.find((s) => s.id === selectedStudyId) ?? savedStudies[0]);
 
                 if (!study) return null;
 
@@ -282,9 +266,7 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
                   <article className="lg:col-span-8 lab-panel space-y-4">
                     <header className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-white/10">
                       <div>
-                        <span className="text-[11px] text-[#A8C63C] font-semibold uppercase tracking-wider">
-                          Diagnóstico Territorial MDVT
-                        </span>
+                        <span className="text-[11px] text-[#A8C63C] font-semibold uppercase tracking-wider">Diagnóstico Territorial MDVT</span>
                         <h2 className="text-xl font-bold text-white sy">{study.territoryName}</h2>
                         <p className="text-xs text-brand-textMuted mt-0.5">
                           {study.department} · {study.zonaUNAD}
@@ -314,15 +296,11 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
                             <span className="text-[11px] font-bold text-[#A8C63C] block">
                               Bloque {sec.number} · {sec.title}
                             </span>
-                            <div className="text-xs text-white/90 leading-relaxed whitespace-pre-line">
-                              {sec.markdown.slice(0, 350)}…
-                            </div>
+                            <div className="text-xs text-white/90 leading-relaxed whitespace-pre-line">{sec.markdown.slice(0, 350)}…</div>
                           </div>
                         ))
                       ) : (
-                        <div className="text-xs text-white/80 whitespace-pre-line">
-                          {study.containerData.slice(0, 1500)}…
-                        </div>
+                        <div className="text-xs text-white/80 whitespace-pre-line">{study.containerData.slice(0, 1500)}…</div>
                       )}
                     </div>
                   </article>
@@ -340,11 +318,7 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
             <EmptyState title="No hay propuestas de ideación en el Banco">
               Formula alternativas estratégicas y selección de tema para archivarlas en esta sección.
               <div className="pt-3">
-                <button
-                  type="button"
-                  onClick={() => onNavigate('ideacion')}
-                  className="metal px-4 py-2 text-xs font-bold flex items-center gap-2 mx-auto"
-                >
+                <button type="button" onClick={() => onNavigate('ideacion')} className="metal px-4 py-2 text-xs font-bold flex items-center gap-2 mx-auto">
                   Ir al Taller de Ideación <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -352,9 +326,7 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
               <aside className="lg:col-span-4 space-y-2.5">
-                <span className="text-[11px] uppercase tracking-wider text-[#F29F05] font-bold block mb-1">
-                  Propuestas de Ideación
-                </span>
+                <span className="text-[11px] uppercase tracking-wider text-[#F29F05] font-bold block mb-1">Propuestas de Ideación</span>
 
                 {themeProposalMarkdown.trim() && (
                   <div
@@ -367,9 +339,7 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
                   >
                     <div className="flex items-center justify-between text-xs font-bold text-white mb-1">
                       <span className="line-clamp-1">{ideationSource?.label || 'Sesión Activa'}</span>
-                      <span className="text-[10px] text-[#F29F05] px-1.5 py-0.2 rounded bg-[#F29F05]/20 border border-[#F29F05]/40">
-                        En Taller
-                      </span>
+                      <span className="text-[10px] text-[#F29F05] px-1.5 py-0.2 rounded bg-[#F29F05]/20 border border-[#F29F05]/40">En Taller</span>
                     </div>
                     <p className="text-[11px] text-brand-textMuted">Propuesta en desarrollo</p>
                   </div>
@@ -417,7 +387,7 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
                       markdown: themeProposalMarkdown,
                       sections: vocationSections,
                     }
-                  : savedIdeations.find((i) => i.id === selectedIdeationId) ?? savedIdeations[0];
+                  : (savedIdeations.find((i) => i.id === selectedIdeationId) ?? savedIdeations[0]);
 
                 if (!ideation) return null;
 
@@ -425,24 +395,16 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
                   <article className="lg:col-span-8 lab-panel space-y-4">
                     <header className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-white/10">
                       <div>
-                        <span className="text-[11px] text-[#F29F05] font-semibold uppercase tracking-wider">
-                          Vocación y Selección de Temas
-                        </span>
+                        <span className="text-[11px] text-[#F29F05] font-semibold uppercase tracking-wider">Vocación y Selección de Temas</span>
                         <h2 className="text-xl font-bold text-white sy">{ideation.topicName}</h2>
                         <p className="text-xs text-brand-textMuted mt-0.5">Insumo: {ideation.sourceLabel}</p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <ReportActions
-                          getReport={() => ideacionReport(prompt0Data, ideation.markdown, ideation.sourceLabel)}
-                        />
+                        <ReportActions getReport={() => ideacionReport(prompt0Data, ideation.markdown, ideation.sourceLabel)} />
                         <button
                           type="button"
                           onClick={() => {
-                            setIdeationResult(
-                              { kind: 'texto', label: ideation.topicName, text: ideation.markdown },
-                              ideation.markdown,
-                              ideation.sections,
-                            );
+                            setIdeationResult({ kind: 'texto', label: ideation.topicName, text: ideation.markdown }, ideation.markdown, ideation.sections);
                             onNavigate('ideacion');
                           }}
                           className="lab-btn lab-btn-sm text-[#F29F05] border-[#F29F05]/40 hover:bg-[#F29F05]/15"
@@ -472,11 +434,7 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
             <EmptyState title="No hay árboles de innovación en el Banco">
               Genera árboles holográficos de tendencias y guárdalos para consulta y análisis de frutos.
               <div className="pt-3">
-                <button
-                  type="button"
-                  onClick={() => onNavigate('arbol')}
-                  className="metal px-4 py-2 text-xs font-bold flex items-center gap-2 mx-auto"
-                >
+                <button type="button" onClick={() => onNavigate('arbol')} className="metal px-4 py-2 text-xs font-bold flex items-center gap-2 mx-auto">
                   Ir al Taller del Árbol <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -484,9 +442,7 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
               <aside className="lg:col-span-4 space-y-2.5">
-                <span className="text-[11px] uppercase tracking-wider text-[#5EC2DD] font-bold block mb-1">
-                  Árboles Registrados
-                </span>
+                <span className="text-[11px] uppercase tracking-wider text-[#5EC2DD] font-bold block mb-1">Árboles Registrados</span>
 
                 {treeGraph && (
                   <div
@@ -499,9 +455,7 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
                   >
                     <div className="flex items-center justify-between text-xs font-bold text-white mb-1">
                       <span className="line-clamp-1">{treeGraph.tema}</span>
-                      <span className="text-[10px] text-[#5EC2DD] px-1.5 py-0.2 rounded bg-[#5EC2DD]/20 border border-[#5EC2DD]/40">
-                        En Taller
-                      </span>
+                      <span className="text-[10px] text-[#5EC2DD] px-1.5 py-0.2 rounded bg-[#5EC2DD]/20 border border-[#5EC2DD]/40">En Taller</span>
                     </div>
                     <p className="text-[11px] text-brand-textMuted">{treeGraph.nodos.length} nodos conectados</p>
                   </div>
@@ -548,7 +502,7 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
                       markdown: innovationTreeMarkdown,
                       graph: treeGraph,
                     }
-                  : savedTrees.find((t) => t.id === selectedTreeId) ?? savedTrees[0];
+                  : (savedTrees.find((t) => t.id === selectedTreeId) ?? savedTrees[0]);
 
                 if (!tree || !tree.graph) return null;
 
@@ -556,27 +510,16 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
                   <article className="lg:col-span-8 lab-panel space-y-4">
                     <header className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-white/10">
                       <div>
-                        <span className="text-[11px] text-[#5EC2DD] font-semibold uppercase tracking-wider">
-                          Estructura de Tendencias y Frutos
-                        </span>
+                        <span className="text-[11px] text-[#5EC2DD] font-semibold uppercase tracking-wider">Estructura de Tendencias y Frutos</span>
                         <h2 className="text-xl font-bold text-white sy">{tree.theme}</h2>
-                        <p className="text-xs text-brand-textMuted mt-0.5">
-                          {tree.graph.nodos.length} nodos holográficos verificados
-                        </p>
+                        <p className="text-xs text-brand-textMuted mt-0.5">{tree.graph.nodos.length} nodos holográficos verificados</p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <ReportActions
-                          getReport={() => (tree.graph ? arbolReport(prompt0Data, tree.markdown, tree.graph) : null)}
-                        />
+                        <ReportActions getReport={() => (tree.graph ? arbolReport(prompt0Data, tree.markdown, tree.graph) : null)} />
                         <button
                           type="button"
                           onClick={() => {
-                            setTreeResult(
-                              { themeName: tree.theme, themeExplanation: '', useTerritorialStudy: true },
-                              tree.markdown,
-                              [],
-                              tree.graph!,
-                            );
+                            setTreeResult({ themeName: tree.theme, themeExplanation: '', useTerritorialStudy: true }, tree.markdown, [], tree.graph!);
                             onNavigate('arbol');
                           }}
                           className="lab-btn lab-btn-sm text-[#5EC2DD] border-[#5EC2DD]/40 hover:bg-[#5EC2DD]/15"
@@ -587,9 +530,7 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
                     </header>
 
                     <div className="space-y-3">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-white/70 block">
-                        Frutos y Oportunidades del Árbol:
-                      </span>
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-white/70 block">Frutos y Oportunidades del Árbol:</span>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {tree.graph.nodos
                           .filter((n) => n.nivel === 'fruto' || n.nivel === 'hoja')
@@ -600,11 +541,7 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
                                 <span className="capitalize text-brand-textMuted">{node.tipo_fruto || 'Fruto'}</span>
                               </div>
                               <h4 className="text-xs font-bold text-white">{node.nombre}</h4>
-                              {node.solucion && (
-                                <p className="text-[11px] text-brand-textSecondary leading-snug">
-                                  {node.solucion}
-                                </p>
-                              )}
+                              {node.solucion && <p className="text-[11px] text-brand-textSecondary leading-snug">{node.solucion}</p>}
                             </div>
                           ))}
                       </div>
@@ -624,11 +561,7 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
             <EmptyState title="No hay planes de prototipado en el Banco">
               Diseña soluciones e hipótesis en el Taller de Prototipado para guardarlas en este banco.
               <div className="pt-3">
-                <button
-                  type="button"
-                  onClick={() => onNavigate('prototipado')}
-                  className="metal px-4 py-2 text-xs font-bold flex items-center gap-2 mx-auto"
-                >
+                <button type="button" onClick={() => onNavigate('prototipado')} className="metal px-4 py-2 text-xs font-bold flex items-center gap-2 mx-auto">
                   Ir al Taller de Prototipado <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -636,9 +569,7 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
               <aside className="lg:col-span-4 space-y-2.5">
-                <span className="text-[11px] uppercase tracking-wider text-[#E024A5] font-bold block mb-1">
-                  Planes de Prototipado ({prototypes.length})
-                </span>
+                <span className="text-[11px] uppercase tracking-wider text-[#E024A5] font-bold block mb-1">Planes de Prototipado ({prototypes.length})</span>
 
                 {prototypes.map((p) => (
                   <div
@@ -688,9 +619,7 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
                           <span className="lab-chip">{activePlan.scope}</span>
                         </div>
                         <h2 className="text-2xl font-bold text-[#E024A5] sy">{activePlan.name}</h2>
-                        {activePlan.tagline && (
-                          <p className="text-sm text-[var(--brand-teal-text)] mt-0.5">{activePlan.tagline}</p>
-                        )}
+                        {activePlan.tagline && <p className="text-sm text-[var(--brand-teal-text)] mt-0.5">{activePlan.tagline}</p>}
                         <p className="text-xs text-brand-textMuted mt-1">
                           Origen: {activePlan.origin.label}
                           {activePlan.origin.code ? ` (${activePlan.origin.code})` : ''}
@@ -730,12 +659,8 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
           {/* Barra Superior con Botón de Descarga PDF */}
           <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-white/[0.03] border border-white/10">
             <div>
-              <span className="text-xs font-bold text-white sy block">
-                Acreditación de Logros y Mérito en Innovación
-              </span>
-              <span className="text-[11px] text-brand-textMuted">
-                Genera tu certificado oficial en formato PDF para constancia de competencias
-              </span>
+              <span className="text-xs font-bold text-white sy block">Acreditación de Logros y Mérito en Innovación</span>
+              <span className="text-[11px] text-brand-textMuted">Genera tu certificado oficial en formato PDF para constancia de competencias</span>
             </div>
             <button
               type="button"
@@ -778,12 +703,8 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
                 <span className="text-[11px] font-bold uppercase tracking-wider text-[#A6C0CA] block">
                   Rango Actual · Nivel {gamification.currentRank.level}
                 </span>
-                <h3 className="text-xl sm:text-2xl font-bold text-white sy leading-snug">
-                  {gamification.currentRank.title}
-                </h3>
-                <p className="text-xs text-brand-textSecondary mt-0.5 max-w-md">
-                  {gamification.currentRank.description}
-                </p>
+                <h3 className="text-xl sm:text-2xl font-bold text-white sy leading-snug">{gamification.currentRank.title}</h3>
+                <p className="text-xs text-brand-textSecondary mt-0.5 max-w-md">{gamification.currentRank.description}</p>
               </div>
             </div>
 
@@ -793,9 +714,7 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
                 <span className="text-white flex items-center gap-1">
                   <Zap className="w-3.5 h-3.5 text-[#FFD700]" /> {gamification.totalXp} XP Acumulado
                 </span>
-                <span className="text-brand-textMuted">
-                  {gamification.nextRank ? `Meta: ${gamification.nextRank.minXp} XP` : 'Nivel Máximo'}
-                </span>
+                <span className="text-brand-textMuted">{gamification.nextRank ? `Meta: ${gamification.nextRank.minXp} XP` : 'Nivel Máximo'}</span>
               </div>
 
               <div className="w-full h-3 rounded-full bg-black/40 border border-white/10 overflow-hidden p-0.5">
@@ -810,7 +729,9 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
               </div>
 
               <div className="flex items-center justify-between text-[11px] text-brand-textMuted">
-                <span>{gamification.unlockedBadgeIds.length} de {INNOVATION_BADGES.length} Insignias</span>
+                <span>
+                  {gamification.unlockedBadgeIds.length} de {INNOVATION_BADGES.length} Insignias
+                </span>
                 <span>{gamification.nextRank ? `Próximo: ${gamification.nextRank.title}` : '¡Maestría alcanzada!'}</span>
               </div>
             </div>
@@ -824,9 +745,7 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
                 <div
                   key={badge.id}
                   className={`p-5 rounded-2xl border transition-all flex flex-col justify-between relative overflow-hidden ${
-                    isUnlocked
-                      ? 'bg-white/[0.06] shadow-sm'
-                      : 'bg-black/25 border-white/10'
+                    isUnlocked ? 'bg-white/[0.06] shadow-sm' : 'bg-black/25 border-white/10'
                   }`}
                   style={
                     isUnlocked
@@ -862,15 +781,9 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
                       </div>
                     </div>
 
-                    <h4 className="text-base font-bold text-white sy leading-snug">
-                      {badge.title}
-                    </h4>
-                    <span className="text-[11px] font-semibold text-[#5EC2DD] block mt-0.5">
-                      {badge.subtitle}
-                    </span>
-                    <p className="text-xs text-brand-textSecondary mt-2 leading-relaxed">
-                      {badge.description}
-                    </p>
+                    <h4 className="text-base font-bold text-white sy leading-snug">{badge.title}</h4>
+                    <span className="text-[11px] font-semibold text-[#5EC2DD] block mt-0.5">{badge.subtitle}</span>
+                    <p className="text-xs text-brand-textSecondary mt-2 leading-relaxed">{badge.description}</p>
                   </div>
 
                   <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-xs">

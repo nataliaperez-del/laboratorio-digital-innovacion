@@ -55,7 +55,9 @@ function findQuietSpot(currentX: number) {
     }
     return found;
   };
-  const spots = Array.from({ length: 8 }, (_, i) => clampPosition(((window.innerWidth - STAGE.width) * i) / 7, y).x).filter((x) => Math.abs(x - currentX) > 120);
+  const spots = Array.from({ length: 8 }, (_, i) => clampPosition(((window.innerWidth - STAGE.width) * i) / 7, y).x).filter(
+    (x) => Math.abs(x - currentX) > 120,
+  );
   const best = spots.map((x) => ({ x, score: crowding(x) + Math.random() })).sort((a, b) => a.score - b.score)[0];
   return { x: best?.x ?? currentX, y };
 }
@@ -410,9 +412,7 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
           const risky = reply.acciones.filter(needsConfirmation);
           const safe = reply.acciones.filter((a) => !needsConfirmation(a));
           const last = !reply.seguir || round >= MAX_AGENT_ROUNDS || risky.length > 0;
-          const question = risky.length
-            ? ` ¿Me confirmas que presione ${risky.map((a) => `«${'id' in a ? labelOfControl(a.id) : ''}»`).join(' y ')}?`
-            : '';
+          const question = risky.length ? ` ¿Me confirmas que presione ${risky.map((a) => `«${'id' in a ? labelOfControl(a.id) : ''}»`).join(' y ')}?` : '';
           const spoken = `${reply.decir}${question}`.trim() || 'Listo.';
           const [results] = await Promise.all([performActions(safe, onSelectTool), sayAndWait(spoken)]);
           done.push(...results.filter((r) => r.ok).map((r) => r.note));
@@ -423,7 +423,11 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
             continue;
           }
           const failed = results.filter((r) => !r.ok);
-          if (failed.length) console.warn('[ZOE] Acciones que no se pudieron hacer:', failed.map((r) => r.note));
+          if (failed.length)
+            console.warn(
+              '[ZOE] Acciones que no se pudieron hacer:',
+              failed.map((r) => r.note),
+            );
           historyRef.current = [
             ...historyRef.current,
             { role: 'user' as const, text },
@@ -505,14 +509,9 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
     setBehavior('listening');
     setHeard(null);
     setCaption(null);
-    voice.listen(
-      onHeard,
-      onListenFail,
-      setHeard,
-      (level) => {
-        if (levelRef.current) levelRef.current.style.transform = `scaleX(${Math.min(1, level * 9)})`;
-      },
-    );
+    voice.listen(onHeard, onListenFail, setHeard, (level) => {
+      if (levelRef.current) levelRef.current.style.transform = `scaleX(${Math.min(1, level * 9)})`;
+    });
   };
 
   const startConversation = useCallback(async () => {
@@ -576,15 +575,18 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
     if (!isOpen || window.matchMedia('(prefers-reduced-motion: reduce)').matches || window.innerWidth < 768) return;
     let timer: number;
     const schedule = () => {
-      timer = window.setTimeout(() => {
-        if (!busyRef.current && !drag.current && !document.hidden) {
-          const roll = Math.random();
-          if (roll < 0.35) void nap();
-          else if (roll < 0.8) void stroll();
-          else setPosture((p) => (p === 'sitting' ? 'standing' : 'sitting'));
-        }
-        schedule();
-      }, 28000 + Math.random() * 32000);
+      timer = window.setTimeout(
+        () => {
+          if (!busyRef.current && !drag.current && !document.hidden) {
+            const roll = Math.random();
+            if (roll < 0.35) void nap();
+            else if (roll < 0.8) void stroll();
+            else setPosture((p) => (p === 'sitting' ? 'standing' : 'sitting'));
+          }
+          schedule();
+        },
+        28000 + Math.random() * 32000,
+      );
     };
     schedule();
     return () => window.clearTimeout(timer);
@@ -711,12 +713,50 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
 
   const status = voice.listening ? 'Te escucho…' : behavior === 'thinking' ? 'Pensando…' : null;
   const toolbar: Array<{ label: string; icon: React.ReactNode; onClick: () => void; pressed?: boolean; color: string }> = [
-    { label: talking ? 'Terminar la conversación' : 'Conversar con ZOE', icon: <Mic className="w-4 h-4" />, onClick: () => (talking ? endConversation() : void startConversation()), pressed: talking, color: '#27DCFF' },
-    { label: voice.muted ? 'Activar la voz de ZOE' : 'Silenciar la voz de ZOE', icon: voice.muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />, onClick: voice.toggleMuted, pressed: voice.muted, color: '#5EC2DD' },
-    { label: posture === 'sitting' ? 'Poner de pie a ZOE' : 'Sentar a ZOE', icon: <Dog className="w-4 h-4" />, onClick: () => { wake(); setPosture(posture === 'sitting' ? 'standing' : 'sitting'); }, color: '#F29F05' },
-    { label: isWalking ? 'Detener la caminata' : 'Poner a caminar a ZOE', icon: <Footprints className="w-4 h-4" />, onClick: () => (isWalking ? wake() : void stroll()), pressed: isWalking, color: '#A8C63C' },
-    { label: napping ? 'Despertar a ZOE' : 'Que ZOE busque dónde dormir', icon: <Moon className="w-4 h-4" />, onClick: () => (napping ? wake() : void nap()), pressed: napping, color: '#B85EFF' },
-    { label: show360 ? 'Quitar el entorno 360°' : 'Activar el entorno 360°', icon: <Globe className="w-4 h-4" />, onClick: () => setShow360((v) => !v), pressed: show360, color: '#27DCFF' },
+    {
+      label: talking ? 'Terminar la conversación' : 'Conversar con ZOE',
+      icon: <Mic className="w-4 h-4" />,
+      onClick: () => (talking ? endConversation() : void startConversation()),
+      pressed: talking,
+      color: '#27DCFF',
+    },
+    {
+      label: voice.muted ? 'Activar la voz de ZOE' : 'Silenciar la voz de ZOE',
+      icon: voice.muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />,
+      onClick: voice.toggleMuted,
+      pressed: voice.muted,
+      color: '#5EC2DD',
+    },
+    {
+      label: posture === 'sitting' ? 'Poner de pie a ZOE' : 'Sentar a ZOE',
+      icon: <Dog className="w-4 h-4" />,
+      onClick: () => {
+        wake();
+        setPosture(posture === 'sitting' ? 'standing' : 'sitting');
+      },
+      color: '#F29F05',
+    },
+    {
+      label: isWalking ? 'Detener la caminata' : 'Poner a caminar a ZOE',
+      icon: <Footprints className="w-4 h-4" />,
+      onClick: () => (isWalking ? wake() : void stroll()),
+      pressed: isWalking,
+      color: '#A8C63C',
+    },
+    {
+      label: napping ? 'Despertar a ZOE' : 'Que ZOE busque dónde dormir',
+      icon: <Moon className="w-4 h-4" />,
+      onClick: () => (napping ? wake() : void nap()),
+      pressed: napping,
+      color: '#B85EFF',
+    },
+    {
+      label: show360 ? 'Quitar el entorno 360°' : 'Activar el entorno 360°',
+      icon: <Globe className="w-4 h-4" />,
+      onClick: () => setShow360((v) => !v),
+      pressed: show360,
+      color: '#27DCFF',
+    },
     { label: 'Acariciar a ZOE', icon: <Heart className="w-4 h-4" />, onClick: pet, color: '#F29F05' },
     { label: 'Mandar a ZOE a su casita', icon: <House className="w-4 h-4" />, onClick: () => void goHome(), color: '#F3C26B' },
   ];
@@ -727,7 +767,13 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
       {homeTrip !== 'none' && <ZoeDoghouse occupied={false} />}
       <div
         className={`zoe-stage fixed z-40 group ${tripClass}`}
-        style={{ left: position.x, top: position.y, width: STAGE.width + 44, height: STAGE.height, transformOrigin: `${STAGE.width / 2}px ${STAGE.height * FEET}px` }}
+        style={{
+          left: position.x,
+          top: position.y,
+          width: STAGE.width + 44,
+          height: STAGE.height,
+          transformOrigin: `${STAGE.width / 2}px ${STAGE.height * FEET}px`,
+        }}
       >
         {/* Subtítulos: lo que ZOE dice, también para quien no puede oírlo. No es un chat. */}
         {(caption || status || heard) && (
@@ -752,7 +798,7 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
             )}
           </div>
         )}
-  
+
         {behavior === 'sleeping' && (
           <div className="zoe-zzz" aria-hidden="true">
             <span>z</span>
@@ -760,7 +806,7 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
             <span>z</span>
           </div>
         )}
-  
+
         <div className="absolute left-0 top-0 pointer-events-none" style={{ width: STAGE.width, height: STAGE.height }}>
           <Suspense fallback={null}>
             <CanvasBoundary>
@@ -777,7 +823,7 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
             </CanvasBoundary>
           </Suspense>
         </div>
-  
+
         {/* Solo la silueta recibe el puntero: las esquinas vacías dejan pasar los clics al contenido. */}
         <button
           type="button"
@@ -795,11 +841,20 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
             }
           }}
         />
-  
+
         {homeTrip === 'none' && (
           <div className="zoe-toolbar" role="toolbar" aria-label="Controles de ZOE">
             {toolbar.map((b) => (
-              <button key={b.label} type="button" className="zoe-tool" style={{ color: b.color }} title={b.label} aria-label={b.label} aria-pressed={b.pressed} onClick={b.onClick}>
+              <button
+                key={b.label}
+                type="button"
+                className="zoe-tool"
+                style={{ color: b.color }}
+                title={b.label}
+                aria-label={b.label}
+                aria-pressed={b.pressed}
+                onClick={b.onClick}
+              >
                 {b.icon}
               </button>
             ))}

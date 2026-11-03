@@ -66,7 +66,8 @@ export type ZoeCommand =
   | { type: 'walk' }
   | { type: 'home' };
 
-const NAVIGATION_VERB = /\b(abre|abrir|abreme|ll[eé]vame|ll[eé]vanos|lleva(?:r)?me|ve a|vete a|vamos a|vamos al|ir a|ir al|m[uú]estrame|mostrar|entra a|entrar a|p[aá]same a|cambia a|quiero ver|ens[eé][nñ]ame)\b/i;
+const NAVIGATION_VERB =
+  /\b(abre|abrir|abreme|ll[eé]vame|ll[eé]vanos|lleva(?:r)?me|ve a|vete a|vamos a|vamos al|ir a|ir al|m[uú]estrame|mostrar|entra a|entrar a|p[aá]same a|cambia a|quiero ver|ens[eé][nñ]ame)\b/i;
 
 const TOOL_WORDS: Array<[RegExp, ToolId]> = [
   [/\bradar\b|\bse[nñ]ales\b/i, 'radar'],
@@ -109,7 +110,8 @@ export function parseZoeCommand(text: string): ZoeCommand | null {
 // ── Turno de palabra: ZOE no responde a una idea a medias ──
 
 /** Palabras con las que nadie termina una frase: si la pausa llega después, la persona sigue pensando. */
-const DANGLING = /\b(y|o|e|u|ni|pero|que|de|del|la|el|los|las|un|una|unos|unas|en|con|para|por|porque|como|cuando|donde|entonces|si|pues|mi|tu|su|este|esta|ese|esa|sobre|a|al|más|muy|también|o sea|es decir|digamos)$/i;
+const DANGLING =
+  /\b(y|o|e|u|ni|pero|que|de|del|la|el|los|las|un|una|unos|unas|en|con|para|por|porque|como|cuando|donde|entonces|si|pues|mi|tu|su|este|esta|ese|esa|sobre|a|al|más|muy|también|o sea|es decir|digamos)$/i;
 
 /** ¿La frase dictada parece cortada? Entonces ZOE pregunta antes de contestar. */
 export function seemsUnfinished(text: string): boolean {
@@ -121,15 +123,26 @@ export function seemsUnfinished(text: string): boolean {
 /** Respuesta corta a «¿ya terminaste?». */
 export function isDoneReply(text: string): boolean {
   const t = text.trim().toLowerCase();
-  return t.split(/\s+/).length <= 5 && /^(s[ií]|ya|listo|eso es todo|es todo|termin[eé]|ya termin[eé]|nada m[aá]s|correcto|exacto|as[ií] es)(?=$|[\s,.;!?¡¿])/.test(t);
+  return (
+    t.split(/\s+/).length <= 5 &&
+    /^(s[ií]|ya|listo|eso es todo|es todo|termin[eé]|ya termin[eé]|nada m[aá]s|correcto|exacto|as[ií] es)(?=$|[\s,.;!?¡¿])/.test(t)
+  );
 }
 
 /** Respuesta a «¿me confirmas?»: true si es un sí, false si es un no y null si habla de otra cosa. */
 export function isConfirmation(text: string): boolean | null {
-  const t = text.trim().toLowerCase().replace(/^zoe[,\s]+/, '');
+  const t = text
+    .trim()
+    .toLowerCase()
+    .replace(/^zoe[,\s]+/, '');
   const end = '(?=$|[\\s,.;!?¡¿])';
   if (new RegExp(`^(no|mejor no|cancela|cancelar|d[eé]jalo|todav[ií]a no|nada|ni se te ocurra)${end}`).test(t)) return false;
-  if (new RegExp(`^(s[ií]|dale|hazlo|conf[ií]rmo|claro|de una|ok|okay|adelante|correcto|listo|h[aá]gale|h[aá]galo|por supuesto|presi[oó]nalo|b[oó]rralo|l[ií]mpialo|elim[ií]nalo)${end}`).test(t)) return true;
+  if (
+    new RegExp(
+      `^(s[ií]|dale|hazlo|conf[ií]rmo|claro|de una|ok|okay|adelante|correcto|listo|h[aá]gale|h[aá]galo|por supuesto|presi[oó]nalo|b[oó]rralo|l[ií]mpialo|elim[ií]nalo)${end}`,
+    ).test(t)
+  )
+    return true;
   return null;
 }
 

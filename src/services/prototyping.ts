@@ -9,12 +9,7 @@ import { LAB_SCOPE_RULES } from '@/prompts/labGuardrails';
 import { UNAD_ESCUELAS } from '@/constants/unadEscuelas';
 import { formatFichaCompact } from '@/services/ideation';
 
-export const PROTOTYPE_CATEGORIES = [
-  'Prototipo Tecnológico',
-  'Servicio de Innovación',
-  'Proyecto Territorial',
-  'Transferencia Tecnológica',
-] as const;
+export const PROTOTYPE_CATEGORIES = ['Prototipo Tecnológico', 'Servicio de Innovación', 'Proyecto Territorial', 'Transferencia Tecnológica'] as const;
 export type PrototypeCategory = (typeof PROTOTYPE_CATEGORIES)[number];
 
 export const TRL_OPTIONS = [

@@ -2,7 +2,15 @@
  * Árbol de Innovación: el proceso 10 → 5 → 3 de la app Fase 1 para cualquier tema.
  * Produce el documento formal por partes y, al final, el grafo que dibuja la vista interactiva.
  */
-import { beginGenerationFlow, callAI, defaultCallOptions, GenerationCancelledError, leerNucleoTexto, parseJsonResponse, stripOuterMarkdownFence } from '@/services/ai';
+import {
+  beginGenerationFlow,
+  callAI,
+  defaultCallOptions,
+  GenerationCancelledError,
+  leerNucleoTexto,
+  parseJsonResponse,
+  stripOuterMarkdownFence,
+} from '@/services/ai';
 import { useStore } from '@/store/useStore';
 import { getMaxThemeStepContainerChars, truncateContainerForDocument } from '@/lib/promptBudget';
 import { buildTreeFromMarkdown, parseTreeGraph, type TreeGraph } from '@/lib/innovationTreeGraph';
@@ -128,10 +136,7 @@ export async function buildGraphFromDocument(themeName: string, markdown: string
   }
 }
 
-export async function generateInnovationTree(
-  request: InnovationTreeRequest,
-  onProgress?: (p: GenerationPartProgress) => void,
-): Promise<InnovationTreeResult> {
+export async function generateInnovationTree(request: InnovationTreeRequest, onProgress?: (p: GenerationPartProgress) => void): Promise<InnovationTreeResult> {
   beginGenerationFlow();
   const ctx = await prepareContext(request);
   const total = INNOVATION_TREE_PARTS.length + 1;

@@ -46,12 +46,7 @@ const MAX_OPTIONS = 30;
 
 /** Para comparar lo dictado con lo escrito en pantalla: sin tildes, mayúsculas ni espacios de más. */
 export function normalizeLabel(text: string): string {
-  return text
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .replace(/\s+/g, ' ')
-    .trim();
+  return text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
 }
 
 /** La opción de una lista que corresponde a lo dicho: exacta, luego por inicio, luego contenida. -1 si ninguna. */
@@ -113,7 +108,11 @@ function validAction(raw: unknown): ZoeAction | null {
  * suelto, se dice tal cual y no se hace nada. Nunca deja que se lea JSON en voz alta.
  */
 export function parseAgentReply(raw: string): ZoeAgentReply {
-  const text = raw.trim().replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim();
+  const text = raw
+    .trim()
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/```\s*$/i, '')
+    .trim();
   const start = text.indexOf('{');
   const end = text.lastIndexOf('}');
   if (start >= 0 && end > start) {
@@ -221,7 +220,14 @@ export function readScreen(): ZoeControl[] {
           .map((o) => squash(o.textContent, 40));
         fields.push({
           el,
-          control: { kind: 'lista', label, value: squash(el.selectedOptions[0]?.textContent, 40), options: options.slice(0, MAX_OPTIONS), optionCount: options.length, disabled },
+          control: {
+            kind: 'lista',
+            label,
+            value: squash(el.selectedOptions[0]?.textContent, 40),
+            options: options.slice(0, MAX_OPTIONS),
+            optionCount: options.length,
+            disabled,
+          },
         });
       } else {
         buttons.push({ el, control: { kind: 'boton', label, disabled } });
@@ -271,7 +277,12 @@ async function spotlight(el: HTMLElement) {
  * evento que escucha (input para campos de texto, change para listas).
  */
 function setNativeValue(el: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement, value: string, event: 'input' | 'change') {
-  const proto = el instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : el instanceof HTMLSelectElement ? HTMLSelectElement.prototype : HTMLInputElement.prototype;
+  const proto =
+    el instanceof HTMLTextAreaElement
+      ? HTMLTextAreaElement.prototype
+      : el instanceof HTMLSelectElement
+        ? HTMLSelectElement.prototype
+        : HTMLInputElement.prototype;
   Object.getOwnPropertyDescriptor(proto, 'value')?.set?.call(el, value);
   el.dispatchEvent(new Event(event, { bubbles: true }));
 }

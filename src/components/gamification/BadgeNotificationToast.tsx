@@ -36,9 +36,7 @@ export const BadgeNotificationToast: React.FC<Props> = ({ onOpenBadgesModal }) =
       zoeInteractions,
     });
 
-    const unacknowledgedId = gamification.unlockedBadgeIds.find(
-      (id) => !(acknowledgedBadges || []).includes(id)
-    );
+    const unacknowledgedId = gamification.unlockedBadgeIds.find((id) => !(acknowledgedBadges || []).includes(id));
 
     if (unacknowledgedId) {
       const badge = INNOVATION_BADGES.find((b) => b.id === unacknowledgedId);
@@ -48,17 +46,7 @@ export const BadgeNotificationToast: React.FC<Props> = ({ onOpenBadgesModal }) =
     } else {
       setActiveToast(null);
     }
-  }, [
-    containerData,
-    savedStudies,
-    themeProposalMarkdown,
-    savedIdeations,
-    treeGraph,
-    savedTrees,
-    prototypes,
-    zoeInteractions,
-    acknowledgedBadges,
-  ]);
+  }, [containerData, savedStudies, themeProposalMarkdown, savedIdeations, treeGraph, savedTrees, prototypes, zoeInteractions, acknowledgedBadges]);
 
   if (!activeToast) return null;
 
@@ -104,22 +92,13 @@ export const BadgeNotificationToast: React.FC<Props> = ({ onOpenBadgesModal }) =
               <span className="text-[10px] font-bold uppercase tracking-wider text-[#FFD700] flex items-center gap-1">
                 <Trophy className="w-3 h-3 text-[#FFD700]" /> ¡Insignia Desbloqueada!
               </span>
-              <button
-                type="button"
-                onClick={handleDismiss}
-                className="text-white/40 hover:text-white transition-colors p-1"
-                aria-label="Cerrar notificación"
-              >
+              <button type="button" onClick={handleDismiss} className="text-white/40 hover:text-white transition-colors p-1" aria-label="Cerrar notificación">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <h4 className="text-base font-bold text-white sy mt-0.5 leading-snug">
-              {activeToast.title}
-            </h4>
-            <p className="text-xs text-brand-textSecondary mt-0.5 line-clamp-2">
-              {activeToast.description}
-            </p>
+            <h4 className="text-base font-bold text-white sy mt-0.5 leading-snug">{activeToast.title}</h4>
+            <p className="text-xs text-brand-textSecondary mt-0.5 line-clamp-2">{activeToast.description}</p>
 
             <div className="flex items-center justify-between gap-3 mt-3 pt-2.5 border-t border-white/10">
               <span

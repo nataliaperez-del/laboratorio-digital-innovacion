@@ -125,7 +125,10 @@ function listParagraphs(items: readonly PlanListItem[], ordered: boolean, level:
 function cellParagraph(nodes: readonly InlineNode[], bold: boolean): Paragraph {
   const options: IParagraphOptions = {
     children: bold
-      ? runsFrom(nodes.map((n) => ({ ...n, bold: true })), { size: 18 })
+      ? runsFrom(
+          nodes.map((n) => ({ ...n, bold: true })),
+          { size: 18 },
+        )
       : runsFrom(nodes, { size: 18 }),
     spacing: { before: 20, after: 20, line: 240 },
     alignment: AlignmentType.LEFT,
@@ -152,11 +155,13 @@ function tableFrom(block: Extract<PlanBlock, { kind: 'table' }>): Table {
     (row, rowIndex) =>
       new TableRow({
         cantSplit: true,
-        children: Array.from({ length: columnCount }, (_, i) =>
-          new TableCell({
-            children: [cellParagraph(row[i] ?? [], false)],
-            shading: rowIndex % 2 === 1 ? { type: ShadingType.CLEAR, fill: 'F8FAFC' } : undefined,
-          }),
+        children: Array.from(
+          { length: columnCount },
+          (_, i) =>
+            new TableCell({
+              children: [cellParagraph(row[i] ?? [], false)],
+              shading: rowIndex % 2 === 1 ? { type: ShadingType.CLEAR, fill: 'F8FAFC' } : undefined,
+            }),
         ),
       }),
   );
@@ -272,10 +277,9 @@ async function blocksToChildren(blocks: readonly PlanBlock[]): Promise<Array<Par
           new Paragraph({
             shading: { type: ShadingType.CLEAR, fill: 'F1F5F9' },
             spacing: { after: 140 },
-            children: block.text.split('\n').flatMap((line, i) => [
-              ...(i > 0 ? [new TextRun({ break: 1 })] : []),
-              new TextRun({ text: line, font: 'Consolas', size: 18 }),
-            ]),
+            children: block.text
+              .split('\n')
+              .flatMap((line, i) => [...(i > 0 ? [new TextRun({ break: 1 })] : []), new TextRun({ text: line, font: 'Consolas', size: 18 })]),
           }),
         );
         break;
@@ -307,9 +311,7 @@ function coverChildren(meta: DocumentMeta): Paragraph[] {
     new Paragraph({
       alignment: AlignmentType.CENTER,
       spacing: { before: options.before ?? 0, after: 120 },
-      children: [
-        new TextRun({ text, bold: options.bold, italics: options.italics, size: options.size, color: options.color ?? TEXT }),
-      ],
+      children: [new TextRun({ text, bold: options.bold, italics: options.italics, size: options.size, color: options.color ?? TEXT })],
     });
 
   return [

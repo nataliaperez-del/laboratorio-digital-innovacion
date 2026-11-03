@@ -1,0 +1,10 @@
+# Compilados, paquetes y datos: no se formatean.
+dist
+node_modules
+hostinger_deploy
+public
+coverage
+*.glb
+# El CSS usa reglas compactas de una línea a propósito; los documentos se escriben a mano.
+*.css
+*.md

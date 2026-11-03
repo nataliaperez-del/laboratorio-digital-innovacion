@@ -60,10 +60,7 @@ async function prepareVocationContext(source: InputSource): Promise<VocationCont
     Math.floor(maxC * 0.4),
     'Marco institucional',
   );
-  const { text, notice } = truncateContainerForDocument(
-    source.text,
-    Math.max(maxC - institucional.text.length, Math.floor(maxC * 0.5)),
-  );
+  const { text, notice } = truncateContainerForDocument(source.text, Math.max(maxC - institucional.text.length, Math.floor(maxC * 0.5)));
 
   const isStudy = source.kind === 'estudio';
   return {
@@ -113,10 +110,7 @@ async function generateVocationPart(ctx: VocationContext, partIndex: number, pre
   return { number: meta.number, title: meta.title, markdown, status: review.status, issue: review.issue };
 }
 
-export async function generateThemeVocationAndOptions(
-  source: InputSource,
-  onProgress?: (p: GenerationPartProgress) => void,
-): Promise<GeneratedDocument> {
+export async function generateThemeVocationAndOptions(source: InputSource, onProgress?: (p: GenerationPartProgress) => void): Promise<GeneratedDocument> {
   beginGenerationFlow();
   const ctx = await prepareVocationContext(source);
   const sections: GenerationPartResult[] = [];

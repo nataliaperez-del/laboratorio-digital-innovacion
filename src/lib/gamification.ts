@@ -1,14 +1,4 @@
-import {
-  Compass,
-  BrainCircuit,
-  Trees,
-  Rocket,
-  FolderArchive,
-  Sparkles,
-  Award,
-  Crown,
-  type LucideIcon,
-} from 'lucide-react';
+import { Compass, BrainCircuit, Trees, Rocket, FolderArchive, Sparkles, Award, Crown, type LucideIcon } from 'lucide-react';
 import type { AppState } from '@/store/useStore';
 
 export interface BadgeDefinition {
@@ -163,18 +153,16 @@ export interface GamificationState {
 /**
  * Evalúa el estado del laboratorio y retorna las insignias desbloqueadas y el nivel alcanzado.
  */
-export function evaluateGamification(
-  state: {
-    containerData?: string;
-    savedStudies?: Array<unknown>;
-    themeProposalMarkdown?: string;
-    savedIdeations?: Array<unknown>;
-    treeGraph?: unknown;
-    savedTrees?: Array<unknown>;
-    prototypes?: Array<unknown>;
-    zoeInteractions?: number;
-  }
-): GamificationState {
+export function evaluateGamification(state: {
+  containerData?: string;
+  savedStudies?: Array<unknown>;
+  themeProposalMarkdown?: string;
+  savedIdeations?: Array<unknown>;
+  treeGraph?: unknown;
+  savedTrees?: Array<unknown>;
+  prototypes?: Array<unknown>;
+  zoeInteractions?: number;
+}): GamificationState {
   const unlocked = new Set<string>();
 
   // 1. Pionero Territorial
@@ -199,10 +187,7 @@ export function evaluateGamification(
 
   // 5. Custodio del Conocimiento
   const totalSaved =
-    (state.savedStudies?.length || 0) +
-    (state.savedIdeations?.length || 0) +
-    (state.savedTrees?.length || 0) +
-    (state.prototypes?.length || 0);
+    (state.savedStudies?.length || 0) + (state.savedIdeations?.length || 0) + (state.savedTrees?.length || 0) + (state.prototypes?.length || 0);
   if (totalSaved > 0) {
     unlocked.add('custodio_conocimiento');
   }

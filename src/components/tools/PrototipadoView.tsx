@@ -14,7 +14,17 @@ import {
 import { signalAsInput } from '@/services/observatorio';
 import { FRUIT_LABEL, LEVEL_LABEL } from '@/lib/innovationTreeGraph';
 import { prototipadoReport } from '@/lib/labReports';
-import { BancoStatus, ClearButton, EmptyState, ErrorNotice, GenerationProgress, ReportActions, SegmentedControl, ToolHeader, type ProgressState } from '@/components/lab/common';
+import {
+  BancoStatus,
+  ClearButton,
+  EmptyState,
+  ErrorNotice,
+  GenerationProgress,
+  ReportActions,
+  SegmentedControl,
+  ToolHeader,
+  type ProgressState,
+} from '@/components/lab/common';
 import { ObservatorioPicker } from '@/components/lab/ObservatorioPicker';
 import type { ToolId } from '@/components/layout/Header';
 
@@ -50,14 +60,25 @@ export const PlanView: React.FC<{ plan: PrototypePlan }> = ({ plan }) => {
       {tab === 'general' && (
         <div className="space-y-4">
           <div className="lab-card" style={{ borderLeft: '3px solid #E024A5' }}>
-            <span className="text-xs font-bold text-[#E024A5] flex items-center gap-2 mb-1"><Target className="w-4 h-4 text-[#E024A5]" aria-hidden="true" /> Hipótesis a validar</span>
+            <span className="text-xs font-bold text-[#E024A5] flex items-center gap-2 mb-1">
+              <Target className="w-4 h-4 text-[#E024A5]" aria-hidden="true" /> Hipótesis a validar
+            </span>
             <p className="text-base text-white sy font-medium leading-relaxed">{plan.hypothesis}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="lab-card"><h4 className="text-xs font-bold text-[#E024A5] mb-1">Problema que resuelve</h4><p className="text-sm text-brand-textSecondary leading-relaxed">{plan.problemSolved}</p></div>
-            <div className="lab-card"><h4 className="text-xs font-bold text-[#E024A5] mb-1">Población y actores</h4><p className="text-sm text-brand-textSecondary leading-relaxed">{plan.targetAudience}</p></div>
+            <div className="lab-card">
+              <h4 className="text-xs font-bold text-[#E024A5] mb-1">Problema que resuelve</h4>
+              <p className="text-sm text-brand-textSecondary leading-relaxed">{plan.problemSolved}</p>
+            </div>
+            <div className="lab-card">
+              <h4 className="text-xs font-bold text-[#E024A5] mb-1">Población y actores</h4>
+              <p className="text-sm text-brand-textSecondary leading-relaxed">{plan.targetAudience}</p>
+            </div>
           </div>
-          <div className="lab-card"><h4 className="text-xs font-bold text-[#E024A5] mb-1">La solución</h4><p className="text-sm text-brand-textSecondary leading-relaxed">{plan.solution}</p></div>
+          <div className="lab-card">
+            <h4 className="text-xs font-bold text-[#E024A5] mb-1">La solución</h4>
+            <p className="text-sm text-brand-textSecondary leading-relaxed">{plan.solution}</p>
+          </div>
           {plan.unadSchools.length > 0 && <p className="text-xs text-brand-textMuted">Articula: {plan.unadSchools.join(' · ')}</p>}
         </div>
       )}
@@ -81,7 +102,9 @@ export const PlanView: React.FC<{ plan: PrototypePlan }> = ({ plan }) => {
               <span className="text-[11px] font-semibold text-[#E024A5] block mb-1">Entregables de la fase</span>
               <ul className="space-y-1">
                 {current.entregables.map((e, i) => (
-                  <li key={i} className="text-sm text-brand-textSecondary flex gap-2"><CheckCircle2 className="w-4 h-4 shrink-0 text-[#E024A5]" aria-hidden="true" /> {e}</li>
+                  <li key={i} className="text-sm text-brand-textSecondary flex gap-2">
+                    <CheckCircle2 className="w-4 h-4 shrink-0 text-[#E024A5]" aria-hidden="true" /> {e}
+                  </li>
                 ))}
               </ul>
             </div>
@@ -97,7 +120,9 @@ export const PlanView: React.FC<{ plan: PrototypePlan }> = ({ plan }) => {
             { icon: FileText, title: 'Componente metodológico', text: plan.architecture.metodologico, color: '#E024A5' },
           ].map(({ icon: Icon, title, text, color }) => (
             <div key={title} className="lab-card">
-              <h4 className="text-xs font-bold flex items-center gap-2 mb-1.5" style={{ color }}><Icon className="w-4 h-4 text-[#E024A5]" aria-hidden="true" /> {title}</h4>
+              <h4 className="text-xs font-bold flex items-center gap-2 mb-1.5" style={{ color }}>
+                <Icon className="w-4 h-4 text-[#E024A5]" aria-hidden="true" /> {title}
+              </h4>
               <p className="text-sm text-brand-textSecondary leading-relaxed">{text || 'No aplica'}</p>
             </div>
           ))}
@@ -107,22 +132,41 @@ export const PlanView: React.FC<{ plan: PrototypePlan }> = ({ plan }) => {
       {tab === 'validacion' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           <div className="lab-card">
-            <h4 className="text-xs font-bold text-[#E024A5] flex items-center gap-2 mb-2"><ListChecks className="w-4 h-4 text-[#E024A5]" aria-hidden="true" /> Métricas de validación</h4>
-            <ul className="space-y-1.5 text-sm text-brand-textSecondary list-disc pl-4">{plan.validationMetrics.map((m, i) => <li key={i}>{m}</li>)}</ul>
+            <h4 className="text-xs font-bold text-[#E024A5] flex items-center gap-2 mb-2">
+              <ListChecks className="w-4 h-4 text-[#E024A5]" aria-hidden="true" /> Métricas de validación
+            </h4>
+            <ul className="space-y-1.5 text-sm text-brand-textSecondary list-disc pl-4">
+              {plan.validationMetrics.map((m, i) => (
+                <li key={i}>{m}</li>
+              ))}
+            </ul>
             <h4 className="text-xs font-bold text-[#E024A5] mt-4 mb-2">Entregables finales</h4>
-            <ul className="space-y-1.5 text-sm text-brand-textSecondary list-disc pl-4">{plan.deliverables.map((m, i) => <li key={i}>{m}</li>)}</ul>
+            <ul className="space-y-1.5 text-sm text-brand-textSecondary list-disc pl-4">
+              {plan.deliverables.map((m, i) => (
+                <li key={i}>{m}</li>
+              ))}
+            </ul>
           </div>
           <div className="lab-card">
-            <h4 className="text-xs font-bold text-[#E024A5] flex items-center gap-2 mb-2"><ShieldAlert className="w-4 h-4 text-[#E024A5]" aria-hidden="true" /> Riesgos y mitigación</h4>
+            <h4 className="text-xs font-bold text-[#E024A5] flex items-center gap-2 mb-2">
+              <ShieldAlert className="w-4 h-4 text-[#E024A5]" aria-hidden="true" /> Riesgos y mitigación
+            </h4>
             <ul className="space-y-2">
               {plan.risks.map((r, i) => (
-                <li key={i} className="text-sm"><strong className="text-white font-semibold">{r.riesgo}</strong><span className="block text-brand-textSecondary">{r.mitigacion}</span></li>
+                <li key={i} className="text-sm">
+                  <strong className="text-white font-semibold">{r.riesgo}</strong>
+                  <span className="block text-brand-textSecondary">{r.mitigacion}</span>
+                </li>
               ))}
             </ul>
             {plan.supuestos.length > 0 && (
               <>
                 <h4 className="text-xs font-bold text-[#E024A5] mt-4 mb-2">Supuestos por verificar</h4>
-                <ul className="space-y-1.5 text-sm text-brand-textSecondary list-disc pl-4">{plan.supuestos.map((s, i) => <li key={i}>{s}</li>)}</ul>
+                <ul className="space-y-1.5 text-sm text-brand-textSecondary list-disc pl-4">
+                  {plan.supuestos.map((s, i) => (
+                    <li key={i}>{s}</li>
+                  ))}
+                </ul>
               </>
             )}
           </div>
@@ -137,7 +181,8 @@ interface Props {
 }
 
 export const PrototipadoView: React.FC<Props> = ({ onNavigate }) => {
-  const { prompt0Data, treeGraph, prototypeSeed, setPrototypeSeed, prototypes, addPrototype, removePrototype, activePrototypeId, clearPrototipado } = useStore();
+  const { prompt0Data, treeGraph, prototypeSeed, setPrototypeSeed, prototypes, addPrototype, removePrototype, activePrototypeId, clearPrototipado } =
+    useStore();
 
   const [mode, setMode] = useState<OriginMode>('idea');
   const [topic, setTopic] = useState('');
@@ -216,7 +261,9 @@ export const PrototipadoView: React.FC<Props> = ({ onNavigate }) => {
 
       <section className="lab-panel space-y-4" aria-label="Datos del plan">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-sm font-bold text-[#E024A5] sy flex items-center gap-2"><Rocket className="w-4 h-4 text-[#E024A5]" aria-hidden="true" /> ¿Qué vamos a prototipar?</h2>
+          <h2 className="text-sm font-bold text-[#E024A5] sy flex items-center gap-2">
+            <Rocket className="w-4 h-4 text-[#E024A5]" aria-hidden="true" /> ¿Qué vamos a prototipar?
+          </h2>
           <SegmentedControl<OriginMode>
             label="Origen del plan"
             value={mode}
@@ -240,14 +287,20 @@ export const PrototipadoView: React.FC<Props> = ({ onNavigate }) => {
                   className={`lab-card text-left ${origin.code === n.codigo ? 'is-selected' : ''}`}
                   onClick={() => {
                     setTopic(n.nombre);
-                    setContext([n.descripcion, n.solucion && `Solución posible: ${n.solucion}`, n.impacto_esperado && `Impacto esperado: ${n.impacto_esperado}`].filter(Boolean).join('\n'));
+                    setContext(
+                      [n.descripcion, n.solucion && `Solución posible: ${n.solucion}`, n.impacto_esperado && `Impacto esperado: ${n.impacto_esperado}`]
+                        .filter(Boolean)
+                        .join('\n'),
+                    );
                     setOrigin({ kind: 'arbol', code: n.codigo, label: `Árbol de Innovación: ${treeGraph?.tema}` });
                     if (n.tipo_fruto === 'servicio') setCategory('Servicio de Innovación');
                     if (n.tipo_fruto === 'proyecto') setCategory('Proyecto Territorial');
                     if (n.tipo_fruto === 'prototipo') setCategory('Prototipo Tecnológico');
                   }}
                 >
-                  <span className="text-[11px] text-brand-textMuted block m">{n.codigo} · {n.tipo_fruto ? FRUIT_LABEL[n.tipo_fruto] : LEVEL_LABEL[n.nivel].split(' · ')[0]}</span>
+                  <span className="text-[11px] text-brand-textMuted block m">
+                    {n.codigo} · {n.tipo_fruto ? FRUIT_LABEL[n.tipo_fruto] : LEVEL_LABEL[n.nivel].split(' · ')[0]}
+                  </span>
                   <span className="text-xs font-semibold text-white">{n.nombre}</span>
                 </button>
               ))}
@@ -255,7 +308,9 @@ export const PrototipadoView: React.FC<Props> = ({ onNavigate }) => {
           ) : (
             <p className="text-sm text-brand-textMuted flex flex-wrap items-center gap-2">
               Aún no hay árbol.
-              <button type="button" className="lab-btn lab-btn-sm" onClick={() => onNavigate('arbol')}><Trees className="w-3 h-3" aria-hidden="true" /> Ir al Árbol</button>
+              <button type="button" className="lab-btn lab-btn-sm" onClick={() => onNavigate('arbol')}>
+                <Trees className="w-3 h-3" aria-hidden="true" /> Ir al Árbol
+              </button>
               o escribe tu idea en «Una idea».
             </p>
           ))}
@@ -271,28 +326,65 @@ export const PrototipadoView: React.FC<Props> = ({ onNavigate }) => {
         )}
 
         <div>
-          <label className="lab-label" htmlFor="proto-topic">Idea o tema</label>
-          <textarea id="proto-topic" className="lab-input" rows={2} value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="Ej: detección temprana de plagas con visión artificial para pequeños productores" />
-          {origin.kind !== 'idea' && <p className="text-[11px] text-[var(--brand-olive)] mt-1">Origen: {origin.label}{origin.code ? ` (${origin.code})` : ''}</p>}
+          <label className="lab-label" htmlFor="proto-topic">
+            Idea o tema
+          </label>
+          <textarea
+            id="proto-topic"
+            className="lab-input"
+            rows={2}
+            value={topic}
+            onChange={(e) => setTopic(e.target.value)}
+            placeholder="Ej: detección temprana de plagas con visión artificial para pequeños productores"
+          />
+          {origin.kind !== 'idea' && (
+            <p className="text-[11px] text-[var(--brand-olive)] mt-1">
+              Origen: {origin.label}
+              {origin.code ? ` (${origin.code})` : ''}
+            </p>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="lab-label" htmlFor="proto-cat">Categoría</label>
-            <select id="proto-cat" className="lab-input" value={category} onChange={(e) => setCategory(e.target.value as PrototypeCategory)}>{PROTOTYPE_CATEGORIES.map((c) => <option key={c}>{c}</option>)}</select>
+            <label className="lab-label" htmlFor="proto-cat">
+              Categoría
+            </label>
+            <select id="proto-cat" className="lab-input" value={category} onChange={(e) => setCategory(e.target.value as PrototypeCategory)}>
+              {PROTOTYPE_CATEGORIES.map((c) => (
+                <option key={c}>{c}</option>
+              ))}
+            </select>
           </div>
           <div>
-            <label className="lab-label" htmlFor="proto-trl">Madurez objetivo</label>
-            <select id="proto-trl" className="lab-input" value={trl} onChange={(e) => setTrl(e.target.value)}>{TRL_OPTIONS.map((c) => <option key={c}>{c}</option>)}</select>
+            <label className="lab-label" htmlFor="proto-trl">
+              Madurez objetivo
+            </label>
+            <select id="proto-trl" className="lab-input" value={trl} onChange={(e) => setTrl(e.target.value)}>
+              {TRL_OPTIONS.map((c) => (
+                <option key={c}>{c}</option>
+              ))}
+            </select>
           </div>
           <div>
-            <label className="lab-label" htmlFor="proto-scope">Alcance de validación</label>
-            <select id="proto-scope" className="lab-input" value={scope} onChange={(e) => setScope(e.target.value)}>{SCOPE_OPTIONS.map((c) => <option key={c}>{c}</option>)}</select>
+            <label className="lab-label" htmlFor="proto-scope">
+              Alcance de validación
+            </label>
+            <select id="proto-scope" className="lab-input" value={scope} onChange={(e) => setScope(e.target.value)}>
+              {SCOPE_OPTIONS.map((c) => (
+                <option key={c}>{c}</option>
+              ))}
+            </select>
           </div>
         </div>
 
         <div className="flex justify-end">
-          <button type="button" className="metal px-6 py-2.5 text-xs font-bold flex items-center gap-2 disabled:opacity-40" disabled={busy || !topic.trim()} onClick={() => void generate()}>
+          <button
+            type="button"
+            className="metal px-6 py-2.5 text-xs font-bold flex items-center gap-2 disabled:opacity-40"
+            disabled={busy || !topic.trim()}
+            onClick={() => void generate()}
+          >
             <Sparkles className="w-4 h-4" aria-hidden="true" /> Armar el plan con IA
           </button>
         </div>
@@ -319,12 +411,7 @@ export const PrototipadoView: React.FC<Props> = ({ onNavigate }) => {
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <ReportActions getReport={() => prototipadoReport(prompt0Data, active)} />
-              <button
-                type="button"
-                className="lab-btn"
-                onClick={() => remove(active)}
-                aria-label={`Eliminar ${active.name}`}
-              >
+              <button type="button" className="lab-btn" onClick={() => remove(active)} aria-label={`Eliminar ${active.name}`}>
                 <Trash2 className="w-4 h-4" aria-hidden="true" />
               </button>
             </div>

@@ -129,14 +129,9 @@ export const App: React.FC = () => {
             background: 'radial-gradient(circle, rgba(107,79,160,0.22) 0%, rgba(4,34,43,0) 68%)',
           }}
         />
-  
+
         {/* SVG Vector Mesh Background Overlay */}
-        <svg
-          width="100%"
-          height="100%"
-          aria-hidden="true"
-          className="absolute inset-0 pointer-events-none w-full h-full opacity-40 z-0"
-        >
+        <svg width="100%" height="100%" aria-hidden="true" className="absolute inset-0 pointer-events-none w-full h-full opacity-40 z-0">
           <defs>
             <pattern id="vmesh" width="240" height="240" patternUnits="userSpaceOnUse">
               <g stroke="#FFFFFF" strokeOpacity="0.16" strokeWidth="1" fill="none">
@@ -215,14 +210,8 @@ export const App: React.FC = () => {
       )}
 
       {/* Gamificación: Modal de Vitrina de Insignias y Toast de Notificación */}
-      <BadgesModal
-        isOpen={isBadgesModalOpen}
-        onClose={() => setIsBadgesModalOpen(false)}
-        onNavigate={setCurrentTool}
-      />
-      <BadgeNotificationToast
-        onOpenBadgesModal={() => setIsBadgesModalOpen(true)}
-      />
+      <BadgesModal isOpen={isBadgesModalOpen} onClose={() => setIsBadgesModalOpen(false)} onNavigate={setCurrentTool} />
+      <BadgeNotificationToast onOpenBadgesModal={() => setIsBadgesModalOpen(true)} />
 
       {/* Espacio al final de la página: en el inicio, para que la firma flotante no tape el contenido;
           en los módulos, además, para que lo último pueda subir por encima de ZOE. */}
@@ -236,8 +225,18 @@ export const App: React.FC = () => {
           <br />
           Camilo Esteban Lozano
         </p>
-        <img src="/assets/unad_acreditada.png" alt="Universidad Nacional Abierta y a Distancia · Acreditada en Alta Calidad" title="UNAD · Acreditada en Alta Calidad" className="lab-credits-unad" />
-        <img src="/assets/viem_logo.png" alt="VIEM · Vicerrectoría de Innovación y Emprendimiento" title="Vicerrectoría de Innovación y Emprendimiento (VIEM)" className="lab-credits-viem" />
+        <img
+          src="/assets/unad_acreditada.png"
+          alt="Universidad Nacional Abierta y a Distancia · Acreditada en Alta Calidad"
+          title="UNAD · Acreditada en Alta Calidad"
+          className="lab-credits-unad"
+        />
+        <img
+          src="/assets/viem_logo.png"
+          alt="VIEM · Vicerrectoría de Innovación y Emprendimiento"
+          title="Vicerrectoría de Innovación y Emprendimiento (VIEM)"
+          className="lab-credits-viem"
+        />
       </footer>
     </div>
   );

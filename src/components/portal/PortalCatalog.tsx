@@ -1,14 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {
-  ArrowRight,
-  Layers,
-  BrainCircuit,
-  Trees,
-  Rocket,
-  Sparkles,
-  FolderArchive,
-  Trophy
-} from 'lucide-react';
+import { ArrowRight, Layers, BrainCircuit, Trees, Rocket, Sparkles, FolderArchive, Trophy } from 'lucide-react';
 import { ToolId } from '../layout/Header';
 
 interface PortalCatalogProps {
@@ -18,11 +9,7 @@ interface PortalCatalogProps {
   onOpenBadges?: () => void;
 }
 
-export const PortalCatalog: React.FC<PortalCatalogProps> = ({
-  onSelectTool,
-  onOpenZoe,
-  onOpenBadges,
-}) => {
+export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOpenZoe, onOpenBadges }) => {
   // 0: Presentación del LAB, 1: Video Proyección Holográfica de ZOE
   const [slideIndex, setSlideIndex] = useState<0 | 1>(0);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -98,9 +85,7 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({
           ========================================================================= */}
       <div
         className={`absolute inset-0 w-full h-full flex flex-col justify-center items-center transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-          slideIndex === 0
-            ? 'opacity-100 translate-x-0 pointer-events-auto z-10'
-            : 'opacity-0 -translate-x-full pointer-events-none z-0'
+          slideIndex === 0 ? 'opacity-100 translate-x-0 pointer-events-auto z-10' : 'opacity-0 -translate-x-full pointer-events-none z-0'
         }`}
       >
         <section
@@ -109,10 +94,8 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({
             // Fondo de vidrio holográfico con bordes que se desvanecen gradualmente en transparencia
             background:
               'radial-gradient(ellipse 95% 90% at 50% 50%, rgba(4, 34, 43, 0.72) 0%, rgba(4, 34, 43, 0.45) 55%, rgba(2, 20, 26, 0.15) 85%, transparent 100%)',
-            WebkitMaskImage:
-              'radial-gradient(ellipse 98% 95% at 50% 50%, black 75%, transparent 100%)',
-            maskImage:
-              'radial-gradient(ellipse 98% 95% at 50% 50%, black 75%, transparent 100%)',
+            WebkitMaskImage: 'radial-gradient(ellipse 98% 95% at 50% 50%, black 75%, transparent 100%)',
+            maskImage: 'radial-gradient(ellipse 98% 95% at 50% 50%, black 75%, transparent 100%)',
           }}
         >
           {/* Halo sutil de luz holográfica central */}
@@ -127,8 +110,7 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({
           <div
             className="absolute inset-0 pointer-events-none opacity-15"
             style={{
-              backgroundImage:
-                'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(39,220,255,0.06) 3px, rgba(39,220,255,0.06) 4px)',
+              backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(39,220,255,0.06) 3px, rgba(39,220,255,0.06) 4px)',
             }}
           />
 
@@ -141,14 +123,14 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({
 
             {/* Texto de Bienvenida */}
             <p className="text-sm sm:text-base md:text-lg text-[#CFE0E6] leading-relaxed max-w-4xl">
-              Entorno interactivo de experimentación y prototipado rápido concebido dentro del Observatorio InnovaHub360. Aquí la inteligencia territorial se convierte en acción: caracterizas desafíos regionales, descubres tendencias en árboles holográficos de innovación y formulas planes de prototipado listos para el territorio, asistido en cada fase por <strong>ZOE</strong>.
+              Entorno interactivo de experimentación y prototipado rápido concebido dentro del Observatorio InnovaHub360. Aquí la inteligencia territorial se
+              convierte en acción: caracterizas desafíos regionales, descubres tendencias en árboles holográficos de innovación y formulas planes de prototipado
+              listos para el territorio, asistido en cada fase por <strong>ZOE</strong>.
             </p>
 
             {/* Accesos directos a las 4 herramientas del LAB */}
             <div className="pt-2">
-              <span className="text-[11px] uppercase tracking-wider text-[#5EC2DD] font-bold block mb-3 m">
-                Herramientas Disponibles en el Laboratorio:
-              </span>
+              <span className="text-[11px] uppercase tracking-wider text-[#5EC2DD] font-bold block mb-3 m">Herramientas Disponibles en el Laboratorio:</span>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                 {tools.map((t) => {
                   const Icon = t.icon;
@@ -172,12 +154,8 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({
                         <ArrowRight className="w-4 h-4 text-white/40 group-hover:text-[#27DCFF] group-hover:translate-x-1 transition-all" />
                       </div>
                       <div>
-                        <span className="text-base font-bold text-white sy group-hover:text-[#5EC2DD] transition-colors block">
-                          {t.name}
-                        </span>
-                        <span className="text-xs text-[#A6C0CA] block mt-1 leading-snug">
-                          {t.desc}
-                        </span>
+                        <span className="text-base font-bold text-white sy group-hover:text-[#5EC2DD] transition-colors block">{t.name}</span>
+                        <span className="text-xs text-[#A6C0CA] block mt-1 leading-snug">{t.desc}</span>
                       </div>
                     </button>
                   );
@@ -216,21 +194,16 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({
           ========================================================================= */}
       <div
         className={`absolute inset-0 w-full h-full flex flex-col justify-center items-center transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-          slideIndex === 1
-            ? 'opacity-100 translate-x-0 pointer-events-auto z-10'
-            : 'opacity-0 translate-x-full pointer-events-none z-0'
+          slideIndex === 1 ? 'opacity-100 translate-x-0 pointer-events-auto z-10' : 'opacity-0 translate-x-full pointer-events-none z-0'
         }`}
       >
         <section
           className="relative w-full h-full flex items-center justify-center p-2 sm:p-4 overflow-hidden"
           style={{
             // Desvanecimiento suave en los bordes para eliminar cualquier línea dura o borde tosco
-            background:
-              'radial-gradient(ellipse 95% 90% at 50% 50%, rgba(4, 34, 43, 0.70) 0%, rgba(2, 20, 26, 0.50) 65%, transparent 100%)',
-            WebkitMaskImage:
-              'radial-gradient(ellipse 98% 95% at 50% 50%, black 80%, transparent 100%)',
-            maskImage:
-              'radial-gradient(ellipse 98% 95% at 50% 50%, black 80%, transparent 100%)',
+            background: 'radial-gradient(ellipse 95% 90% at 50% 50%, rgba(4, 34, 43, 0.70) 0%, rgba(2, 20, 26, 0.50) 65%, transparent 100%)',
+            WebkitMaskImage: 'radial-gradient(ellipse 98% 95% at 50% 50%, black 80%, transparent 100%)',
+            maskImage: 'radial-gradient(ellipse 98% 95% at 50% 50%, black 80%, transparent 100%)',
           }}
         >
           {/* Contenedor del Video a pantalla completa dentro de la sección sin barras invasivas */}
@@ -239,8 +212,7 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({
             <div
               className="absolute inset-0 pointer-events-none opacity-15 z-30"
               style={{
-                backgroundImage:
-                  'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(39,220,255,0.05) 3px, rgba(39,220,255,0.05) 4px)',
+                backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(39,220,255,0.05) 3px, rgba(39,220,255,0.05) 4px)',
               }}
             />
 
@@ -268,9 +240,7 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({
           type="button"
           onClick={() => setSlideIndex(0)}
           className={`transition-all rounded-full cursor-pointer ${
-            slideIndex === 0
-              ? 'w-7 h-2.5 bg-[#27DCFF] shadow-[0_0_12px_#27DCFF]'
-              : 'w-2.5 h-2.5 bg-white/30 hover:bg-white/60'
+            slideIndex === 0 ? 'w-7 h-2.5 bg-[#27DCFF] shadow-[0_0_12px_#27DCFF]' : 'w-2.5 h-2.5 bg-white/30 hover:bg-white/60'
           }`}
           title="Diapositiva 1: Presentación del Laboratorio"
           aria-label="Ir a presentación"
@@ -279,9 +249,7 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({
           type="button"
           onClick={() => setSlideIndex(1)}
           className={`transition-all rounded-full cursor-pointer ${
-            slideIndex === 1
-              ? 'w-7 h-2.5 bg-[#27DCFF] shadow-[0_0_12px_#27DCFF]'
-              : 'w-2.5 h-2.5 bg-white/30 hover:bg-white/60'
+            slideIndex === 1 ? 'w-7 h-2.5 bg-[#27DCFF] shadow-[0_0_12px_#27DCFF]' : 'w-2.5 h-2.5 bg-white/30 hover:bg-white/60'
           }`}
           title="Diapositiva 2: Video Proyección de ZOE"
           aria-label="Ir a video"

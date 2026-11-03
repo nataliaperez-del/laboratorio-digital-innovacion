@@ -41,9 +41,12 @@ export const ZoeVisor: React.FC = () => {
   const [facing, setFacing] = useState<-1 | 0 | 1>(0);
   const [pet, setPet] = useState(0);
 
-  useEffect(() => () => {
-    if (modelUrl) URL.revokeObjectURL(modelUrl);
-  }, [modelUrl]);
+  useEffect(
+    () => () => {
+      if (modelUrl) URL.revokeObjectURL(modelUrl);
+    },
+    [modelUrl],
+  );
 
   const loadFile = (file: File | undefined) => {
     if (!file) return;
@@ -108,16 +111,34 @@ export const ZoeVisor: React.FC = () => {
           <div className="lab-panel space-y-3">
             <h2 className="text-sm font-bold text-white">Postura</h2>
             <div className="flex flex-wrap gap-2">
-              {button('De pie', posture === 'standing' && !walking, () => { setWalking(false); setPosture('standing'); })}
-              {button('Sentado', posture === 'sitting' && !walking, () => { setWalking(false); setPosture('sitting'); })}
-              {button('Echado', posture === 'lying' && !walking && behavior !== 'sleeping', () => { setWalking(false); setPosture('lying'); setBehavior('idle'); })}
-              {button('Dormir', behavior === 'sleeping', () => { setWalking(false); setPosture('lying'); setBehavior('sleeping'); })}
+              {button('De pie', posture === 'standing' && !walking, () => {
+                setWalking(false);
+                setPosture('standing');
+              })}
+              {button('Sentado', posture === 'sitting' && !walking, () => {
+                setWalking(false);
+                setPosture('sitting');
+              })}
+              {button('Echado', posture === 'lying' && !walking && behavior !== 'sleeping', () => {
+                setWalking(false);
+                setPosture('lying');
+                setBehavior('idle');
+              })}
+              {button('Dormir', behavior === 'sleeping', () => {
+                setWalking(false);
+                setPosture('lying');
+                setBehavior('sleeping');
+              })}
               {button('Caminar', walking, () => setWalking((w) => !w))}
             </div>
             <h2 className="text-sm font-bold text-white pt-1">Ánimo</h2>
             <div className="flex flex-wrap gap-2">
               {(['idle', 'listening', 'thinking', 'speaking', 'happy'] as ZoeSoulState[]).map((b) =>
-                button({ idle: 'Tranquilo', listening: 'Escucha', thinking: 'Piensa', speaking: 'Habla', happy: 'Feliz', sleeping: 'Duerme' }[b], behavior === b, () => setBehavior(b)),
+                button(
+                  { idle: 'Tranquilo', listening: 'Escucha', thinking: 'Piensa', speaking: 'Habla', happy: 'Feliz', sleeping: 'Duerme' }[b],
+                  behavior === b,
+                  () => setBehavior(b),
+                ),
               )}
               {button('Acariciar', false, () => setPet((n) => n + 1))}
             </div>
@@ -132,11 +153,14 @@ export const ZoeVisor: React.FC = () => {
           <div className="lab-panel">
             <h2 className="text-sm font-bold text-white mb-2">Clips reconocidos</h2>
             {!info ? (
-              <p className="text-xs text-brand-textMuted" role="status">Cargando modelo…</p>
+              <p className="text-xs text-brand-textMuted" role="status">
+                Cargando modelo…
+              </p>
             ) : (
               <>
                 <p className="text-xs text-brand-textMuted mb-2">
-                  {info.clips.length} clips · {info.bones} huesos · {info.ownRig ? 'esqueleto de este proyecto (ojos animados)' : 'esqueleto externo (ojos de la textura)'}
+                  {info.clips.length} clips · {info.bones} huesos ·{' '}
+                  {info.ownRig ? 'esqueleto de este proyecto (ojos animados)' : 'esqueleto externo (ojos de la textura)'}
                 </p>
                 <table className="w-full text-xs">
                   <thead>

@@ -3,7 +3,14 @@ import type { Plugin, PreviewServer, ViteDevServer } from 'vite';
 
 const DEFAULT_BASE = 'https://chatbot-ia-360.unad.edu.co/api-proxy/v1';
 /** Modelos que acepta hoy la pasarela IA 360; si cambian, la pasarela responde con la lista vigente. */
-const ALLOWED_MODELS = new Set(['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.6-flash', 'gemini-3.7-flash', 'gemini-3.8-flash', 'gemini-3.1-pro-preview']);
+const ALLOWED_MODELS = new Set([
+  'gemini-3.5-flash',
+  'gemini-3.5-flash-lite',
+  'gemini-3.6-flash',
+  'gemini-3.7-flash',
+  'gemini-3.8-flash',
+  'gemini-3.1-pro-preview',
+]);
 const MAX_BODY_BYTES = 12 * 1024 * 1024;
 const RADAR_URL = 'https://observatorio.innovahub360.net/index.php?route=%2Fradar';
 const RADAR_TTL_MS = 6 * 60 * 60 * 1000;

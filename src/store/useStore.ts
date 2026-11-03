@@ -3,10 +3,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import { DEFAULT_ANTHROPIC_MODEL, resolveAnthropicModel } from '@/constants/aiProviders';
 import { DEFAULT_OPENAI_MODEL } from '@/constants/openaiModels';
 import type { DriveLoadDiagnostics, DriveTerritorySources } from '@/services/institutionalDrive';
-import {
-  assembleContenedor2Document,
-  type Contenedor2SectionResult,
-} from '@/prompts/contenedor2Sections';
+import { assembleContenedor2Document, type Contenedor2SectionResult } from '@/prompts/contenedor2Sections';
 import { assembleParts, type GenerationPartResult, type InputSource } from '@/prompts/themeAndInnovationPrompts';
 import type { TreeGraph } from '@/lib/innovationTreeGraph';
 import type { PrototypeBrief, PrototypePlan } from '@/services/prototyping';
@@ -280,17 +277,13 @@ export const useStore = create<AppState>()(
       activePrototypeId: null,
       setActivePrototypeId: (id) => set({ activePrototypeId: id }),
       savedStudies: [],
-      addSavedStudy: (study) =>
-        set((state) => ({ savedStudies: [study, ...state.savedStudies.filter((s) => s.id !== study.id)] })),
+      addSavedStudy: (study) => set((state) => ({ savedStudies: [study, ...state.savedStudies.filter((s) => s.id !== study.id)] })),
       removeSavedStudy: (id) => set((state) => ({ savedStudies: state.savedStudies.filter((s) => s.id !== id) })),
       savedIdeations: [],
-      addSavedIdeation: (ideation) =>
-        set((state) => ({ savedIdeations: [ideation, ...state.savedIdeations.filter((i) => i.id !== ideation.id)] })),
-      removeSavedIdeation: (id) =>
-        set((state) => ({ savedIdeations: state.savedIdeations.filter((i) => i.id !== id) })),
+      addSavedIdeation: (ideation) => set((state) => ({ savedIdeations: [ideation, ...state.savedIdeations.filter((i) => i.id !== ideation.id)] })),
+      removeSavedIdeation: (id) => set((state) => ({ savedIdeations: state.savedIdeations.filter((i) => i.id !== id) })),
       savedTrees: [],
-      addSavedTree: (tree) =>
-        set((state) => ({ savedTrees: [tree, ...state.savedTrees.filter((t) => t.id !== tree.id)] })),
+      addSavedTree: (tree) => set((state) => ({ savedTrees: [tree, ...state.savedTrees.filter((t) => t.id !== tree.id)] })),
       removeSavedTree: (id) => set((state) => ({ savedTrees: state.savedTrees.filter((t) => t.id !== id) })),
       bankIds: { estudio: null, ideacion: null, arbol: null },
       clearEstudio: () =>
@@ -324,9 +317,7 @@ export const useStore = create<AppState>()(
       acknowledgedBadges: [],
       acknowledgeBadge: (badgeId) =>
         set((state) => ({
-          acknowledgedBadges: (state.acknowledgedBadges || []).includes(badgeId)
-            ? state.acknowledgedBadges
-            : [...(state.acknowledgedBadges || []), badgeId],
+          acknowledgedBadges: (state.acknowledgedBadges || []).includes(badgeId) ? state.acknowledgedBadges : [...(state.acknowledgedBadges || []), badgeId],
         })),
       aiProvider: 'unadGemini',
       setAiProvider: (provider) => set({ aiProvider: provider }),
@@ -353,8 +344,7 @@ export const useStore = create<AppState>()(
         openai: 'gpt-4o',
         ollama: 'llama3',
       },
-      setProviderModel: (provider, model) =>
-        set((state) => ({ providerModels: { ...state.providerModels, [provider]: model } })),
+      setProviderModel: (provider, model) => set((state) => ({ providerModels: { ...state.providerModels, [provider]: model } })),
       unadGeminiBearer: '',
       setUnadGeminiBearer: (token) => set({ unadGeminiBearer: token }),
     }),
@@ -383,7 +373,18 @@ export const useStore = create<AppState>()(
         if (version < 3) {
           // La pasarela IA 360 retiró los modelos 2.5.
           if (/^gemini-(1|2)/.test(next.providerModels.unadGemini ?? '')) next.providerModels.unadGemini = 'gemini-3.5-flash';
-          for (const k of ['session', 'lastActivityAt', 'theme', 'currentPhase', 'containerBuildCount', 'documentData', 'fundanteSections', 'sigiipSnapshot', 'selectedStrategicTheme', 'selectedTreeFruits']) {
+          for (const k of [
+            'session',
+            'lastActivityAt',
+            'theme',
+            'currentPhase',
+            'containerBuildCount',
+            'documentData',
+            'fundanteSections',
+            'sigiipSnapshot',
+            'selectedStrategicTheme',
+            'selectedTreeFruits',
+          ]) {
             delete (next as Record<string, unknown>)[k];
           }
         }

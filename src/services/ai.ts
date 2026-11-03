@@ -113,8 +113,7 @@ async function callAIOnce(prompt: string, options?: CallAIOptions): Promise<Call
 
     if (aiProvider === 'gemini') {
       const aiClient = getGeminiAI(apiKeys.gemini);
-      const geminiModel =
-        (providerModels?.gemini || import.meta.env.VITE_GEMINI_MODEL || 'gemini-2.5-flash').trim();
+      const geminiModel = (providerModels?.gemini || import.meta.env.VITE_GEMINI_MODEL || 'gemini-2.5-flash').trim();
       // El SDK no expone la señal de aborto: se corta con una carrera contra el botón «Detener».
       const abortPromise = new Promise<never>((_, reject) => {
         signal.addEventListener('abort', () => reject(new GenerationCancelledError()), { once: true });
@@ -132,9 +131,7 @@ async function callAIOnce(prompt: string, options?: CallAIOptions): Promise<Call
               config: {
                 maxOutputTokens: maxOut ?? 8192,
                 // En modelos 2.5 el razonamiento descuenta de maxOutputTokens: sin límite corta la salida; con 0 el modelo degenera en prompts largos.
-                ...(/2\.5/.test(geminiModel)
-                  ? { thinkingConfig: { thinkingBudget: Math.min(1024, Math.floor((maxOut ?? 8192) / 2)) } }
-                  : {}),
+                ...(/2\.5/.test(geminiModel) ? { thinkingConfig: { thinkingBudget: Math.min(1024, Math.floor((maxOut ?? 8192) / 2)) } } : {}),
                 ...(options?.googleSearch ? { tools: [{ googleSearch: {} }] } : {}),
               },
             }),
@@ -170,7 +167,7 @@ async function callAIOnce(prompt: string, options?: CallAIOptions): Promise<Call
 
     if (aiProvider === 'openai') {
       const apiKey = apiKeys.openai;
-      if (!apiKey) throw new Error("OpenAI API Key is required.");
+      if (!apiKey) throw new Error('OpenAI API Key is required.');
       const modelId = (providerModels?.openai || openaiModel || 'gpt-4o').trim();
       // Los modelos de razonamiento (o1/o3/o4, gpt-5*) rechazan max_tokens y exigen max_completion_tokens.
       const isReasoningModel = /^o\d/i.test(modelId) || modelId.toLowerCase().startsWith('gpt-5');
@@ -180,7 +177,7 @@ async function callAIOnce(prompt: string, options?: CallAIOptions): Promise<Call
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
+          Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
           model: modelId,
@@ -189,12 +186,12 @@ async function callAIOnce(prompt: string, options?: CallAIOptions): Promise<Call
         }),
         signal,
       });
-      
+
       if (!res.ok) {
         const err = await res.json();
         throw new Error(err.error?.message || 'Error calling OpenAI API');
       }
-      
+
       const data = await res.json();
       return {
         text: data.choices[0].message.content ?? '',
@@ -204,10 +201,8 @@ async function callAIOnce(prompt: string, options?: CallAIOptions): Promise<Call
 
     if (aiProvider === 'anthropic') {
       const apiKey = apiKeys.anthropic;
-      if (!apiKey) throw new Error("Anthropic API Key is required.");
-      const selectedAnthropicModel = resolveAnthropicModel(
-        providerModels?.anthropic || anthropicModel || import.meta.env.VITE_ANTHROPIC_MODEL,
-      );
+      if (!apiKey) throw new Error('Anthropic API Key is required.');
+      const selectedAnthropicModel = resolveAnthropicModel(providerModels?.anthropic || anthropicModel || import.meta.env.VITE_ANTHROPIC_MODEL);
 
       // En desarrollo pasa por el proxy de Vite; en producción Anthropic admite la llamada directa con la cabecera de abajo.
       const endpoint = import.meta.env.DEV ? '/api-anthropic/v1/messages' : 'https://api.anthropic.com/v1/messages';
@@ -218,16 +213,16 @@ async function callAIOnce(prompt: string, options?: CallAIOptions): Promise<Call
           'Content-Type': 'application/json',
           'x-api-key': apiKey,
           'anthropic-version': '2023-06-01',
-          'anthropic-dangerously-allow-browser': 'true'
+          'anthropic-dangerously-allow-browser': 'true',
         },
         body: JSON.stringify({
           model: selectedAnthropicModel,
           max_tokens: Math.min(maxOut ?? 8192, 8192),
-          messages: [{ role: 'user', content: prompt }]
+          messages: [{ role: 'user', content: prompt }],
         }),
         signal,
       });
-      
+
       if (!res.ok) {
         const err = await res.json();
         const msg = err.error?.message || 'Error calling Anthropic API';
@@ -238,7 +233,7 @@ async function callAIOnce(prompt: string, options?: CallAIOptions): Promise<Call
         }
         throw new Error(msg);
       }
-      
+
       const data = await res.json();
       return {
         text: data.content?.[0]?.text ?? '',
@@ -247,7 +242,7 @@ async function callAIOnce(prompt: string, options?: CallAIOptions): Promise<Call
     }
 
     if (aiProvider === 'ollama') {
-      if (!ollamaUrl) throw new Error("Ollama URL is required.");
+      if (!ollamaUrl) throw new Error('Ollama URL is required.');
       const modelId = (providerModels?.ollama || ollamaModel || 'llama3').trim();
 
       const ollamaBody: Record<string, unknown> = {
@@ -267,11 +262,11 @@ async function callAIOnce(prompt: string, options?: CallAIOptions): Promise<Call
         body: JSON.stringify(ollamaBody),
         signal,
       });
-      
+
       if (!res.ok) {
         throw new Error(`Error calling Ollama API: ${res.statusText}`);
       }
-      
+
       const data = await res.json();
       return {
         text: data.message?.content ?? '',
@@ -285,7 +280,7 @@ async function callAIOnce(prompt: string, options?: CallAIOptions): Promise<Call
     if (error instanceof GenerationCancelledError || signal.aborted || error?.name === 'AbortError') {
       throw new GenerationCancelledError();
     }
-    console.error("AI Generation Error:", error);
+    console.error('AI Generation Error:', error);
     throw new Error(`Error con ${aiProvider}: ${error.message}`);
   } finally {
     if (activeAbort === controller) activeAbort = null;
@@ -430,9 +425,7 @@ async function callAIWithRecovery(prompt: string, options?: CallAIOptions): Prom
   }
 
   for (let i = 0; truncated && i < MAX_CONTINUATIONS; i++) {
-    console.info(
-      `[IA] El bloque alcanzó el límite de tokens; se completa con una continuación automática (${i + 1}/${MAX_CONTINUATIONS}). No es un error.`,
-    );
+    console.info(`[IA] El bloque alcanzó el límite de tokens; se completa con una continuación automática (${i + 1}/${MAX_CONTINUATIONS}). No es un error.`);
     const cont = await callAIOnce(buildContinuationPrompt(prompt, text), options);
     if (!cont.text.trim() || isDegenerateOutput(cont.text)) break;
     text = joinContinuation(text, cont.text);
@@ -493,7 +486,10 @@ export function getUnadGeminiMaxOutputTokens(): number {
 
 /** Extrae el primer objeto JSON de una respuesta del modelo, tolerando cercas y texto alrededor. */
 export function parseJsonResponse<T>(raw: string): T {
-  const clean = stripOuterMarkdownFence(raw).replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim();
+  const clean = stripOuterMarkdownFence(raw)
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/```\s*$/i, '')
+    .trim();
   const start = clean.indexOf('{');
   const end = clean.lastIndexOf('}');
   if (start < 0 || end <= start) throw new Error('La respuesta del modelo no contiene un objeto JSON.');

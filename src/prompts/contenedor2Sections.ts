@@ -63,7 +63,10 @@ const MIN_C2_SECTION_CHARS = 180;
 export function sanitizeContenedor2SectionMarkdown(markdown: string): string {
   let text = markdown.trim();
   // Quitar cercas markdown si quedaron
-  text = text.replace(/^```(?:markdown)?\r?\n/i, '').replace(/\r?\n```$/i, '').trim();
+  text = text
+    .replace(/^```(?:markdown)?\r?\n/i, '')
+    .replace(/\r?\n```$/i, '')
+    .trim();
   // Quitar líneas de borde de prompt tipo ══════ o ──────
   text = text.replace(/^[═─—_\-]{3,}\s*$/gm, '');
   // Quitar líneas divisorias sueltas (---, ***, ___)
@@ -79,10 +82,7 @@ export function sanitizeContenedor2SectionMarkdown(markdown: string): string {
  * sin encabezado, cortado, con marcadores de relleno o con "rayas" (líneas divisorias,
  * cajas ASCII o tablas rotas). No consume llamadas al modelo.
  */
-export function reviewContenedor2Section(
-  point: Contenedor2Point,
-  markdown: string,
-): { status: Contenedor2SectionStatus; issue?: string } {
+export function reviewContenedor2Section(point: Contenedor2Point, markdown: string): { status: Contenedor2SectionStatus; issue?: string } {
   const text = markdown.trim();
   if (!text) {
     return { status: 'failed', issue: 'El bloque quedó vacío o no devolvió texto utilizable.' };
@@ -140,7 +140,10 @@ export function reviewContenedor2Section(
   const isDashOnlyRow = (ln: string): boolean => {
     const t = ln.trim();
     if (!t.startsWith('|') || !t.endsWith('|')) return false;
-    const cells = t.split('|').slice(1, -1).map((c) => c.trim());
+    const cells = t
+      .split('|')
+      .slice(1, -1)
+      .map((c) => c.trim());
     return cells.length > 0 && cells.every((c) => /^[-–—\s.]+$/.test(c));
   };
 
@@ -204,21 +207,12 @@ Vuelve a redactar ÚNICAMENTE el punto ${point.number} («${point.title}») corr
 /**
  * Ensambla el Contenedor 2 completo a partir de sus bloques individuales y el apéndice de procedencia.
  */
-export function assembleContenedor2Document(
-  sections: readonly Contenedor2SectionResult[],
-  procedencia?: Procedencia | null,
-): string {
-  const parts = sections
-    .map((s) => s.markdown.trim())
-    .filter(Boolean);
+export function assembleContenedor2Document(sections: readonly Contenedor2SectionResult[], procedencia?: Procedencia | null): string {
+  const parts = sections.map((s) => s.markdown.trim()).filter(Boolean);
   let assembled = parts.join('\n\n');
   if (procedencia) {
     const appendix = buildTrazabilidadAppendix(procedencia);
-    if (
-      appendix &&
-      !assembled.includes('Nota de trazabilidad documental') &&
-      !assembled.includes('Fuentes propias del territorio consultadas')
-    ) {
+    if (appendix && !assembled.includes('Nota de trazabilidad documental') && !assembled.includes('Fuentes propias del territorio consultadas')) {
       assembled += (assembled ? '\n\n' : '') + appendix;
     }
   }
@@ -386,9 +380,7 @@ export function contenedor2Points(focusText: string): readonly Contenedor2Point[
   const focus = focusText.trim();
   if (!focus) return CONTENEDOR2_SECTIONS;
   return CONTENEDOR2_SECTIONS.map((point) =>
-    point.kind === 'ai' && point.number === 8
-      ? { ...point, parts: [...point.parts, focusContrastPart(focus)] }
-      : point,
+    point.kind === 'ai' && point.number === 8 ? { ...point, parts: [...point.parts, focusContrastPart(focus)] } : point,
   );
 }
 

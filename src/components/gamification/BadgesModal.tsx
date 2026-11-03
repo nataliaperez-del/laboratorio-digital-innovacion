@@ -1,31 +1,9 @@
 import React, { useState } from 'react';
-import {
-  Trophy,
-  X,
-  CheckCircle2,
-  Lock,
-  ArrowRight,
-  Sparkles,
-  Award,
-  Zap,
-  Printer,
-  FileCheck2,
-  Calendar,
-  Clock,
-  Edit3,
-  ShieldCheck,
-} from 'lucide-react';
+import { Trophy, X, CheckCircle2, Lock, ArrowRight, Sparkles, Award, Zap, Printer, FileCheck2, Calendar, Clock, Edit3, ShieldCheck } from 'lucide-react';
 import { useStore } from '@/store/useStore';
-import {
-  evaluateGamification,
-  INNOVATION_BADGES,
-} from '@/lib/gamification';
+import { evaluateGamification, INNOVATION_BADGES } from '@/lib/gamification';
 import { BadgeGraphicRenderer, BADGE_UNIT_THEMES } from './BadgeGraphics';
-import {
-  openCertificatePrintWindow,
-  BADGE_CERTIFICATES,
-  type BadgeCertificateMetadata,
-} from '@/lib/certificatePdfExport';
+import { openCertificatePrintWindow, BADGE_CERTIFICATES, type BadgeCertificateMetadata } from '@/lib/certificatePdfExport';
 import type { ToolId } from '@/components/layout/Header';
 
 interface Props {
@@ -35,17 +13,7 @@ interface Props {
 }
 
 export const BadgesModal: React.FC<Props> = ({ isOpen, onClose, onNavigate }) => {
-  const {
-    containerData,
-    savedStudies,
-    themeProposalMarkdown,
-    savedIdeations,
-    treeGraph,
-    savedTrees,
-    prototypes,
-    zoeInteractions,
-    prompt0Data,
-  } = useStore();
+  const { containerData, savedStudies, themeProposalMarkdown, savedIdeations, treeGraph, savedTrees, prototypes, zoeInteractions, prompt0Data } = useStore();
 
   const [activeTab, setActiveTab] = useState<'vitrina' | 'credencial'>('vitrina');
   const [selectedBadgeId, setSelectedBadgeId] = useState<string>('pionero_territorial');
@@ -101,8 +69,7 @@ export const BadgesModal: React.FC<Props> = ({ isOpen, onClose, onNavigate }) =>
     setActiveTab('credencial');
   };
 
-  const currentBadgeCert: BadgeCertificateMetadata =
-    BADGE_CERTIFICATES[selectedBadgeId] || BADGE_CERTIFICATES['pionero_territorial'];
+  const currentBadgeCert: BadgeCertificateMetadata = BADGE_CERTIFICATES[selectedBadgeId] || BADGE_CERTIFICATES['pionero_territorial'];
 
   const handlePrintCertificate = () => {
     openCertificatePrintWindow({
@@ -133,9 +100,7 @@ export const BadgesModal: React.FC<Props> = ({ isOpen, onClose, onNavigate }) =>
               <h2 id="badges-modal-title" className="text-lg font-bold text-white tracking-wide sy">
                 Vitrina y Certificación de Innovación
               </h2>
-              <p className="text-xs text-brand-textMuted">
-                Acreditación oficial por competencias en experimentación regional InnovaHub360
-              </p>
+              <p className="text-xs text-brand-textMuted">Acreditación oficial por competencias en experimentación regional InnovaHub360</p>
             </div>
           </div>
 
@@ -201,15 +166,9 @@ export const BadgesModal: React.FC<Props> = ({ isOpen, onClose, onNavigate }) =>
                     <BadgeGraphicRenderer badgeId={selectedBadgeId} size={74} isUnlocked={true} />
                   </div>
                   <div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#00F5FF]">
-                      Rango Actual · Nivel {currentRank.level}
-                    </span>
-                    <h3 className="text-xl sm:text-2xl font-bold text-white sy">
-                      {currentRank.title}
-                    </h3>
-                    <p className="text-xs text-brand-textSecondary mt-0.5 max-w-md">
-                      {currentRank.description}
-                    </p>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#00F5FF]">Rango Actual · Nivel {currentRank.level}</span>
+                    <h3 className="text-xl sm:text-2xl font-bold text-white sy">{currentRank.title}</h3>
+                    <p className="text-xs text-brand-textSecondary mt-0.5 max-w-md">{currentRank.description}</p>
                   </div>
                 </div>
 
@@ -219,9 +178,7 @@ export const BadgesModal: React.FC<Props> = ({ isOpen, onClose, onNavigate }) =>
                       <Zap className="w-3.5 h-3.5 text-[#FFD23F]" />
                       {totalXp} XP Acumulado
                     </span>
-                    <span className="text-brand-textMuted text-[11px]">
-                      {nextRank ? `Meta: ${nextRank.minXp} XP` : '¡Nivel Máximo!'}
-                    </span>
+                    <span className="text-brand-textMuted text-[11px]">{nextRank ? `Meta: ${nextRank.minXp} XP` : '¡Nivel Máximo!'}</span>
                   </div>
 
                   <div className="w-full h-2 rounded-full bg-white/10 overflow-hidden">
@@ -232,7 +189,9 @@ export const BadgesModal: React.FC<Props> = ({ isOpen, onClose, onNavigate }) =>
                   </div>
 
                   <div className="flex items-center justify-between w-full text-[10px] text-brand-textMuted">
-                    <span>{unlockedBadgeIds.length} de {INNOVATION_BADGES.length} Insignias</span>
+                    <span>
+                      {unlockedBadgeIds.length} de {INNOVATION_BADGES.length} Insignias
+                    </span>
                     <span>{nextRank ? `Próximo: ${nextRank.title}` : 'Maestro 360'}</span>
                   </div>
                 </div>
@@ -241,12 +200,8 @@ export const BadgesModal: React.FC<Props> = ({ isOpen, onClose, onNavigate }) =>
               {/* Vitrina de Insignias Oficiales */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-[#00F5FF]">
-                    Insignias del Laboratorio
-                  </h3>
-                  <span className="text-xs text-brand-textMuted">
-                    Diseños 3D oficiales por eje de innovación
-                  </span>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-[#00F5FF]">Insignias del Laboratorio</h3>
+                  <span className="text-xs text-brand-textMuted">Diseños 3D oficiales por eje de innovación</span>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -293,15 +248,9 @@ export const BadgesModal: React.FC<Props> = ({ isOpen, onClose, onNavigate }) =>
                             </div>
                           </div>
 
-                          <h4 className="text-base font-bold text-white sy leading-snug">
-                            {badge.title}
-                          </h4>
-                          <span className="text-[11px] font-semibold text-[#5EC2DD] block mt-0.5">
-                            {badge.subtitle}
-                          </span>
-                          <p className="text-xs text-brand-textSecondary mt-2 leading-relaxed">
-                            {badge.description}
-                          </p>
+                          <h4 className="text-base font-bold text-white sy leading-snug">{badge.title}</h4>
+                          <span className="text-[11px] font-semibold text-[#5EC2DD] block mt-0.5">{badge.subtitle}</span>
+                          <p className="text-xs text-brand-textSecondary mt-2 leading-relaxed">{badge.description}</p>
                         </div>
 
                         {/* Footer con acciones */}
@@ -339,9 +288,7 @@ export const BadgesModal: React.FC<Props> = ({ isOpen, onClose, onNavigate }) =>
               {/* Barra de Selección de Insignia para el Certificado */}
               <div className="p-3 rounded-xl border border-white/10 bg-black/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div className="flex flex-col gap-1">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#00F5FF]">
-                    Selecciona la Insignia a Certificar:
-                  </span>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#00F5FF]">Selecciona la Insignia a Certificar:</span>
                   <div className="flex flex-wrap items-center gap-1.5 pt-1">
                     {INNOVATION_BADGES.map((b) => {
                       const isSelected = selectedBadgeId === b.id;
@@ -356,10 +303,7 @@ export const BadgesModal: React.FC<Props> = ({ isOpen, onClose, onNavigate }) =>
                               : 'bg-white/[0.03] text-brand-textMuted border border-white/10 hover:text-white hover:bg-white/10'
                           }`}
                         >
-                          <span
-                            className="w-2 h-2 rounded-full shrink-0"
-                            style={{ backgroundColor: b.color }}
-                          />
+                          <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: b.color }} />
                           <span>{b.title}</span>
                         </button>
                       );
@@ -438,7 +382,8 @@ export const BadgesModal: React.FC<Props> = ({ isOpen, onClose, onNavigate }) =>
                 <div
                   className="absolute inset-0 pointer-events-none opacity-20"
                   style={{
-                    backgroundImage: 'radial-gradient(circle at 10% 20%, rgba(0, 245, 255, 0.15) 0%, transparent 40%), linear-gradient(rgba(0, 245, 255, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 245, 255, 0.08) 1px, transparent 1px)',
+                    backgroundImage:
+                      'radial-gradient(circle at 10% 20%, rgba(0, 245, 255, 0.15) 0%, transparent 40%), linear-gradient(rgba(0, 245, 255, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 245, 255, 0.08) 1px, transparent 1px)',
                     backgroundSize: '100% 100%, 30px 30px, 30px 30px',
                   }}
                 />
@@ -464,27 +409,23 @@ export const BadgesModal: React.FC<Props> = ({ isOpen, onClose, onNavigate }) =>
                   {/* Columna Izquierda: Información de Certificación */}
                   <div className="flex-1 space-y-2 text-left">
                     <h3 className="text-xl sm:text-2xl font-black text-white tracking-wider uppercase sy leading-tight drop-shadow-[0_0_15px_rgba(0,245,255,0.3)]">
-                      Certificado de Competencias<br />en Innovación
+                      Certificado de Competencias
+                      <br />
+                      en Innovación
                     </h3>
 
-                    <p className="text-xs sm:text-sm italic text-brand-textMuted pt-1">
-                      Se certifica a:
-                    </p>
+                    <p className="text-xs sm:text-sm italic text-brand-textMuted pt-1">Se certifica a:</p>
 
                     <div className="text-2xl sm:text-3xl font-extrabold text-[#FFD23F] tracking-wide drop-shadow-[0_0_20px_rgba(255,210,63,0.35)]">
                       {recipientName}
                     </div>
 
-                    <div className="text-xs sm:text-sm font-semibold text-[#A5F3FC] tracking-widest">
-                      {recipientId}
-                    </div>
+                    <div className="text-xs sm:text-sm font-semibold text-[#A5F3FC] tracking-widest">{recipientId}</div>
 
                     {/* Divisor Luminoso Cian */}
                     <div className="w-full max-w-lg h-[1.5px] bg-gradient-to-r from-[#00F5FF] via-[#00F5FF]/50 to-transparent shadow-[0_0_8px_#00F5FF] my-2" />
 
-                    <p className="text-[11px] sm:text-xs italic text-brand-textMuted">
-                      Por haber demostrado la competencia:
-                    </p>
+                    <p className="text-[11px] sm:text-xs italic text-brand-textMuted">Por haber demostrado la competencia:</p>
 
                     <div className="text-lg sm:text-xl font-bold text-[#FFD23F] leading-snug">
                       {teamName} · {currentBadgeCert.competenceTitle}

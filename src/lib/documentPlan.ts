@@ -269,7 +269,10 @@ function stripLeadingNumber(text: string): string {
  * línea corta que termina en dos puntos o que empieza por "Tabla"/"Matriz") y, si
  * no hay ninguno, el nombre del apartado en el que está la tabla.
  */
-function tableTitleFrom(previous: PlanBlock | undefined, sectionTitle: string): {
+function tableTitleFrom(
+  previous: PlanBlock | undefined,
+  sectionTitle: string,
+): {
   title: string;
   dropPrevious: boolean;
 } {
@@ -314,7 +317,6 @@ export function buildDocumentPlan(markdown: string, plannedFigures: readonly Pla
   let sectionTitle = '';
   let tableNumber = 0;
 
-
   for (const token of tokens) {
     if (token.type === 'heading') {
       const heading = token as Tokens.Heading;
@@ -343,14 +345,14 @@ export function buildDocumentPlan(markdown: string, plannedFigures: readonly Pla
 
   // De atrás hacia adelante para no alterar las posiciones de las figuras pendientes.
   const located = plannedFigures.map((figure) => {
-    const index = figure.afterHeading
-      ? blocks.findIndex((b) => b.kind === 'heading' && figure.afterHeading!.test(b.plainText))
-      : -1;
+    const index = figure.afterHeading ? blocks.findIndex((b) => b.kind === 'heading' && figure.afterHeading!.test(b.plainText)) : -1;
     return { figure, at: index >= 0 ? index + 1 : blocks.length };
   });
-  [...located].sort((a, b) => b.at - a.at).forEach(({ figure, at }) => {
-    blocks.splice(at, 0, { kind: 'figure', number: 0, spec: figure.spec });
-  });
+  [...located]
+    .sort((a, b) => b.at - a.at)
+    .forEach(({ figure, at }) => {
+      blocks.splice(at, 0, { kind: 'figure', number: 0, spec: figure.spec });
+    });
 
   // Asignar numeración consecutiva a todas las figuras presentes
   const figures: Array<{ number: number; title: string; spec: FigureSpec }> = [];
@@ -368,7 +370,10 @@ export function buildDocumentPlan(markdown: string, plannedFigures: readonly Pla
 
 /** Territorio en una sola línea, para la portada y el encabezado. */
 export function formatTerritory(meta: DocumentMeta): string {
-  return [meta.municipality, meta.department, meta.country].map((p) => p?.trim()).filter(Boolean).join(', ');
+  return [meta.municipality, meta.department, meta.country]
+    .map((p) => p?.trim())
+    .filter(Boolean)
+    .join(', ');
 }
 
 export function formatSpanishDate(date: Date): string {

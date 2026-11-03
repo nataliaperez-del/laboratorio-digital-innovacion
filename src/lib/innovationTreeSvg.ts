@@ -27,7 +27,14 @@ const ROWS: Record<TreeLevel, [number, number]> = {
   suelo: [1040, 760],
 };
 const RADIUS: Partial<Record<TreeLevel, number>> = { global: 15, nacional: 18, territorial: 22, hoja: 13, fruto: 17, raiz: 11, suelo: 11 };
-const COLORS: Partial<Record<TreeLevel, string>> = { global: '#5EC2DD', nacional: '#2E9CBA', territorial: '#9FD4E4', hoja: '#A8C63C', raiz: '#F29F05', suelo: '#A8C63C' };
+const COLORS: Partial<Record<TreeLevel, string>> = {
+  global: '#5EC2DD',
+  nacional: '#2E9CBA',
+  territorial: '#9FD4E4',
+  hoja: '#A8C63C',
+  raiz: '#F29F05',
+  suelo: '#A8C63C',
+};
 const ZONES: Array<[TreeLevel, string]> = [
   ['fruto', 'FRUTOS · RESULTADOS'],
   ['hoja', 'HOJAS · OPORTUNIDADES'],
@@ -180,7 +187,14 @@ export function renderTreeSvg(graph: TreeGraph, options: { titles?: boolean } = 
 
   // Plataforma holográfica (suelo).
   s += `<ellipse cx="${CX}" cy="1040" rx="430" ry="70" fill="url(#af-disco)"/>`;
-  for (const [rx, ry, dash, op] of [[380, 62, '1 0', 0.5], [330, 54, '10 6', 0.7], [262, 44, '2 7', 0.6], [190, 32, '28 10', 0.8], [120, 21, '4 4', 0.9], [60, 11, '', 1]] as const) {
+  for (const [rx, ry, dash, op] of [
+    [380, 62, '1 0', 0.5],
+    [330, 54, '10 6', 0.7],
+    [262, 44, '2 7', 0.6],
+    [190, 32, '28 10', 0.8],
+    [120, 21, '4 4', 0.9],
+    [60, 11, '', 1],
+  ] as const) {
     s += `<ellipse cx="${CX}" cy="1040" rx="${rx}" ry="${ry}" fill="none" stroke="#5EC2DD" stroke-opacity="${op * 0.5}" stroke-width="1.4"${dash ? ` stroke-dasharray="${dash}"` : ''}/>`;
   }
   s += `<g class="giro"><ellipse cx="${CX}" cy="1040" rx="300" ry="50" fill="none" stroke="#9FD4E4" stroke-opacity=".5" stroke-width="3" stroke-dasharray="60 240"/></g>`;
@@ -188,7 +202,8 @@ export function renderTreeSvg(graph: TreeGraph, options: { titles?: boolean } = 
 
   // Media esfera de malla (raíces).
   s += `<g clip-path="url(#af-esfera)" stroke="#5EC2DD" stroke-opacity=".38" fill="none" stroke-width="1"><path d="M${CX - 128} 820 A128 128 0 0 0 ${CX + 128} 820 Z" fill="#5EC2DD" fill-opacity=".06"/>`;
-  for (let k = 1; k <= 6; k++) s += `<ellipse cx="${CX}" cy="820" rx="${(128 * Math.cos(Math.asin(k / 7))).toFixed(1)}" ry="10" transform="translate(0 ${((k / 7) * 128).toFixed(1)})"/>`;
+  for (let k = 1; k <= 6; k++)
+    s += `<ellipse cx="${CX}" cy="820" rx="${(128 * Math.cos(Math.asin(k / 7))).toFixed(1)}" ry="10" transform="translate(0 ${((k / 7) * 128).toFixed(1)})"/>`;
   for (let k = -5; k <= 5; k++) s += `<ellipse cx="${CX}" cy="820" rx="${Math.abs(k) * 24}" ry="128"/>`;
   s += `</g><line x1="${CX - 140}" x2="${CX + 140}" y1="820" y2="820" stroke="#9FD4E4" stroke-opacity=".6"/>`;
 

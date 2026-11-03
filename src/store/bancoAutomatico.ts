@@ -17,7 +17,11 @@ export function depositsFor(state: AppState, prev: AppState, now = () => new Dat
   const ids = { ...state.bankIds };
 
   // Estudio Territorial
-  if ((state.contenedor2Sections !== prev.contenedor2Sections || state.containerData !== prev.containerData) && state.contenedor2Sections.length && state.containerData.trim()) {
+  if (
+    (state.contenedor2Sections !== prev.contenedor2Sections || state.containerData !== prev.containerData) &&
+    state.contenedor2Sections.length &&
+    state.containerData.trim()
+  ) {
     const territory = state.prompt0Data.municipality || 'Territorio';
     // Si ya hay una entrada idéntica (por ejemplo, depositada a mano antes), se reconoce en vez de duplicarla.
     const current =
@@ -41,14 +45,17 @@ export function depositsFor(state: AppState, prev: AppState, now = () => new Dat
 
   // Ideación
   const ideationChanged =
-    state.themeProposalMarkdown !== prev.themeProposalMarkdown || state.vocationSections !== prev.vocationSections || state.selectedLabThemeIndex !== prev.selectedLabThemeIndex;
+    state.themeProposalMarkdown !== prev.themeProposalMarkdown ||
+    state.vocationSections !== prev.vocationSections ||
+    state.selectedLabThemeIndex !== prev.selectedLabThemeIndex;
   if (ideationChanged && state.themeProposalMarkdown.trim()) {
     const sourceLabel = state.ideationSource?.label || 'General';
     const current =
       state.savedIdeations.find((s) => s.id === ids.ideacion) ??
       (ids.ideacion ? undefined : state.savedIdeations.find((s) => s.markdown === state.themeProposalMarkdown));
     const id = current && current.sourceLabel === sourceLabel ? current.id : newId('ideation');
-    const chosen = state.selectedLabThemeIndex !== null ? parseThemeProposal(state.themeProposalMarkdown)?.themes[state.selectedLabThemeIndex]?.title : undefined;
+    const chosen =
+      state.selectedLabThemeIndex !== null ? parseThemeProposal(state.themeProposalMarkdown)?.themes[state.selectedLabThemeIndex]?.title : undefined;
     ids.ideacion = id;
     out.push(() =>
       state.addSavedIdeation({
@@ -102,7 +109,15 @@ export function startAutoDeposit(): () => void {
     // Lo que ya estaba en los módulos al abrir (por ejemplo, de antes de este cambio) también queda
     // en el Banco: así «Limpiar» nunca borra un trabajo que no se haya guardado.
     const now = useStore.getState();
-    apply(now, { ...now, containerData: '', contenedor2Sections: [], themeProposalMarkdown: '', vocationSections: [], selectedLabThemeIndex: null, treeGraph: null });
+    apply(now, {
+      ...now,
+      containerData: '',
+      contenedor2Sections: [],
+      themeProposalMarkdown: '',
+      vocationSections: [],
+      selectedLabThemeIndex: null,
+      treeGraph: null,
+    });
     unsubscribe = useStore.subscribe(apply);
   };
   if (useStore.persist.hasHydrated()) {

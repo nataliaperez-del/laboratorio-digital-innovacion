@@ -44,11 +44,7 @@ export interface Procedencia {
  * de fuentes. No emite ninguna llamada de red. Si `fuentesMode` es `sin_fuentes`, la rama
  * de Drive ni siquiera se toca (garantía del §5: cero peticiones a Drive en ese modo).
  */
-export function construirProcedencia(args: {
-  manifest: Manifest | null;
-  fuentesMode: FuentesMode;
-  fuentesConexion: FuentesConexion | null;
-}): Procedencia {
+export function construirProcedencia(args: { manifest: Manifest | null; fuentesMode: FuentesMode; fuentesConexion: FuentesConexion | null }): Procedencia {
   const { manifest, fuentesMode, fuentesConexion } = args;
   const repositorio: ProcedenciaRepositorio = {
     version: manifest?.version ?? '',
@@ -99,9 +95,7 @@ export function buildTrazabilidadAppendix(procedencia: Procedencia): string {
   }
   const docs = procedencia.fuentesPropias.documentos;
   const filas = docs.length
-    ? docs
-        .map((d) => `| ${d.nombre} | ${d.mimeType || '—'} | ${d.modificado ? d.modificado.slice(0, 10) : '—'} |`)
-        .join('\n')
+    ? docs.map((d) => `| ${d.nombre} | ${d.mimeType || '—'} | ${d.modificado ? d.modificado.slice(0, 10) : '—'} |`).join('\n')
     : '| (sin documentos legibles) | — | — |';
   return [
     '## Fuentes propias del territorio consultadas',
@@ -114,4 +108,3 @@ export function buildTrazabilidadAppendix(procedencia: Procedencia): string {
     filas,
   ].join('\n');
 }
-

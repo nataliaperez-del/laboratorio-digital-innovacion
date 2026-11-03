@@ -16,11 +16,7 @@ import {
 } from '@/lib/documentPlan';
 
 function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 function inlineToHtml(nodes: readonly InlineNode[]): string {
@@ -73,9 +69,7 @@ function blockToHtml(block: PlanBlock): string {
       return '<hr/>';
     case 'table': {
       const head = `<tr>${block.header.map((cell) => `<th>${inlineToHtml(cell)}</th>`).join('')}</tr>`;
-      const body = block.rows
-        .map((row) => `<tr>${row.map((cell) => `<td>${inlineToHtml(cell)}</td>`).join('')}</tr>`)
-        .join('');
+      const body = block.rows.map((row) => `<tr>${row.map((cell) => `<td>${inlineToHtml(cell)}</td>`).join('')}</tr>`).join('');
       return `<div class="table-block"><p class="caption" id="${slugFor('tabla', block.number)}"><strong>Tabla ${block.number}.</strong> <em>${escapeHtml(
         block.title,
       )}</em></p><table><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
@@ -114,22 +108,13 @@ function coverHtml(meta: DocumentMeta): string {
 }
 
 function frontMatterHtml(plan: DocumentPlan): string {
-  const headings = plan.blocks.filter(
-    (b): b is Extract<PlanBlock, { kind: 'heading' }> => b.kind === 'heading' && b.depth <= 3,
-  );
+  const headings = plan.blocks.filter((b): b is Extract<PlanBlock, { kind: 'heading' }> => b.kind === 'heading' && b.depth <= 3);
   const toc = headings
-    .map(
-      (h) =>
-        `<li class="toc-level-${h.depth}"><a href="#${escapeHtml(headingSlug(h.plainText))}">${escapeHtml(h.plainText)}</a></li>`,
-    )
+    .map((h) => `<li class="toc-level-${h.depth}"><a href="#${escapeHtml(headingSlug(h.plainText))}">${escapeHtml(h.plainText)}</a></li>`)
     .join('');
 
-  const tables = plan.tables
-    .map((t) => `<li><a href="#${slugFor('tabla', t.number)}">Tabla ${t.number}. ${escapeHtml(t.title)}</a></li>`)
-    .join('');
-  const figures = plan.figures
-    .map((f) => `<li><a href="#${slugFor('figura', f.number)}">Figura ${f.number}. ${escapeHtml(f.title)}</a></li>`)
-    .join('');
+  const tables = plan.tables.map((t) => `<li><a href="#${slugFor('tabla', t.number)}">Tabla ${t.number}. ${escapeHtml(t.title)}</a></li>`).join('');
+  const figures = plan.figures.map((f) => `<li><a href="#${slugFor('figura', f.number)}">Figura ${f.number}. ${escapeHtml(f.title)}</a></li>`).join('');
 
   return `<section class="front-matter">
     <h1 class="index-title">Tabla de contenido</h1>

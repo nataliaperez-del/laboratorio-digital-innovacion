@@ -39,11 +39,7 @@ function resolveThinkingBudget(): number {
   return 1024;
 }
 
-function resolveModelAndCredentials(opts: {
-  model?: string;
-  xApiKeyUi?: string;
-  bearerUi?: string;
-}): { model: string; xApiKey: string; bearer: string } {
+function resolveModelAndCredentials(opts: { model?: string; xApiKeyUi?: string; bearerUi?: string }): { model: string; xApiKey: string; bearer: string } {
   const model = opts.model?.trim() || import.meta.env.VITE_UNAD_GEMINI_MODEL?.trim() || DEFAULT_UNAD_GEMINI_MODEL;
   // Las credenciales del servidor las pone el proxy; aquí solo viajan las escritas en el panel de IA.
   return { model, xApiKey: sanitizeCredential(opts.xApiKeyUi), bearer: sanitizeCredential(opts.bearerUi) };
@@ -73,11 +69,7 @@ function parseProxyResponse(rawText: string, status: number): UnadGeminiGenerate
         detail?: unknown;
       };
       const msg =
-        formatApiErrorField(err.error) ||
-        formatApiErrorField(err.message) ||
-        formatApiErrorField(err.detail) ||
-        rawText.slice(0, 500) ||
-        '(sin mensaje)';
+        formatApiErrorField(err.error) || formatApiErrorField(err.message) || formatApiErrorField(err.detail) || rawText.slice(0, 500) || '(sin mensaje)';
       const hint =
         status === 500
           ? ' Suele deberse a un prompt demasiado grande para el proxy UNAD: reduce `VITE_MAX_COMBINED_SOURCE_CHARS` y `VITE_MAX_C2_PROMPT_DOC_CHARS`.'
@@ -207,8 +199,7 @@ export async function generateContentUnadGemini(
     if (withThinking) {
       // El pensamiento descuenta de maxOutputTokens: nunca darle más de la mitad del tope
       // (con topes pequeños, p. ej. la prueba de conexión, un presupuesto fijo dejaría la salida vacía).
-      const effectiveThinking =
-        maxOutTry != null && maxOutTry > 0 ? Math.min(thinkingBudget, Math.floor(maxOutTry / 2)) : thinkingBudget;
+      const effectiveThinking = maxOutTry != null && maxOutTry > 0 ? Math.min(thinkingBudget, Math.floor(maxOutTry / 2)) : thinkingBudget;
       genConfig.thinkingConfig = { thinkingBudget: effectiveThinking };
     }
     if (Object.keys(genConfig).length > 0) {

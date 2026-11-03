@@ -28,10 +28,22 @@ export const ObservatorioPicker: React.FC<{ selectedId?: number | null; onPick: 
 
   return (
     <div className="space-y-2">
-      <input className="lab-input" placeholder={`Buscar entre ${signals.length} señales del Radar…`} value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Buscar señales del Radar" />
+      <input
+        className="lab-input"
+        placeholder={`Buscar entre ${signals.length} señales del Radar…`}
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        aria-label="Buscar señales del Radar"
+      />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 max-h-64 overflow-y-auto pr-1">
         {visible.map((s) => (
-          <button key={s.id} type="button" aria-pressed={selectedId === s.id} className={`lab-card text-left ${selectedId === s.id ? 'is-selected' : ''}`} onClick={() => onPick(s)}>
+          <button
+            key={s.id}
+            type="button"
+            aria-pressed={selectedId === s.id}
+            className={`lab-card text-left ${selectedId === s.id ? 'is-selected' : ''}`}
+            onClick={() => onPick(s)}
+          >
             <span className="flex items-center gap-1.5 text-[11px] text-brand-textMuted mb-0.5">
               <Radio className="w-3 h-3 shrink-0" style={{ color: s.color }} aria-hidden="true" /> {s.area}
             </span>

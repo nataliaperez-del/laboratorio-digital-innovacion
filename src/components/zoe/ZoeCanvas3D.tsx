@@ -276,7 +276,9 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
 
     const contactGeo = track(new THREE.CircleGeometry(0.48, 32));
     contactGeo.rotateX(-Math.PI / 2);
-    const contactMat = track(new THREE.MeshBasicMaterial({ color: 0x27dcff, transparent: true, opacity: 0.18, blending: THREE.AdditiveBlending, depthWrite: false }));
+    const contactMat = track(
+      new THREE.MeshBasicMaterial({ color: 0x27dcff, transparent: true, opacity: 0.18, blending: THREE.AdditiveBlending, depthWrite: false }),
+    );
     const contact = new THREE.Mesh(contactGeo, contactMat);
     contact.position.y = -0.54;
     scene.add(contact);
@@ -287,17 +289,44 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
     // Entorno 360° holográfico opcional.
     const env360 = new THREE.Group();
     scene.add(env360);
-    const dome = new THREE.Mesh(track(new THREE.SphereGeometry(2.3, 24, 16)), track(new THREE.MeshBasicMaterial({ color: 0x27dcff, wireframe: true, transparent: true, opacity: 0.12, side: THREE.BackSide, blending: THREE.AdditiveBlending })));
+    const dome = new THREE.Mesh(
+      track(new THREE.SphereGeometry(2.3, 24, 16)),
+      track(
+        new THREE.MeshBasicMaterial({
+          color: 0x27dcff,
+          wireframe: true,
+          transparent: true,
+          opacity: 0.12,
+          side: THREE.BackSide,
+          blending: THREE.AdditiveBlending,
+        }),
+      ),
+    );
     env360.add(dome);
     const ringGeo = track(new THREE.RingGeometry(0.82, 0.94, 48));
     ringGeo.rotateX(-Math.PI / 2);
-    const ring = new THREE.Mesh(ringGeo, track(new THREE.MeshBasicMaterial({ color: 0x27dcff, transparent: true, opacity: 0.35, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false })));
+    const ring = new THREE.Mesh(
+      ringGeo,
+      track(
+        new THREE.MeshBasicMaterial({
+          color: 0x27dcff,
+          transparent: true,
+          opacity: 0.35,
+          side: THREE.DoubleSide,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        }),
+      ),
+    );
     ring.position.y = -0.53;
     env360.add(ring);
     const particlePositions = new Float32Array(50 * 3).map((_, i) => (i % 3 === 1 ? Math.random() * 2 - 0.5 : (Math.random() - 0.5) * 3));
     const particleGeo = track(new THREE.BufferGeometry());
     particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
-    const particles = new THREE.Points(particleGeo, track(new THREE.PointsMaterial({ size: 0.035, color: 0x5ec2dd, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false })));
+    const particles = new THREE.Points(
+      particleGeo,
+      track(new THREE.PointsMaterial({ size: 0.035, color: 0x5ec2dd, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false })),
+    );
     env360.add(particles);
 
     const zoeContainer = new THREE.Group();
@@ -351,7 +380,14 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
           const parent = node.parent.getWorldQuaternion(new THREE.Quaternion());
           let depth = 0;
           for (let p = node.parent; p; p = p.parent) depth++;
-          bones[node.name] = { bone: node as THREE.Bone, restQuat: node.quaternion.clone(), restPos: node.position.clone(), parent, parentInv: parent.clone().invert(), depth };
+          bones[node.name] = {
+            bone: node as THREE.Bone,
+            restQuat: node.quaternion.clone(),
+            restPos: node.position.clone(),
+            parent,
+            parentInv: parent.clone().invert(),
+            depth,
+          };
         });
         zoeContainer.rotation.y = savedYaw;
         rig = findRig(bones);
@@ -365,7 +401,9 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
 
         // Material sólido con la textura y el relieve horneados: la piel ya es cerrada, así que
         // basta la cara frontal y no hay transparencias que rompan el dibujo.
-        wireMaterial = track(new THREE.MeshBasicMaterial({ color: 0x7fe9ff, wireframe: true, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }));
+        wireMaterial = track(
+          new THREE.MeshBasicMaterial({ color: 0x7fe9ff, wireframe: true, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }),
+        );
         const skinned: THREE.SkinnedMesh[] = [];
         group.traverse((node) => {
           const mesh = node as THREE.SkinnedMesh;
@@ -424,7 +462,14 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
               fragmentShader: EYE_FRAGMENT,
               transparent: true,
               depthWrite: false,
-              uniforms: { uLook: { value: new THREE.Vector2() }, uBlink: { value: 0 }, uSmile: { value: 0 }, uDilate: { value: 0.4 }, uShine: { value: 1 }, uOpacity: { value: 0 } },
+              uniforms: {
+                uLook: { value: new THREE.Vector2() },
+                uBlink: { value: 0 },
+                uSmile: { value: 0 },
+                uDilate: { value: 0.4 },
+                uShine: { value: 1 },
+                uOpacity: { value: 0 },
+              },
             }),
           );
           const capRadius = EYE_RADIUS / Math.sin(EYE_CAP_ANGLE);
@@ -432,9 +477,12 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
             const dir = new THREE.Vector3(side * 0.22, 0.02, 1).normalize();
             const eye = new THREE.Mesh(eyeGeometry, eyeMaterial);
             eye.quaternion.copy(headWorldInv).multiply(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), dir));
-            eye.position
-              .set(side * EYE_LOCAL.x, EYE_LOCAL.y, EYE_LOCAL.z)
-              .add(dir.clone().applyQuaternion(headWorldInv).multiplyScalar((EYE_LIFT - capRadius) / headScale));
+            eye.position.set(side * EYE_LOCAL.x, EYE_LOCAL.y, EYE_LOCAL.z).add(
+              dir
+                .clone()
+                .applyQuaternion(headWorldInv)
+                .multiplyScalar((EYE_LIFT - capRadius) / headScale),
+            );
             eye.scale.setScalar(capRadius / headScale);
             headPose.bone.add(eye);
           }
@@ -490,7 +538,22 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
     let nextBlink = range(1.5, 3.5);
     let doubleBlink = false;
     const saccade = { x: 0, y: 0, next: 0 };
-    const pose = { yaw: 0, pitch: 0, roll: 0, sit: 0, lie: 0, tailAmp: 0.08, tailSpeed: 2.4, tailPhase: 0, hop: 0, bodyYaw: -0.35, glow: 0.18, wire: 0, camZ: 3.3, camY: 0.02 };
+    const pose = {
+      yaw: 0,
+      pitch: 0,
+      roll: 0,
+      sit: 0,
+      lie: 0,
+      tailAmp: 0.08,
+      tailSpeed: 2.4,
+      tailPhase: 0,
+      hop: 0,
+      bodyYaw: -0.35,
+      glow: 0.18,
+      wire: 0,
+      camZ: 3.3,
+      camY: 0.02,
+    };
 
     let animId = 0;
     let lastFrame = 0;
@@ -515,7 +578,17 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
 
       // El cuerpo lo mueven los clips del modelo; el director elige cuál y cómo enlazarlos.
       const walking = state.isWalking && motion > 0;
-      const body: ZoeBodyState = walking ? (state.trotting ? 'trot' : 'walk') : mood === 'sleeping' ? 'sleep' : state.posture === 'lying' ? 'lie' : state.posture === 'sitting' ? 'sit' : 'stand';
+      const body: ZoeBodyState = walking
+        ? state.trotting
+          ? 'trot'
+          : 'walk'
+        : mood === 'sleeping'
+          ? 'sleep'
+          : state.posture === 'lying'
+            ? 'lie'
+            : state.posture === 'sitting'
+              ? 'sit'
+              : 'stand';
       if (director) {
         director.setState(body, mood === 'listening');
         if (mood === 'happy' && lastMood !== 'happy') director.gesture('happy');

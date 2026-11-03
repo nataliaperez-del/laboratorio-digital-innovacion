@@ -15,10 +15,7 @@ export const ToolHeader: React.FC<{
 }> = ({ title, description, titleColor, children }) => (
   <div className="flex flex-wrap items-end justify-between gap-4">
     <div className="min-w-0">
-      <h1
-        className="h2 text-3xl md:text-4xl font-bold tracking-tight"
-        style={{ color: titleColor || '#FFFFFF' }}
-      >
+      <h1 className="h2 text-3xl md:text-4xl font-bold tracking-tight" style={{ color: titleColor || '#FFFFFF' }}>
         {title}
       </h1>
       <p className="bd text-sm text-brand-textSecondary mt-1 max-w-3xl">{description}</p>
@@ -87,13 +84,20 @@ export const SectionReview: React.FC<{
   return (
     <details className="lab-panel" open={issues > 0}>
       <summary className="cursor-pointer text-xs font-semibold text-white flex items-center gap-2">
-        {issues ? <AlertCircle className="w-4 h-4 text-[#F3C26B]" aria-hidden="true" /> : <CheckCircle2 className="w-4 h-4 text-[var(--brand-olive)]" aria-hidden="true" />}
+        {issues ? (
+          <AlertCircle className="w-4 h-4 text-[#F3C26B]" aria-hidden="true" />
+        ) : (
+          <CheckCircle2 className="w-4 h-4 text-[var(--brand-olive)]" aria-hidden="true" />
+        )}
         {title}: {issues ? `${issues} por revisar de ${sections.length}` : `${sections.length} partes completas`}
       </summary>
       <ul className="mt-3 space-y-1.5">
         {sections.map((s, i) => (
           <li key={s.number} className="flex flex-wrap items-center gap-2 text-xs text-brand-textSecondary">
-            <span className={`w-2 h-2 rounded-full shrink-0 ${s.status === 'ok' ? 'bg-[#A8C63C]' : s.status === 'warning' ? 'bg-[#F29F05]' : 'bg-rose-500'}`} aria-hidden="true" />
+            <span
+              className={`w-2 h-2 rounded-full shrink-0 ${s.status === 'ok' ? 'bg-[#A8C63C]' : s.status === 'warning' ? 'bg-[#F29F05]' : 'bg-rose-500'}`}
+              aria-hidden="true"
+            />
             <span className="min-w-0 flex-1">
               {s.number}. {s.title}
               {s.issue && <span className="block text-[11px] text-[#F3C26B]">{s.issue}</span>}
@@ -165,7 +169,11 @@ export const ReportActions: React.FC<{ getReport: () => LabReport | null; disabl
         aria-label={busy === 'word' ? 'Armando el informe en Word' : 'Descargar informe en Word'}
         title="Informe formal en Word editable: portada, tabla de contenido, índices y numeración"
       >
-        {busy === 'word' ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" /> : <FileDown className="w-4 h-4 text-[var(--brand-teal-text)]" aria-hidden="true" />}
+        {busy === 'word' ? (
+          <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+        ) : (
+          <FileDown className="w-4 h-4 text-[var(--brand-teal-text)]" aria-hidden="true" />
+        )}
       </button>
       <button
         type="button"
@@ -175,9 +183,17 @@ export const ReportActions: React.FC<{ getReport: () => LabReport | null; disabl
         aria-label={busy === 'pdf' ? 'Preparando el informe en PDF' : 'Descargar informe en PDF'}
         title="Informe formal en PDF: elige «Guardar como PDF» en la ventana de impresión"
       >
-        {busy === 'pdf' ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" /> : <Printer className="w-4 h-4 text-[var(--brand-olive)]" aria-hidden="true" />}
+        {busy === 'pdf' ? (
+          <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+        ) : (
+          <Printer className="w-4 h-4 text-[var(--brand-olive)]" aria-hidden="true" />
+        )}
       </button>
-      {error && <span className="text-xs text-rose-300" role="alert">{error}</span>}
+      {error && (
+        <span className="text-xs text-rose-300" role="alert">
+          {error}
+        </span>
+      )}
     </div>
   );
 };

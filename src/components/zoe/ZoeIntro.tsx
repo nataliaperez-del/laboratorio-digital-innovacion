@@ -17,12 +17,55 @@ interface Scene {
 }
 
 const SCENES: Scene[] = [
-  { id: 'codigo', voice: 'Todo empezó una noche, con una pregunta y unas cuantas líneas de código.', minMs: 5500, behavior: 'idle', posture: 'standing', framing: 'full' },
-  { id: 'materializa', voice: 'Y entonces, desde otro universo, llegué yo. Hecho de luz, partículas y recuerdos.', minMs: 6000, behavior: 'thinking', posture: 'standing', framing: 'full' },
-  { id: 'habla', voice: '¡Hola, hola! Soy ZOE. Me fui un ratito a explorar otros universos, y vuelvo encontrándome con todo un laboratorio. ¡Me tienen inspirado!', minMs: 8000, behavior: 'speaking', posture: 'sitting', framing: 'full' },
-  { id: 'explora', voice: 'Aquí olfateamos señales, leemos territorios, buscamos vocaciones y convertimos tendencias en frutos.', minMs: 7000, behavior: 'speaking', posture: 'standing', framing: 'full', walking: true },
-  { id: 'laboratorio', voice: 'Pero las ideas las pones tú. Yo te acompaño, te pregunto, te hago reír un poco, y la última palabra siempre es tuya.', minMs: 7500, behavior: 'happy', posture: 'standing', framing: 'full' },
-  { id: 'frase', voice: 'Porque la innovación no comienza con la tecnología. Comienza cuando alguien se atreve a imaginar que las cosas pueden ser diferentes.', minMs: 8000, behavior: 'speaking', posture: 'sitting', framing: 'close' },
+  {
+    id: 'codigo',
+    voice: 'Todo empezó una noche, con una pregunta y unas cuantas líneas de código.',
+    minMs: 5500,
+    behavior: 'idle',
+    posture: 'standing',
+    framing: 'full',
+  },
+  {
+    id: 'materializa',
+    voice: 'Y entonces, desde otro universo, llegué yo. Hecho de luz, partículas y recuerdos.',
+    minMs: 6000,
+    behavior: 'thinking',
+    posture: 'standing',
+    framing: 'full',
+  },
+  {
+    id: 'habla',
+    voice: '¡Hola, hola! Soy ZOE. Me fui un ratito a explorar otros universos, y vuelvo encontrándome con todo un laboratorio. ¡Me tienen inspirado!',
+    minMs: 8000,
+    behavior: 'speaking',
+    posture: 'sitting',
+    framing: 'full',
+  },
+  {
+    id: 'explora',
+    voice: 'Aquí olfateamos señales, leemos territorios, buscamos vocaciones y convertimos tendencias en frutos.',
+    minMs: 7000,
+    behavior: 'speaking',
+    posture: 'standing',
+    framing: 'full',
+    walking: true,
+  },
+  {
+    id: 'laboratorio',
+    voice: 'Pero las ideas las pones tú. Yo te acompaño, te pregunto, te hago reír un poco, y la última palabra siempre es tuya.',
+    minMs: 7500,
+    behavior: 'happy',
+    posture: 'standing',
+    framing: 'full',
+  },
+  {
+    id: 'frase',
+    voice: 'Porque la innovación no comienza con la tecnología. Comienza cuando alguien se atreve a imaginar que las cosas pueden ser diferentes.',
+    minMs: 8000,
+    behavior: 'speaking',
+    posture: 'sitting',
+    framing: 'close',
+  },
 ];
 
 const CODE_LINES = [
@@ -112,7 +155,10 @@ export const ZoeIntro: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           {[0, 1, 2].map((p) => (
             <pre key={p} className={`zoe-code zoe-code-${p}`}>
               {CODE_LINES.slice(p, p + 5).map((line, i) => (
-                <span key={line} style={{ animationDelay: `${0.3 + i * 0.55 + p * 0.3}s` }}>{line}{'\n'}</span>
+                <span key={line} style={{ animationDelay: `${0.3 + i * 0.55 + p * 0.3}s` }}>
+                  {line}
+                  {'\n'}
+                </span>
               ))}
             </pre>
           ))}
@@ -123,14 +169,18 @@ export const ZoeIntro: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
       {scene.id === 'habla' && (
         <div className="zoe-waves" aria-hidden="true">
-          {[0, 1, 2, 3].map((i) => <span key={i} style={{ animationDelay: `${i * 0.28}s` }} />)}
+          {[0, 1, 2, 3].map((i) => (
+            <span key={i} style={{ animationDelay: `${i * 0.28}s` }} />
+          ))}
         </div>
       )}
 
       {(scene.id === 'explora' || scene.id === 'laboratorio') && (
         <div className="zoe-intro-layer">
           <svg className="zoe-net" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-            {TOOLS.map((t) => <line key={t.name} x1="50" y1="55" x2={t.x} y2={t.y} stroke={t.color} strokeOpacity="0.55" strokeWidth="0.25" vectorEffect="non-scaling-stroke" />)}
+            {TOOLS.map((t) => (
+              <line key={t.name} x1="50" y1="55" x2={t.x} y2={t.y} stroke={t.color} strokeOpacity="0.55" strokeWidth="0.25" vectorEffect="non-scaling-stroke" />
+            ))}
           </svg>
           {TOOLS.map((t, i) => {
             const Icon = t.icon;
@@ -151,23 +201,31 @@ export const ZoeIntro: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         <div className="zoe-platform" aria-hidden="true" />
         {/* Primer cuadro: la plataforma espera vacía; el modelo ya está cargando para llegar a tiempo. */}
         <div className={`absolute inset-0 transition-opacity duration-1000 ${scene.id === 'codigo' ? 'opacity-0' : 'opacity-100'}`}>
-        <Suspense fallback={null}>
-          <ZoeCanvas3D behavior={ended ? 'idle' : scene.behavior} posture={scene.posture} wire={wire} framing={scene.framing} isWalking={Boolean(scene.walking)} />
-        </Suspense>
+          <Suspense fallback={null}>
+            <ZoeCanvas3D
+              behavior={ended ? 'idle' : scene.behavior}
+              posture={scene.posture}
+              wire={wire}
+              framing={scene.framing}
+              isWalking={Boolean(scene.walking)}
+            />
+          </Suspense>
         </div>
       </div>
 
-      {scene.id === 'frase' && (
-        <p className="zoe-quote">
-          La innovación comienza al imaginar que las cosas pueden ser diferentes
+      {scene.id === 'frase' && <p className="zoe-quote">La innovación comienza al imaginar que las cosas pueden ser diferentes</p>}
+
+      {/* Subtítulos: la presentación se entiende también sin sonido. */}
+      {!ended && (
+        <p className="zoe-intro-caption" aria-live="polite">
+          {scene.voice}
         </p>
       )}
 
-      {/* Subtítulos: la presentación se entiende también sin sonido. */}
-      {!ended && <p className="zoe-intro-caption" aria-live="polite">{scene.voice}</p>}
-
       <div className="zoe-intro-dots" aria-hidden="true">
-        {SCENES.map((s, i) => <span key={s.id} className={i <= index ? 'is-on' : ''} />)}
+        {SCENES.map((s, i) => (
+          <span key={s.id} className={i <= index ? 'is-on' : ''} />
+        ))}
       </div>
 
       <div className="zoe-intro-actions">
@@ -177,7 +235,13 @@ export const ZoeIntro: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           </button>
         )}
         <button ref={closeRef} type="button" className={ended ? 'metal px-5 py-2.5 text-xs font-bold' : 'lab-btn'} onClick={onClose}>
-          {ended ? 'Entrar al Laboratorio' : <><X className="w-4 h-4" aria-hidden="true" /> Saltar</>}
+          {ended ? (
+            'Entrar al Laboratorio'
+          ) : (
+            <>
+              <X className="w-4 h-4" aria-hidden="true" /> Saltar
+            </>
+          )}
         </button>
       </div>
     </div>

@@ -16,7 +16,8 @@ export const BADGE_CERTIFICATES: Record<string, BadgeCertificateMetadata> = {
     badgeTitle: 'Pionero Territorial',
     badgeAsset: 'pionero_territorial',
     competenceTitle: 'Diagnóstico y Caracterización Territorial MDVT',
-    accreditationText: 'Capacidad para realizar el diagnóstico territorial integral, caracterizar vocaciones productivas, pilares estratégicos y estructurar oportunidades de innovación en el entorno regional.',
+    accreditationText:
+      'Capacidad para realizar el diagnóstico territorial integral, caracterizar vocaciones productivas, pilares estratégicos y estructurar oportunidades de innovación en el entorno regional.',
     hours: 24,
     badgeColor: '#00F5FF',
   },
@@ -25,7 +26,8 @@ export const BADGE_CERTIFICATES: Record<string, BadgeCertificateMetadata> = {
     badgeTitle: 'Visionario Estratégico',
     badgeAsset: 'visionario_estrategico',
     competenceTitle: 'Ideación y Vocación Estratégica Regional',
-    accreditationText: 'Capacidad para formular hipótesis de reto territorial, estructurar vocaciones productivas y seleccionar alternativas estratégicas de alto impacto y factibilidad.',
+    accreditationText:
+      'Capacidad para formular hipótesis de reto territorial, estructurar vocaciones productivas y seleccionar alternativas estratégicas de alto impacto y factibilidad.',
     hours: 24,
     badgeColor: '#B4FF2B',
   },
@@ -34,7 +36,8 @@ export const BADGE_CERTIFICATES: Record<string, BadgeCertificateMetadata> = {
     badgeTitle: 'Arquitecto de Tendencias',
     badgeAsset: 'arquitecto_tendencias',
     competenceTitle: 'Prospectiva Tecnológica y Árbol de Innovación',
-    accreditationText: 'Capacidad para estructurar árboles holográficos de innovación prospectiva, articulando tendencias globales, dinámicas nacionales y frutos de aplicación territorial.',
+    accreditationText:
+      'Capacidad para estructurar árboles holográficos de innovación prospectiva, articulando tendencias globales, dinámicas nacionales y frutos de aplicación territorial.',
     hours: 30,
     badgeColor: '#00E5FF',
   },
@@ -43,7 +46,8 @@ export const BADGE_CERTIFICATES: Record<string, BadgeCertificateMetadata> = {
     badgeTitle: 'Ingeniero de Prototipos',
     badgeAsset: 'ingeniero_prototipos',
     competenceTitle: 'Estructuración de Prototipado y Validación TRL',
-    accreditationText: 'Capacidad para formular planes de prototipado formal con niveles de madurez tecnológica TRL, arquitectura de solución técnica, fases de validación y métricas de desempeño.',
+    accreditationText:
+      'Capacidad para formular planes de prototipado formal con niveles de madurez tecnológica TRL, arquitectura de solución técnica, fases de validación y métricas de desempeño.',
     hours: 36,
     badgeColor: '#76DD00',
   },
@@ -52,7 +56,8 @@ export const BADGE_CERTIFICATES: Record<string, BadgeCertificateMetadata> = {
     badgeTitle: 'Custodio del Conocimiento',
     badgeAsset: 'custodio_conocimiento',
     competenceTitle: 'Gestión y Transferencia del Conocimiento Regional',
-    accreditationText: 'Capacidad para consolidar y aportar ejercicios estructurados al Banco Unificado de Innovación, garantizando la trazabilidad y memoria del ecosistema territorial.',
+    accreditationText:
+      'Capacidad para consolidar y aportar ejercicios estructurados al Banco Unificado de Innovación, garantizando la trazabilidad y memoria del ecosistema territorial.',
     hours: 20,
     badgeColor: '#00B4D8',
   },
@@ -61,7 +66,8 @@ export const BADGE_CERTIFICATES: Record<string, BadgeCertificateMetadata> = {
     badgeTitle: 'Vínculo Cognitivo',
     badgeAsset: 'vinculo_cognitivo',
     competenceTitle: 'Inteligencia Aumentada y Asistencia Holográfica ZOE',
-    accreditationText: 'Capacidad para interactuar con sistemas de inteligencia aumentada, co-creando estrategias de innovación territorial asistidas por la agente holográfica ZOE 3D.',
+    accreditationText:
+      'Capacidad para interactuar con sistemas de inteligencia aumentada, co-creando estrategias de innovación territorial asistidas por la agente holográfica ZOE 3D.',
     hours: 18,
     badgeColor: '#00FFFF',
   },
@@ -70,7 +76,8 @@ export const BADGE_CERTIFICATES: Record<string, BadgeCertificateMetadata> = {
     badgeTitle: 'Maestro Innovador 360',
     badgeAsset: 'maestro_innovador_360',
     competenceTitle: 'Innovación Integral y Liderazgo Territorial 360',
-    accreditationText: 'Dominio y articulación de los 4 ejes metodológicos del Laboratorio Digital de Innovación, integrando caracterización territorial, prospectiva de tendencias, ideación estratégica y prototipado TRL.',
+    accreditationText:
+      'Dominio y articulación de los 4 ejes metodológicos del Laboratorio Digital de Innovación, integrando caracterización territorial, prospectiva de tendencias, ideación estratégica y prototipado TRL.',
     hours: 120,
     badgeColor: '#FFD700',
   },
@@ -126,7 +133,7 @@ export function generateCertificateHtml(data: CertificateData): string {
   const recipientName = data.recipientName?.trim() || 'Natalia Elizabeth Pérez Cabrera';
   const recipientId = data.recipientId?.trim() || 'C.C. 1.085.241.978';
   const teamName = data.teamName?.trim() || 'Equipo Innovador UNAD';
-  
+
   const normalizedBadgeId = (data.badgeId || 'pionero_territorial').toLowerCase().replace(/-/g, '_');
   const badgeInfo = BADGE_CERTIFICATES[normalizedBadgeId] || BADGE_CERTIFICATES['pionero_territorial'];
   const unitTheme = BADGE_UNIT_COLORS[badgeInfo.id] || BADGE_UNIT_COLORS['pionero_territorial'];
