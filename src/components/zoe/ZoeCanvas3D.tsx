@@ -60,6 +60,8 @@ interface ProceduralRig {
   neck?: string;
   chest?: string;
   snout?: string;
+  /** Mandíbula: abre y cierra la boca al hablar. */
+  jaw?: string;
   tail: string[];
 }
 
@@ -71,6 +73,7 @@ function findRig(bones: Record<string, PoseBone>): ProceduralRig {
     neck: find(/^neck$/i, /neck(?!.*(end|tip))/i),
     chest: find(/^chest$/i, /spine.*(2|3|upper|chest)/i, /chest/i),
     snout: find(/^headend$/i),
+    jaw: find(/^chin$/i, /^(def[-_.])?jaw$/i),
     tail: names.filter((n) => /tail/i.test(n) && !/^tail$/i.test(n)).sort((a, b) => bones[a].depth - bones[b].depth),
   };
 }
@@ -389,9 +392,10 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
           mesh.parent?.add(wireMesh);
         }
 
-        // Pelaje en capas sobre la piel, con el mismo esqueleto: se mueve igual que el cuerpo.
+        // Pelaje en capas sobre la piel, con el mismo esqueleto: se mueve igual que el cuerpo. Solo
+        // para el modelo de este proyecto; el de Meshy ya trae el pelo esculpido en la malla.
         const noise = track(furNoiseTexture());
-        for (const mesh of skinned) {
+        for (const mesh of Boolean(bones.head && bones.headend) ? skinned : []) {
           const base = mesh.material as THREE.MeshStandardMaterial;
           for (let i = 1; i <= FUR_SHELLS; i++) {
             const shellMaterial = track(furShellMaterial(base, noise, i / FUR_SHELLS));
@@ -473,6 +477,7 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
       b.bone.quaternion.premultiply(qTurn);
     };
     let lastMood: ZoeSoulState = 'idle';
+    let jawOpen = 0;
 
     const look = { yaw: 0, pitch: 0, until: 0 };
     let nextGesture = range(3, 6);
@@ -605,6 +610,9 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
         turn(rig.chest, breath * 0.7, pose.yaw * 0.22, 0);
         turn(rig.head, pose.pitch + breath * 0.5, pose.yaw * 0.78, pose.roll);
         turn(rig.snout, sniffTwitch, 0, 0);
+        // Boca: se abre por sílabas mientras habla, con un ritmo irregular como el del habla real.
+        jawOpen = damp(jawOpen, mood === 'speaking' ? Math.max(0, Math.sin(t * 9.1) * 0.6 + Math.sin(t * 5.3) * 0.4) * 0.32 * motion : 0, 18, dt);
+        turn(rig.jaw, jawOpen, 0, 0);
         if (lively && !walking) {
           // Cola en cadena: la onda viaja de la base a la punta.
           rig.tail.forEach((name, i) => {

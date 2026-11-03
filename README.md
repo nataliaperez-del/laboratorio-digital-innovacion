@@ -19,22 +19,22 @@ ZOE es el schnauzer holográfico que vive en la interfaz; la referencia es `zoe_
 - **Conversación:** tocarlo saluda y abre el micrófono (el permiso se pide en ese toque). Responde completo: si se le toca mientras habla, termina la idea y luego escucha. Si la frase de la persona queda cortada («quiero hacer un prototipo para…»), pregunta si ya terminó; «espera» le da tiempo (`seemsUnfinished`, `isDoneReply` y `wantsMoreTime` en `src/lib/zoeContext.ts`). Las frases largas se parten para que el navegador no las corte. Cada fallo del micrófono tiene su explicación: permiso, micrófono ausente o mudo, falta de HTTPS o de red.
 - **Órdenes directas:** «llévame al árbol», «pon el modo oscuro», «siéntate», «levántate», «camina» y «a dormir» se cumplen sin consultar a la IA.
 - **Vida propia:** pasea, cambia de postura y, de vez en cuando, busca el rincón de la pantalla con menos botones, da unas vueltas, se echa y duerme un rato (`ZoeFreePresence.tsx`).
-- **Modelo 3D:** `public/assets/zoe/zoe.glb` se genera con [`scripts/zoe/retopologia_zoe.py`](scripts/zoe/retopologia_zoe.py) a partir del modelo de Meshy:
-  - retopología cerrada (sin huecos ni piezas sueltas), 26 000 vértices, textura y relieve horneados (3,8 MB, antes 19,8 MB);
-  - rodilla, codo y cuello añadidos al esqueleto de Meshy, que unía fémur y tibia en un solo hueso;
-  - pesos de piel por calor de huesos;
-  - posturas «sit» y «lie» y caminata «walk» calculadas con cinemática inversa a partir de perros reales y de animación de referencia.
+- **Modelo 3D:** `public/assets/zoe/zoe.glb` es el modelo rigueado en Meshy (esqueleto de cuadrúpedo de 49 huesos, con mentón para la boca) más sus animaciones Shake, Trot y Tail_Wag. Se prepara en dos pasos con Blender 4.5:
+  1. [`scripts/zoe/preparar_meshy_rig.py`](scripts/zoe/preparar_meshy_rig.py) une las costuras de la textura (sin ellas la piel se abre al moverse) y reduce de 3,2 millones a 80 000 triángulos. También corrige los pesos de Meshy: la nariz y el hocico estaban pesados al cuello y se rasgaban al girar la cabeza, y las orejas y el mentón arrastraban parte de la cara. Deja las texturas en 2048 px.
+  2. [`scripts/zoe/animar_zoe.py`](scripts/zoe/animar_zoe.py) conserva los clips de Meshy y crea los que faltan con cinemática inversa sobre el mismo esqueleto: `idle`, `alert`, `walk`, `sit_down`, `sit_idle`, `lie_down`, `lie_idle`, `sleep` y `play_bow`. Las patas se apoyan en el piso también durante las transiciones.
   ```bash
-  blender -b --factory-startup --python scripts/zoe/retopologia_zoe.py -- entrada.glb public/assets/zoe/zoe.glb --renders capturas/
+  blender -b --factory-startup --python scripts/zoe/preparar_meshy_rig.py -- Animaciones.glb zoe_80k.glb --tris 80000
+  blender -b --factory-startup --python scripts/zoe/animar_zoe.py -- zoe_80k.glb public/assets/zoe/zoe.glb --renders capturas/
   ```
-  Con `--renders` deja capturas de cada postura, del rostro y de la caminata para revisarlas antes de publicar. Se probó con Blender 4.5 LTS.
+  `scripts/zoe/retopologia_zoe.py` queda como el proceso del modelo anterior (retopología por vóxeles), por si se necesita repetir.
 - **Clips y director:** `src/components/zoe/zoeClipDirector.ts` reconoce por su nombre los clips del GLB (los de este proyecto, los de un autorig de cuadrúpedos como afk.ai —«Idle», «Sit», «Lie Down», «Sleep», «Tail Wag»…— o los de Meshy) y los encadena con fundidos: se levanta antes de echarse y, si no hay clip para levantarse, reproduce al revés el de bajar. Para cambiar las animaciones basta con reemplazar el GLB.
 - **Visor de clips:** `#/zoe-visor` (recargando la página) carga el modelo oficial o cualquier GLB local, lo pone en cada postura y ánimo con el mismo código de la app y muestra qué clip tomó cada uso. Sirve para revisar un GLB antes de publicarlo.
 - **Animaciones nuevas sin animador:** `scripts/zoe/exportar_para_autorig.py` deja a ZOE como malla estática con textura, lista para subir a un autorig de cuadrúpedos. El resultado se revisa en el visor y, si cumple, reemplaza `public/assets/zoe/zoe.glb`.
 - **Animación en la web (`ZoeCanvas3D.tsx`):** mezcla las posturas del modelo y suma respiración, mirada que sigue al puntero, cola en cadena y gestos según el ánimo, siempre en los ejes del perro. El pelaje se dibuja en capas sobre la piel; su largo sale del color (barba y cejas largas, sin pelo sobre el traje). Los ojos son un shader propio: parpadeo irregular, pupila según el ánimo, sonrisa y ojos cerrados al dormir.
 - **Presentación:** `ZoeIntro.tsx`, seis escenas con el modelo 3D en vivo, narradas y con subtítulos.
 - **Requisitos:** el reconocimiento de voz necesita Chrome o Edge, internet, HTTPS (o `localhost`) y permiso de micrófono. La voz es la del sistema operativo; queda pendiente una voz propia parecida a la del video de presentación.
-- **Límites:** la boca no se mueve al hablar (el modelo no trae mandíbula articulada).
+- **Boca:** se abre por sílabas mientras habla, con el hueso del mentón.
+- **Límites:** los ojos son los de la textura (este esqueleto no trae párpados), así que no parpadea; al dormir baja la cabeza sobre las manos.
 
 ## Puesta en marcha
 

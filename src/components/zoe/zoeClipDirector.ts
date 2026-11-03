@@ -143,7 +143,8 @@ export class ZoeClipDirector {
   /** Un gesto de una sola vez (mover la cola, saludar); al terminar vuelve a la postura. */
   gesture(role: ZoeGesture): boolean {
     const action = this.actions.get(role);
-    if (!action || this.queue.length || this.state === 'walk' || this.state === 'sleep') return false;
+    // Los gestos parten de estar de pie: desde otra postura se verían como un salto.
+    if (!action || this.queue.length || this.state !== 'stand') return false;
     this.gesturing = true;
     this.go([{ action, direction: 1, loop: false, fade: 0.25 }, this.loopOf(this.state)]);
     return true;
