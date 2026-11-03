@@ -120,7 +120,7 @@ ZOE es un schnauzer holográfico que vive en la pantalla. No tiene chat de texto
 - ZOE **termina siempre sus respuestas**. Si lo tocas mientras habla, acaba la idea y luego te escucha.
 - Para cortar la conversación, toca la **equis** del globo de subtítulos o el botón del micrófono.
 - El botón del **parlante** lo silencia; los subtítulos siguen apareciendo.
-- **Su voz:** la primera vez, ZOE descarga su voz (unos 63 MB) y la guarda en el navegador; mientras tanto habla con la voz del equipo. Con el ahorro de datos activo o una conexión lenta usa siempre la del equipo.
+- **Su voz:** la primera vez, ZOE descarga su voz (unos 63 MB) y la guarda en el navegador; mientras tanto habla con la voz del equipo. Con el ahorro de datos activo o una conexión lenta usa siempre la del equipo. Con su voz propia dice cada idea completa, respira entre frases como al hablar (un poco más después de una pregunta) y mantiene el mismo volumen de principio a fin.
 
 ### Órdenes directas
 

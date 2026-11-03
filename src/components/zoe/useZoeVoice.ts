@@ -1,5 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { TENDER_RATE, isZoeVoiceReady, playZoe, prepareZoeVoice, synthesizeZoe, unlockZoeAudio, warmZoeVoice } from './zoePiperVoice';
+import {
+  TENDER_RATE,
+  isZoeVoiceReady,
+  pauseAfter,
+  playZoe,
+  prepareZoeVoice,
+  speechSentences,
+  synthesizeZoe,
+  unlockZoeAudio,
+  warmZoeVoice,
+  withQuickStart,
+} from './zoePiperVoice';
 
 /** Voz latina masculina si existe; si no, cualquier voz en español. */
 function pickVoice(): SpeechSynthesisVoice | undefined {
@@ -13,7 +24,7 @@ function pickVoice(): SpeechSynthesisVoice | undefined {
   );
 }
 
-/** Una locución más larga que esto puede pasar de 15 segundos, y Chrome la corta a la mitad. */
+/** Una locución más larga que esto puede pasar de 15 segundos, y Chrome la corta a la mitad (solo para la voz del sistema). */
 const MAX_UTTERANCE_CHARS = 180;
 
 /** Corta un tramo largo por sus comas y, si aún sobra, por palabras. */
@@ -189,10 +200,14 @@ export function useZoeVoice() {
           window.speechSynthesis.speak(utterance);
         });
       };
-      /** Voz propia: mientras suena una frase ya se está generando la siguiente. */
+      /**
+       * Voz propia: mientras suena una frase ya se está generando la siguiente, y entre una y otra
+       * hay un respiro según la puntuación (pegadas, sin pausa, es lo que sonaba a robot).
+       */
       const ownVoice = (parts: string[]) => {
         let stopped = false;
         let stopCurrent: (() => void) | undefined;
+        let breath: number | undefined;
         let chain: Promise<unknown> = Promise.resolve();
         const audio = parts.map((part) => {
           const next = chain.then(() => (stopped ? Promise.reject(new Error('Interrumpida.')) : synthesizeZoe(part)));
@@ -202,6 +217,7 @@ export function useZoeVoice() {
         audio.forEach((pending) => pending.catch(() => undefined));
         cutOwnVoice.current = (andFinish) => {
           stopped = true;
+          window.clearTimeout(breath);
           stopCurrent?.();
           cutOwnVoice.current = null;
           if (andFinish) finish();
@@ -222,7 +238,7 @@ export function useZoeVoice() {
             console.warn('[ZOE] Falló la voz propia; sigue la del sistema:', e);
             stopped = true;
             cutOwnVoice.current = null;
-            return systemVoice(parts.slice(i));
+            return systemVoice(splitSentences(parts.slice(i).join(' ')));
           }
           if (stopped || run !== speechRun.current) return;
           onPart?.(parts[i]);
@@ -232,7 +248,8 @@ export function useZoeVoice() {
             if (advanced) return;
             advanced = true;
             window.clearTimeout(timerRef.current);
-            void playFrom(i + 1);
+            if (i + 1 < parts.length) breath = window.setTimeout(() => void playFrom(i + 1), pauseAfter(parts[i]));
+            else void playFrom(i + 1);
           };
           stopCurrent = playZoe(buffer, advance);
           timerRef.current = window.setTimeout(advance, (buffer.duration / TENDER_RATE) * 1000 + 1500);
@@ -241,11 +258,11 @@ export function useZoeVoice() {
       };
 
       if (muted) return silent();
-      const parts = splitSentences(text);
-      if (isZoeVoiceReady()) return ownVoice(parts);
+      // La voz propia va por oraciones completas; la del sistema, en tramos cortos que no corte.
+      if (isZoeVoiceReady()) return ownVoice(withQuickStart(speechSentences(text)));
       // Mientras la voz propia se descarga, habla la del sistema.
       void prepareZoeVoice()?.catch(() => undefined);
-      systemVoice(parts);
+      systemVoice(splitSentences(text));
     },
     [muted, canSpeak, stopSpeaking],
   );

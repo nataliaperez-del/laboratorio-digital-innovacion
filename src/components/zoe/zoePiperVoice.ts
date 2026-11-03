@@ -197,8 +197,119 @@ export function warmZoeVoice(): void {
   });
 }
 
-/** Lo que no se pronuncia: marcas de formato y emojis. */
-const forVoice = (text: string) => text.replace(/[*_#`~>|]+/g, ' ').replace(/\p{Extended_Pictographic}/gu, '').trim();
+// ── Que suene natural: el texto que se le da al modelo y cómo se unen las frases ──
+// espeak ya lee bien «ZOE», «IA» (i-a), «UNAD», «VIEM» y deletrea «TRL» o «MDVT». Lo que sonaba
+// robótico era otra cosa: frases pegadas sin respirar, oraciones partidas a mitad de idea,
+// los silencios y clics propios de cada frase y abreviaturas que cortaban la oración.
+
+/** Abreviaturas tras las que un punto no cierra la oración («No.» solo antes de un número: «claro que no.» sí cierra). */
+const ABBREVIATIONS = new Set(['sr', 'sra', 'srta', 'dr', 'dra', 'lic', 'ing', 'prof', 'aprox', 'núm', 'num', 'pág', 'pag', 'ej', 'ud', 'uds', 'vs', 'cap', 'art', 'av', 'tel']);
+/** espeak lee estas abreviaturas como fin de oración: se escriben completas. */
+const EXPANSIONS: Record<string, string> = { sr: 'señor', sra: 'señora', srta: 'señorita', dr: 'doctor', dra: 'doctora', aprox: 'aproximadamente', núm: 'número', pág: 'página' };
+/** Una oración más larga que esto se parte por su «;» o su «,» más central. */
+const MAX_SENTENCE_CHARS = 400;
+/** La primera parte se dice corta: es la que hace esperar mientras se genera. */
+const QUICK_START_CHARS = 100;
+
+/** El texto como se debe pronunciar: sin formato ni emojis, sin abreviaturas que corten y con pausas donde hay puntos suspensivos. */
+export function speechText(text: string): string {
+  return text
+    .replace(/[*_#`~>|]+/g, ' ')
+    .replace(/\p{Extended_Pictographic}/gu, '')
+    .replace(/innova\s?hub\s?360/gi, 'Innova Jab tres sesenta')
+    .replace(/\by\/o\b/gi, 'y o')
+    .replace(/\b(Sr|Sra|Srta|Dr|Dra|aprox|Aprox|Núm|núm|Pág|pág)\.\s?/g, (_, word: string) => `${EXPANSIONS[word.toLowerCase()]} `)
+    .replace(/\bNo\.\s?(?=\d)/g, 'número ')
+    // Puntos suspensivos: en medio, una pausa breve (espeak pegaba las palabras); al final, un punto.
+    .replace(/(\.\.\.|…)\s*$/, '.')
+    .replace(/(\.\.\.|…)(?=\s*\S)/g, ',')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
+/** Parte una oración demasiado larga por el «;» o la «,» más cercana a su mitad. */
+function splitVeryLong(sentence: string): string[] {
+  if (sentence.length <= MAX_SENTENCE_CHARS) return [sentence];
+  const middle = sentence.length / 2;
+  let best = -1;
+  for (const match of sentence.matchAll(/[;,]\s/g)) {
+    if (best < 0 || Math.abs(match.index! - middle) < Math.abs(best - middle)) best = match.index!;
+  }
+  if (best < 0) return [sentence];
+  return [...splitVeryLong(sentence.slice(0, best + 1).trim()), ...splitVeryLong(sentence.slice(best + 1).trim())];
+}
+
+/**
+ * Oraciones para la voz propia. A diferencia de `splitSentences` (para la voz del sistema, que
+ * corta las locuciones largas), solo parte donde termina una idea: no en «p. ej.», «Sr.»,
+ * iniciales ni decimales, y deja enteras las oraciones largas salvo que pasen de 400 caracteres.
+ */
+export function speechSentences(text: string): string[] {
+  const out: string[] = [];
+  let start = 0;
+  const boundary = /[.!?…]+["»”')\]]*\s+(?=[¿¡«"“(]?[\p{Lu}\d])|\n+/gu;
+  for (const match of text.matchAll(boundary)) {
+    const before = text.slice(start, match.index);
+    if (match[0].startsWith('.') && !match[0].startsWith('..')) {
+      const word = (/(\S+)$/.exec(before)?.[1] ?? '').replace(/^[(«"“¿¡]+/, '').toLowerCase();
+      const numberAfter = /\d/.test(text[match.index! + match[0].length] ?? '');
+      if (ABBREVIATIONS.has(word) || /^\p{L}$/u.test(word) || (word === 'no' && numberAfter)) continue;
+    }
+    out.push((before + match[0]).trim());
+    start = match.index! + match[0].length;
+  }
+  out.push(text.slice(start).trim());
+  return out.filter(Boolean).flatMap(splitVeryLong);
+}
+
+/** Si la primera oración es larga, se dice primero hasta su primera coma: así ZOE empieza a hablar antes. */
+export function withQuickStart(parts: string[]): string[] {
+  const [first, ...rest] = parts;
+  if (!first || first.length <= QUICK_START_CHARS) return parts;
+  const comma = first.indexOf(', ', 40);
+  if (comma < 0 || comma > first.length - 30) return parts;
+  return [first.slice(0, comma + 1), first.slice(comma + 2), ...rest];
+}
+
+/** Respiro después de una parte, según cómo termina; con algo de variación, como al hablar. */
+export function pauseAfter(part: string, random: () => number = Math.random): number {
+  const end = part.trim().replace(/["»”')\]]+$/, '');
+  const base = /(\.\.\.|…)$/.test(end) ? 520 : /[?!]$/.test(end) ? 380 : /\.$/.test(end) ? 320 : /[;:]$/.test(end) ? 260 : /,$/.test(end) ? 150 : 220;
+  return Math.round(base + (random() - 0.5) * 80);
+}
+
+/** Pico al que se lleva cada frase: todas con el mismo volumen. */
+const TARGET_PEAK = 0.9;
+
+/**
+ * Deja una frase lista para unirla con otras: recorta el silencio que el modelo pone al inicio y
+ * al final (las pausas las decide `pauseAfter`), iguala el volumen y suaviza los bordes para que no
+ * suenen clics.
+ */
+export function shapeSentence(pcm: Float32Array, sampleRate: number): Float32Array {
+  let peak = 0;
+  for (const value of pcm) peak = Math.max(peak, Math.abs(value));
+  if (peak < 1e-4) return new Float32Array(0);
+  const floor = Math.max(0.003, peak * 0.015);
+  let first = 0;
+  while (first < pcm.length && Math.abs(pcm[first]) < floor) first++;
+  let last = pcm.length - 1;
+  while (last > first && Math.abs(pcm[last]) < floor) last--;
+  const from = Math.max(0, first - Math.round(0.03 * sampleRate));
+  const to = Math.min(pcm.length, last + 1 + Math.round(0.06 * sampleRate));
+  const out = pcm.slice(from, to);
+  const gain = Math.min(3, TARGET_PEAK / peak);
+  const fadeIn = Math.max(1, Math.round(0.008 * sampleRate));
+  const fadeOut = Math.max(1, Math.round(0.025 * sampleRate));
+  for (let i = 0; i < out.length; i++) {
+    const tail = out.length - 1 - i;
+    out[i] *= gain * Math.min(1, i / fadeIn, tail / fadeOut);
+  }
+  return out;
+}
+
+/** Respiro entre oraciones de una misma parte (Piper usa 0,2 s). */
+const SENTENCE_SILENCE_S = 0.24;
 
 /** Convierte una frase en audio con la voz de ZOE. */
 export async function synthesizeZoe(text: string): Promise<AudioBuffer> {
@@ -207,21 +318,49 @@ export async function synthesizeZoe(text: string): Promise<AudioBuffer> {
   const voice = await loading;
   const turn = queue.then(async () => {
     const pieces: Float32Array[] = [];
-    for (const ids of voice.phonemize(forVoice(text))) pieces.push(await voice.speak(ids));
+    for (const ids of voice.phonemize(speechText(text))) {
+      const piece = shapeSentence(await voice.speak(ids), voice.sampleRate);
+      if (piece.length) pieces.push(piece);
+    }
     return pieces;
   });
   queue = turn.catch(() => undefined);
   const pieces = await turn;
-  const length = pieces.reduce((sum, piece) => sum + piece.length, 0);
+  // El audio suena acelerado (TENDER_RATE): el silencio se alarga en la misma proporción.
+  const gap = Math.round(SENTENCE_SILENCE_S * voice.sampleRate * TENDER_RATE);
+  const length = pieces.reduce((sum, piece) => sum + piece.length, 0) + gap * Math.max(0, pieces.length - 1);
   if (!length) throw new Error('Frase sin sonido.');
   const buffer = context().createBuffer(1, length, voice.sampleRate);
   const channel = buffer.getChannelData(0);
   let offset = 0;
   for (const piece of pieces) {
     channel.set(piece, offset);
-    offset += piece.length;
+    offset += piece.length + gap;
   }
   return buffer;
+}
+
+let output: AudioNode | null = null;
+
+/**
+ * Salida de la voz: un compresor suave iguala lo fuerte y lo débil, y un filtro baja un poco los
+ * agudos, que el cambio de tono vuelve estridentes.
+ */
+function voiceOutput(ctx: AudioContext): AudioNode {
+  if (output?.context === ctx) return output;
+  const soften = ctx.createBiquadFilter();
+  soften.type = 'highshelf';
+  soften.frequency.value = 5500;
+  soften.gain.value = -3;
+  const compressor = ctx.createDynamicsCompressor();
+  compressor.threshold.value = -18;
+  compressor.knee.value = 12;
+  compressor.ratio.value = 3;
+  compressor.attack.value = 0.003;
+  compressor.release.value = 0.25;
+  soften.connect(compressor).connect(ctx.destination);
+  output = soften;
+  return output;
 }
 
 /** Reproduce el audio tres semitonos más agudo; devuelve con qué detenerlo. */
@@ -231,7 +370,7 @@ export function playZoe(buffer: AudioBuffer, onEnded: () => void): () => void {
   const source = ctx.createBufferSource();
   source.buffer = buffer;
   source.playbackRate.value = TENDER_RATE;
-  source.connect(ctx.destination);
+  source.connect(voiceOutput(ctx));
   source.onended = onEnded;
   source.start();
   return () => {
