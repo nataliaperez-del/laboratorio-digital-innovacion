@@ -3,7 +3,11 @@ import React from 'react';
 /** Tamaño de la casita; en celulares, más pequeña. */
 export const DOGHOUSE = typeof window !== 'undefined' && window.innerWidth < 768 ? { width: 70, height: 66, margin: 12 } : { width: 92, height: 86, margin: 18 };
 
-/** Dónde queda la puerta en pantalla: ZOE camina hasta aquí para entrar y sale desde aquí. */
+/**
+ * Dónde queda la puerta en pantalla: ZOE camina hasta aquí para entrar y sale desde aquí.
+ * La casita ocupa la esquina inferior derecha; la firma y los logos se ubican a su izquierda
+ * (`.lab-credits`, con `--zoe-house-room`) y respetan ese espacio aunque ZOE esté afuera.
+ */
 export function doghouseDoor() {
   return {
     x: window.innerWidth - DOGHOUSE.margin - DOGHOUSE.width / 2,

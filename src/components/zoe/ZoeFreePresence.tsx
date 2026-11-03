@@ -13,6 +13,10 @@ const ZoeCanvas3D = lazy(() => import('./ZoeCanvas3D'));
 /** Tamaño de ZOE en pantalla; en celulares se reduce para dejarle el espacio al contenido. */
 const STAGE = typeof window !== 'undefined' && window.innerWidth < 768 ? { width: 170, height: 190 } : { width: 260, height: 290 };
 const POSITION_KEY = 'innovahub_zoe_pos_v2';
+/** Alto de la franja de la firma y la casita, abajo a la derecha. */
+const CORNER_HEIGHT = 64;
+/** Las patas de ZOE quedan casi al pie de su escenario. */
+const FEET = 0.97;
 const WALK_SPEED = 90; // píxeles por segundo; acorde al tamaño, para que las patas no parezcan patinar
 const TROT_SPEED = 230;
 /** Desde esta distancia va al trote: caminando, cruzar la pantalla tomaría demasiado. */
@@ -43,7 +47,7 @@ function findQuietSpot(currentX: number) {
     for (const px of [0.25, 0.5, 0.75]) {
       for (const py of [0.5, 0.9]) {
         const under = document.elementsFromPoint(x + STAGE.width * px, y + STAGE.height * py).find((el) => !el.closest('.zoe-stage'));
-        if (under?.closest('button, a, input, select, textarea, [role="button"]')) found += 1;
+        if (under?.closest('button, a, input, select, textarea, [role="button"], .lab-credits')) found += 1;
       }
     }
     return found;
@@ -53,11 +57,26 @@ function findQuietSpot(currentX: number) {
   return { x: best?.x ?? currentX, y };
 }
 
+/** Dónde empieza, desde la izquierda, la esquina de la firma y la casita (abajo a la derecha). */
+function cornerLeft() {
+  const credits = document.querySelector('.lab-credits')?.getBoundingClientRect();
+  // Antes de que la firma esté en pantalla, su ancho aproximado.
+  return credits?.width ? credits.left : window.innerWidth - (window.innerWidth < 768 ? 280 : 360);
+}
+
+/**
+ * Mantiene a ZOE en pantalla. En el piso no se para sobre la firma ni sobre la casita: se queda
+ * a su izquierda y, si no cabe (celulares), un poco más arriba.
+ */
 function clampPosition(x: number, y: number) {
-  return {
-    x: Math.max(4, Math.min(window.innerWidth - STAGE.width - 48, x)),
-    y: Math.max(4, Math.min(window.innerHeight - STAGE.height - 4, y)),
-  };
+  let top = Math.max(4, Math.min(window.innerHeight - STAGE.height - 4, y));
+  let maxX = window.innerWidth - STAGE.width - 48;
+  if (top + STAGE.height * FEET > window.innerHeight - CORNER_HEIGHT) {
+    const beside = cornerLeft() - 12 - STAGE.width * 0.8;
+    if (beside >= 4) maxX = Math.min(maxX, beside);
+    else top = Math.min(top, window.innerHeight - CORNER_HEIGHT - STAGE.height * FEET);
+  }
+  return { x: Math.max(4, Math.min(maxX, x)), y: Math.max(4, top) };
 }
 
 function initialPosition() {
@@ -67,13 +86,21 @@ function initialPosition() {
   } catch {
     /* Posición guardada ilegible: se usa la de siempre. */
   }
+  // Abajo a la derecha, junto a la firma y la casita (clampPosition no la deja encima de ellas).
   return clampPosition(window.innerWidth, window.innerHeight);
+}
+
+/** Corrige el globo de subtítulos cuando el escenario se sale de la pantalla (al llegar a la casita). */
+function captionInside(x: number): React.CSSProperties | undefined {
+  if (x < window.innerWidth / 2) return x < 8 ? { left: 8 - x } : undefined;
+  const overflow = x + STAGE.width + 44 - (window.innerWidth - 8);
+  return overflow > 0 ? { right: overflow } : undefined;
 }
 
 /** Posición del escenario con las patas de ZOE frente a la puerta de su casita. */
 function atTheDoor() {
   const door = doghouseDoor();
-  return { x: door.x - STAGE.width / 2, y: door.y - STAGE.height * 0.97 };
+  return { x: door.x - STAGE.width / 2, y: door.y - STAGE.height * FEET };
 }
 
 /** Si el navegador no puede dibujar 3D, ZOE sigue presente con su imagen. */
@@ -575,6 +602,8 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
 
   useEffect(() => {
     const onResize = () => setPosition((p) => clampPosition(p.x, p.y));
+    // Con la firma ya en pantalla, ZOE se ajusta a su ancho real.
+    onResize();
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, []);
@@ -642,11 +671,17 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
       {homeTrip !== 'none' && <ZoeDoghouse occupied={false} />}
       <div
         className={`zoe-stage fixed z-40 group ${tripClass}`}
-        style={{ left: position.x, top: position.y, width: STAGE.width + 44, height: STAGE.height, transformOrigin: `${STAGE.width / 2}px ${STAGE.height * 0.97}px` }}
+        style={{ left: position.x, top: position.y, width: STAGE.width + 44, height: STAGE.height, transformOrigin: `${STAGE.width / 2}px ${STAGE.height * FEET}px` }}
       >
         {/* Subtítulos: lo que ZOE dice, también para quien no puede oírlo. No es un chat. */}
         {(caption || status || heard) && (
-          <div className={`zoe-caption ${position.x < window.innerWidth / 2 ? 'zoe-caption-left' : ''}`} role="status" aria-live="polite">
+          <div
+            className={`zoe-caption ${position.x < window.innerWidth / 2 ? 'zoe-caption-left' : ''}`}
+            // Frente a la casita el escenario sale un poco de la pantalla: el globo no se corta.
+            style={captionInside(position.x)}
+            role="status"
+            aria-live="polite"
+          >
             {talking && (
               <button type="button" className="zoe-caption-close" onClick={endConversation} aria-label="Terminar la conversación">
                 <X className="w-3.5 h-3.5" aria-hidden="true" />

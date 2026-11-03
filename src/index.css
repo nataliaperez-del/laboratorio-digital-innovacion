@@ -443,18 +443,27 @@ button.lab-card:hover { border-color: var(--brand-teal-text); }
 @media (hover: none) { .zoe-toolbar { opacity: 1; transform: none; } }
 @media (max-width: 767px) { .zoe-toolbar { display: none; } }
 
-/* Firma y logos: flotan abajo a la izquierda y no se van con el scroll (la casita de ZOE va a la derecha) */
-.lab-credits { position: fixed; left: 16px; bottom: 12px; z-index: 30; display: flex; align-items: center; gap: 10px; padding: 6px 12px 6px 8px; border-radius: 14px; background: rgba(4, 34, 43, .86); border: 1px solid rgba(255, 255, 255, .12); box-shadow: 0 8px 24px rgba(0, 0, 0, .35); }
-[data-theme="light"] .lab-credits { background: rgba(255, 255, 255, .92); border-color: rgba(4, 47, 60, .14); box-shadow: 0 8px 22px rgba(4, 47, 60, .12); }
-.lab-credits-unad { height: 38px; width: auto; object-fit: contain; }
-.lab-credits-viem { height: 32px; width: auto; object-fit: contain; }
-.lab-credits-names { margin: 0; padding-left: 10px; border-left: 1px solid var(--lab-border); font-size: 8.5px; font-style: italic; font-weight: 300; line-height: 1.35; color: var(--text-secondary); white-space: nowrap; }
+/* Firma y logos: flotan abajo a la derecha, sin recuadro, y no se van con el scroll.
+   La esquina es de la casita de ZOE (ZoeDoghouse: 18 px de margen + 92 px de ancho): la firma
+   queda a su izquierda, con aire, y ese espacio se respeta aunque ZOE esté afuera.
+   Sin fondo propio, una sombra suave los mantiene legibles cuando el contenido pasa por debajo. */
+:root { --zoe-house-room: 126px; }
+.lab-credits { position: fixed; right: var(--zoe-house-room); bottom: 10px; z-index: 30; display: flex; align-items: center; gap: 12px; pointer-events: none; filter: drop-shadow(0 1px 3px rgba(0, 0, 0, .75)); }
+[data-theme="light"] .lab-credits { filter: drop-shadow(0 0 3px rgba(255, 255, 255, .95)); }
+.lab-credits img { pointer-events: auto; }
+.lab-credits-unad { height: 40px; width: auto; object-fit: contain; }
+.lab-credits-viem { height: 34px; width: auto; object-fit: contain; }
+.lab-credits-names { margin: 0; text-align: right; font-size: 8.5px; font-style: italic; font-weight: 300; line-height: 1.35; color: var(--text-secondary); white-space: nowrap; }
 .lab-credits-names span { display: block; margin-bottom: 2px; font-size: 6.5px; font-style: normal; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #F29F05; }
+@media (max-width: 767px) {
+  /* En celulares la casita mide 70 px con 12 px de margen. */
+  :root { --zoe-house-room: 92px; }
+}
 @media (max-width: 639px) {
-  .lab-credits { left: 10px; bottom: 10px; gap: 7px; padding: 5px 9px 5px 6px; }
+  .lab-credits { bottom: 8px; gap: 8px; }
   .lab-credits-unad { height: 28px; }
   .lab-credits-viem { height: 24px; }
-  .lab-credits-names { padding-left: 7px; font-size: 7.5px; }
+  .lab-credits-names { font-size: 7.5px; }
 }
 @media print { .lab-credits { display: none; } }
 

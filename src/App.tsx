@@ -228,16 +228,16 @@ export const App: React.FC = () => {
           en los módulos, además, para que lo último pueda subir por encima de ZOE. */}
       <div aria-hidden="true" className={currentTool === 'portal' ? 'h-16 shrink-0' : 'h-56 md:h-80 shrink-0'} />
 
-      {/* Firma de los desarrolladores y logos: flotan a la izquierda, siempre visibles */}
+      {/* Firma de los desarrolladores y logos: flotan abajo a la derecha, sin recuadro, siempre visibles */}
       <footer className="lab-credits" aria-label="Créditos del Laboratorio">
-        <img src="/assets/unad_acreditada.png" alt="Universidad Nacional Abierta y a Distancia · Acreditada en Alta Calidad" title="UNAD · Acreditada en Alta Calidad" className="lab-credits-unad" />
-        <img src="/assets/viem_logo.png" alt="VIEM · Vicerrectoría de Innovación y Emprendimiento" title="Vicerrectoría de Innovación y Emprendimiento (VIEM)" className="lab-credits-viem" />
         <p className="lab-credits-names">
           <span>Desarrollado por</span>
           Natalia Elizabeth Perez
           <br />
           Camilo Esteban Lozano
         </p>
+        <img src="/assets/unad_acreditada.png" alt="Universidad Nacional Abierta y a Distancia · Acreditada en Alta Calidad" title="UNAD · Acreditada en Alta Calidad" className="lab-credits-unad" />
+        <img src="/assets/viem_logo.png" alt="VIEM · Vicerrectoría de Innovación y Emprendimiento" title="Vicerrectoría de Innovación y Emprendimiento (VIEM)" className="lab-credits-viem" />
       </footer>
     </div>
   );

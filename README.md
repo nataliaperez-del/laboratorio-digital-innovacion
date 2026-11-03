@@ -94,7 +94,7 @@ vite-plugin-unad-gemini-proxy.ts, hostinger_deploy/includes/   Proxies de desarr
 - **Pantalla interactiva, documento formal.** Los resultados no llegan a pantalla como Markdown crudo; el documento académico sale de las descargas.
 - **Credenciales solo en el servidor.** Las variables sin prefijo `VITE_` nunca llegan al navegador.
 - **Scroll fluido.** Los paneles de los módulos (`.lab-panel`) no usan `backdrop-filter`: con una veintena por pantalla, el navegador recalculaba cada desenfoque en cada cuadro del desplazamiento. Los halos y la malla del fondo van fijos a la ventana (`App.tsx`), ZOE deja de dibujar mientras la página se desplaza y el Banco no anida zonas con scroll propio. Antes de volver a poner vidrio desenfocado en algo que se repite, mídelo.
-- **Créditos siempre visibles.** La firma de los desarrolladores y los logos de la UNAD y la VIEM flotan abajo a la izquierda (`.lab-credits`); la casita de ZOE ocupa la esquina derecha.
+- **Créditos siempre visibles.** La firma de los desarrolladores y los logos de la UNAD y la VIEM flotan abajo a la derecha, sin recuadro (`.lab-credits`), a la izquierda de la casita de ZOE: su esquina (`--zoe-house-room`) queda libre aunque ZOE esté afuera. En el piso, ZOE tampoco se para encima de la firma (`clampPosition`): se queda a su lado o, en celulares, un poco más arriba.
 
 ## Producción (Hostinger)
 
