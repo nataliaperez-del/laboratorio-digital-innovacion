@@ -196,13 +196,13 @@ export const BadgesModal: React.FC<Props> = ({ isOpen, onClose, onNavigate }) =>
                 {/* Emblema y datos del rango */}
                 <div className="flex items-center gap-4 relative z-10 w-full md:w-auto">
                   <div
-                    className="w-18 h-18 rounded-2xl flex items-center justify-center shrink-0 border shadow-lg bg-black/40"
+                    className="w-22 h-22 rounded-2xl flex items-center justify-center shrink-0 border shadow-lg bg-black/40"
                     style={{
                       borderColor: currentRank.color,
-                      boxShadow: `0 0 20px ${currentRank.color}40`,
+                      boxShadow: `0 0 25px ${currentRank.color}45`,
                     }}
                   >
-                    <RankEmblem level={currentRank.level} size={56} />
+                    <RankEmblem level={currentRank.level} size={74} />
                   </div>
                   <div>
                     <span className="text-[11px] font-bold uppercase tracking-wider text-[#A6C0CA] block">
@@ -284,7 +284,7 @@ export const BadgesModal: React.FC<Props> = ({ isOpen, onClose, onNavigate }) =>
                         <div>
                           <div className="flex items-center justify-between mb-3">
                             <div className="shrink-0 transition-transform hover:scale-105">
-                              <BadgeGraphicRenderer badgeId={badge.id} size={54} isUnlocked={isUnlocked} />
+                              <BadgeGraphicRenderer badgeId={badge.id} size={76} isUnlocked={isUnlocked} />
                             </div>
 
                             <div className="flex flex-col items-end gap-1">
@@ -427,22 +427,14 @@ export const BadgesModal: React.FC<Props> = ({ isOpen, onClose, onNavigate }) =>
                   </div>
 
                   <div className="pt-2">
-                    <span className="text-[10px] uppercase tracking-wider text-brand-textMuted block mb-2 font-bold">
-                      Insignias Oficiales Registradas ({unlockedBadgeIds.length} de {INNOVATION_BADGES.length}):
+                    <span className="text-[10px] uppercase tracking-wider text-[#D4AF37] block mb-3 font-bold">
+                      Sellos Oficiales Acreditados ({unlockedBadgeIds.length} de {INNOVATION_BADGES.length}):
                     </span>
-                    <div className="flex flex-wrap items-center justify-center gap-2">
+                    <div className="flex flex-wrap items-center justify-center gap-4">
                       {INNOVATION_BADGES.filter((b) => unlockedBadgeIds.includes(b.id)).map((b) => (
-                        <div
-                          key={b.id}
-                          className="px-3 py-1 rounded-lg border text-[11px] font-semibold flex items-center gap-1.5"
-                          style={{
-                            backgroundColor: `${b.color}15`,
-                            borderColor: `${b.color}40`,
-                            color: b.color,
-                          }}
-                        >
-                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: b.color }} />
-                          <span>{b.title}</span>
+                        <div key={b.id} className="flex flex-col items-center gap-1 group">
+                          <BadgeGraphicRenderer badgeId={b.id} size={58} isUnlocked={true} />
+                          <span className="text-[9.5px] font-bold text-white/90">{b.title}</span>
                         </div>
                       ))}
                     </div>

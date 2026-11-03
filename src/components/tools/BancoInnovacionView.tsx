@@ -843,7 +843,7 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
                   <div>
                     <div className="flex items-center justify-between mb-3">
                       <div className="shrink-0 transition-transform hover:scale-105">
-                        <BadgeGraphicRenderer badgeId={badge.id} size={54} isUnlocked={isUnlocked} />
+                        <BadgeGraphicRenderer badgeId={badge.id} size={76} isUnlocked={isUnlocked} />
                       </div>
 
                       <div className="flex flex-col items-end gap-1">

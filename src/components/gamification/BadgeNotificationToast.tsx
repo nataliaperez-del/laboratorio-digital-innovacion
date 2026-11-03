@@ -95,7 +95,7 @@ export const BadgeNotificationToast: React.FC<Props> = ({ onOpenBadgesModal }) =
         <div className="flex items-start gap-3.5 relative z-10">
           {/* Insignia Vectorial Holográfica Animada */}
           <div className="shrink-0 transition-transform hover:scale-105 drop-shadow-[0_0_12px_rgba(255,255,255,0.3)]">
-            <BadgeGraphicRenderer badgeId={activeToast.id} size={52} isUnlocked={true} />
+            <BadgeGraphicRenderer badgeId={activeToast.id} size={64} isUnlocked={true} />
           </div>
 
           {/* Información */}
