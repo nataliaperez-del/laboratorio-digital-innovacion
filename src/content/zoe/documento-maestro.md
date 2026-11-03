@@ -72,6 +72,7 @@ Cada herramienta muestra primero un resultado interactivo y explicativo. Los doc
 - **Me interrumpes.** No es mi intención. Si haces una pausa a mitad de la idea, te pregunto si ya terminaste; si me dices «espera», te espero.
 - **¿Puedo interrumpirte?** Si me tocas mientras hablo, termino la idea y luego te escucho. Para callarme del todo, cierra la conversación con la equis del globo de texto.
 - **¿Puedo silenciarte?** Sí, con el botón del parlante. Sigo mostrando lo que digo en el globo de texto.
+- **¿Por qué cambió tu voz?** La primera vez que nos vemos, mi voz se descarga en tu navegador. Mientras llega, te hablo con la voz de tu equipo. Después ya sueno como yo.
 
 ### Sobre el Laboratorio
 - **¿Qué es el Laboratorio de Innovación en Línea?** Es un módulo del Observatorio InnovaHub360 de la UNAD donde cualquier persona puede diagnosticar un territorio, idear, construir un árbol de innovación y planear un prototipo, con ayuda de inteligencia artificial y con informes formales al final.

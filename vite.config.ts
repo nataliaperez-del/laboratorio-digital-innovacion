@@ -12,6 +12,9 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
+        // Fonetizador de Piper (espeak-ng en WebAssembly) que trae la librería sin exportarlo.
+        // El nombre lleva el hash de la versión 1.0.5, fijada en package.json.
+        'piper-phonemize': path.resolve(__dirname, './node_modules/@mintplex-labs/piper-tts-web/dist/piper-o91UDS6e.js'),
       },
     },
     test: {

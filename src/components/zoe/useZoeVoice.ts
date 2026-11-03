@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { TENDER_RATE, isZoeVoiceReady, playZoe, prepareZoeVoice, synthesizeZoe, unlockZoeAudio, warmZoeVoice } from './zoePiperVoice';
 
 /** Voz latina masculina si existe; si no, cualquier voz en español. */
 function pickVoice(): SpeechSynthesisVoice | undefined {
@@ -51,6 +52,8 @@ const LISTEN_WINDOW_MS = 12000;
 const END_OF_SPEECH_MS = 1700;
 /** Por debajo de este volumen no entró sonido alguno: el problema es el micrófono, no la persona. */
 const SILENT_MIC_LEVEL = 0.002;
+/** Si la voz propia no tiene lista una frase en este tiempo, la dice la del sistema. */
+const OWN_VOICE_TIMEOUT_MS = 15000;
 
 /**
  * Idioma del reconocedor. Exige país: con «es-419», que es lo que reportan muchos navegadores
@@ -85,7 +88,7 @@ async function openLevelMeter(onLevel?: (level: number) => void) {
   return meter;
 }
 
-/** Voz de ZOE: síntesis por frases y reconocimiento del navegador. */
+/** Voz de ZOE: su voz propia (o la del sistema mientras carga) por frases, y reconocimiento del navegador. */
 export function useZoeVoice() {
   const [muted, setMuted] = useState(() => {
     try {
@@ -99,6 +102,8 @@ export function useZoeVoice() {
   const listenSession = useRef(0);
   const speechRun = useRef(0);
   const timerRef = useRef<number | undefined>(undefined);
+  /** Corta la voz propia; con `andFinish` además da la locución por terminada. */
+  const cutOwnVoice = useRef<((andFinish: boolean) => void) | null>(null);
   const canSpeak = typeof window !== 'undefined' && 'speechSynthesis' in window;
   const RecognitionCtor =
     typeof window !== 'undefined'
@@ -107,14 +112,21 @@ export function useZoeVoice() {
 
   // Las voces llegan de forma asíncrona: esto las deja listas para la primera frase.
   useEffect(() => {
-    if (!canSpeak) return;
-    window.speechSynthesis.getVoices();
-    return () => window.speechSynthesis.cancel();
+    warmZoeVoice();
+    // El navegador solo deja sonar el audio después de un gesto de la persona.
+    window.addEventListener('pointerdown', unlockZoeAudio, { once: true });
+    if (canSpeak) window.speechSynthesis.getVoices();
+    return () => {
+      window.removeEventListener('pointerdown', unlockZoeAudio);
+      cutOwnVoice.current?.(false);
+      if (canSpeak) window.speechSynthesis.cancel();
+    };
   }, [canSpeak]);
 
   const stopSpeaking = useCallback(() => {
     speechRun.current += 1;
     window.clearTimeout(timerRef.current);
+    cutOwnVoice.current?.(false);
     if (canSpeak) window.speechSynthesis.cancel();
   }, [canSpeak]);
 
@@ -126,7 +138,10 @@ export function useZoeVoice() {
       } catch {
         /* Solo es una preferencia. */
       }
-      if (next && canSpeak) window.speechSynthesis.cancel();
+      if (next) {
+        cutOwnVoice.current?.(true);
+        if (canSpeak) window.speechSynthesis.cancel();
+      }
       return next;
     });
   }, [canSpeak]);
@@ -139,39 +154,98 @@ export function useZoeVoice() {
       const finish = () => {
         if (run === speechRun.current) onEnd?.();
       };
-      if (muted || !canSpeak) {
+      const silent = () => {
         // En silencio queda el subtítulo: se da tiempo de leerlo.
         onPart?.(text);
         timerRef.current = window.setTimeout(finish, Math.max(2000, text.length * 55));
-        return;
-      }
-      // Algunos navegadores nunca avisan el final: esto evita que la conversación se quede colgada.
-      // Si ni siquiera empieza a sonar, se sigue pronto: mientras tanto nadie la escucharía.
-      let started = false;
-      timerRef.current = window.setTimeout(() => {
-        if (started) timerRef.current = window.setTimeout(finish, 1000 + text.length * 120);
-        else finish();
-      }, 3000);
-      window.speechSynthesis.resume();
-      const voice = pickVoice();
-      const parts = splitSentences(text);
-      parts.forEach((part, i) => {
-        const utterance = new SpeechSynthesisUtterance(part);
-        // Pequeña variación por frase: una entonación idéntica es lo que suena a robot.
-        utterance.pitch = 1.32 + ((i * 37) % 10) / 100;
-        utterance.rate = 1.04 + ((i * 53) % 7) / 100;
-        utterance.lang = voice?.lang ?? 'es-419';
-        if (voice) utterance.voice = voice;
-        utterance.onstart = () => {
-          started = true;
-          if (run === speechRun.current) onPart?.(part);
+      };
+      const systemVoice = (parts: string[]) => {
+        if (!canSpeak) return silent();
+        // Algunos navegadores nunca avisan el final: esto evita que la conversación se quede colgada.
+        // Si ni siquiera empieza a sonar, se sigue pronto: mientras tanto nadie la escucharía.
+        let started = false;
+        const length = parts.join(' ').length;
+        timerRef.current = window.setTimeout(() => {
+          if (started) timerRef.current = window.setTimeout(finish, 1000 + length * 120);
+          else finish();
+        }, 3000);
+        window.speechSynthesis.resume();
+        const voice = pickVoice();
+        parts.forEach((part, i) => {
+          const utterance = new SpeechSynthesisUtterance(part);
+          // Pequeña variación por frase: una entonación idéntica es lo que suena a robot.
+          utterance.pitch = 1.32 + ((i * 37) % 10) / 100;
+          utterance.rate = 1.04 + ((i * 53) % 7) / 100;
+          utterance.lang = voice?.lang ?? 'es-419';
+          if (voice) utterance.voice = voice;
+          utterance.onstart = () => {
+            started = true;
+            if (run === speechRun.current) onPart?.(part);
+          };
+          if (i === parts.length - 1) {
+            utterance.onend = finish;
+            utterance.onerror = finish;
+          }
+          window.speechSynthesis.speak(utterance);
+        });
+      };
+      /** Voz propia: mientras suena una frase ya se está generando la siguiente. */
+      const ownVoice = (parts: string[]) => {
+        let stopped = false;
+        let stopCurrent: (() => void) | undefined;
+        let chain: Promise<unknown> = Promise.resolve();
+        const audio = parts.map((part) => {
+          const next = chain.then(() => (stopped ? Promise.reject(new Error('Interrumpida.')) : synthesizeZoe(part)));
+          chain = next.catch(() => undefined);
+          return next;
+        });
+        audio.forEach((pending) => pending.catch(() => undefined));
+        cutOwnVoice.current = (andFinish) => {
+          stopped = true;
+          stopCurrent?.();
+          cutOwnVoice.current = null;
+          if (andFinish) finish();
         };
-        if (i === parts.length - 1) {
-          utterance.onend = finish;
-          utterance.onerror = finish;
-        }
-        window.speechSynthesis.speak(utterance);
-      });
+        const playFrom = async (i: number) => {
+          if (stopped || run !== speechRun.current) return;
+          if (i >= parts.length) {
+            cutOwnVoice.current = null;
+            return finish();
+          }
+          let buffer: AudioBuffer;
+          try {
+            const late = new Promise<never>((_, reject) => window.setTimeout(() => reject(new Error('La voz propia tardó demasiado.')), OWN_VOICE_TIMEOUT_MS));
+            buffer = await Promise.race([audio[i], late]);
+          } catch (e) {
+            // Si la voz propia falla a mitad de camino, el resto lo dice la del sistema.
+            if (stopped || run !== speechRun.current) return;
+            console.warn('[ZOE] Falló la voz propia; sigue la del sistema:', e);
+            stopped = true;
+            cutOwnVoice.current = null;
+            return systemVoice(parts.slice(i));
+          }
+          if (stopped || run !== speechRun.current) return;
+          onPart?.(parts[i]);
+          // Si el audio no llega a sonar (el navegador lo bloquea), no se queda esperando.
+          let advanced = false;
+          const advance = () => {
+            if (advanced) return;
+            advanced = true;
+            window.clearTimeout(timerRef.current);
+            void playFrom(i + 1);
+          };
+          stopCurrent = playZoe(buffer, advance);
+          timerRef.current = window.setTimeout(advance, (buffer.duration / TENDER_RATE) * 1000 + 1500);
+        };
+        void playFrom(0);
+      };
+
+      if (muted) return silent();
+      const parts = splitSentences(text);
+      if (isZoeVoiceReady()) return ownVoice(parts);
+      // Mientras la voz propia se descarga, habla la del sistema.
+      void prepareZoeVoice()?.catch(() => undefined);
+      systemVoice(parts);
     },
     [muted, canSpeak, stopSpeaking],
   );

@@ -120,6 +120,7 @@ ZOE es un schnauzer holográfico que vive en la pantalla. No tiene chat de texto
 - ZOE **termina siempre sus respuestas**. Si lo tocas mientras habla, acaba la idea y luego te escucha.
 - Para cortar la conversación, toca la **equis** del globo de subtítulos o el botón del micrófono.
 - El botón del **parlante** lo silencia; los subtítulos siguen apareciendo.
+- **Su voz:** la primera vez, ZOE descarga su voz (unos 63 MB) y la guarda en el navegador; mientras tanto habla con la voz del equipo. Con el ahorro de datos activo o una conexión lenta usa siempre la del equipo.
 
 ### Órdenes directas
 
@@ -156,6 +157,7 @@ ZOE conoce el Laboratorio, sus herramientas, los conceptos de innovación y lo q
 | La barrita de volumen no se mueve | El micrófono no llega: revisa que no esté silenciado y que el navegador use el correcto (Configuración → Privacidad → Micrófono) |
 | ZOE dice que el servicio de voz no responde | Revisa la conexión a internet y usa Chrome o Edge (en Brave u Opera no funciona) |
 | ZOE pide una dirección segura | Abre el Laboratorio con `https://` |
+| ZOE suena distinto de lo habitual | Su voz aún se está descargando o la conexión está en ahorro de datos: mientras tanto usa la del equipo. Al recargar con buena conexión vuelve su voz |
 | ZOE no se ve en 3D | El navegador no puede dibujar 3D: se muestra su imagen fija. Actualiza el navegador o activa la aceleración por hardware |
 | La IA no responde | Revisa el indicador de IA de la cabecera y vuelve a intentar en un momento |
 | Perdí mi trabajo | El trabajo vive en el navegador: si borraste datos o cambiaste de equipo, recupéralo desde el Banco o desde el informe descargado |

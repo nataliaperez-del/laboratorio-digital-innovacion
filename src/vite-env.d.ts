@@ -47,3 +47,15 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+/** Fonetizador de Piper (espeak-ng en WebAssembly); alias en vite.config.ts. */
+declare module 'piper-phonemize' {
+  interface PiperPhonemizer {
+    callMain(args: string[]): void;
+  }
+  export function createPiperPhonemize(options: {
+    print: (line: string) => void;
+    printErr: (message: string) => void;
+    locateFile: (file: string) => string;
+  }): Promise<PiperPhonemizer>;
+}
