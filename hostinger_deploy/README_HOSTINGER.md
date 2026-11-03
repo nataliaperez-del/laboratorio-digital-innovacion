@@ -1,6 +1,8 @@
 # GUÍA DE DESPLIEGUE EN HOSTINGER — LABORATORIO DIGITAL DE INNOVACIÓN
 **InnovaHub360 · Universidad Nacional Abierta y a Distancia (UNAD)**
-*Actualizado: 30 de Octubre de 2026*
+*Actualizado: 3 de noviembre de 2026*
+
+> **Antes de empezar:** este paquete **no trae** `config/ia.php` (las credenciales de la IA de la UNAD no viajan en el ZIP). Hay que crearlo en el servidor (Paso 4b). Sin ese archivo el sitio funciona, pero la IA responde «La IA no está configurada en el servidor».
 
 ---
 
@@ -19,26 +21,28 @@ El Laboratorio Digital de Innovación está estructurado y optimizado para despl
 ## 2. Estructura del Paquete para Hostinger
 
 ```text
-public_html/ (o subdominio / subcarpeta tipo public_html/laboratorio/)
+raíz del dominio o subdominio (p. ej. la carpeta de laboratorio.innovahub360.net)
 │
-├── index.html                  # Frontend reactivo compilado (InnovaHub360 UI)
-├── .htaccess                   # Reglas de seguridad, compresión Gzip y rutas SPA
+├── index.html                  # Aplicación compilada (React)
+├── .htaccess                   # Seguridad, compresión, rutas /api/… y bloqueo de config/
 │
-├── assets/                     # JavaScript minificado, CSS y fuentes (Inter, Space Grotesk, IBM Plex Mono)
-│   ├── js/
-│   ├── css/
-│   └── fonts/
+├── assets/                     # JavaScript, CSS, imágenes, insignias y ZOE (modelo 3D zoe.glb y video)
+├── REPOSITORIO_CIP_DF/         # Plantillas y marco metodológico internos (los lee la app; no se muestran)
 │
-├── config/                     # Configuración de base de datos aislada
-│   └── db.php                  # Parámetros PDO MySQL (host, db, user, pass)
+├── config/
+│   ├── db.php                  # Parámetros PDO MySQL (host, db, user, pass)
+│   └── ia.example.php          # Plantilla de credenciales de la IA → copiar como ia.php (Paso 4b)
 │
-├── includes/                   # Lógica de servidor PHP 8.1
+├── includes/                   # Lógica de servidor PHP 8.1+
 │   ├── api.php                 # Endpoints REST para persistencia en MySQL
-│   └── gemini_proxy.php        # Proxy seguro para Google Gemini institucional
+│   ├── gemini_proxy.php        # Proxy de la IA institucional UNAD (ruta /api/unad-gemini)
+│   └── observatorio.php        # Radar del Observatorio con caché (ruta /api/observatorio/radar)
 │
 └── database/
     └── schema_laboratorio.sql  # Dump limpio para importar en phpMyAdmin
 ```
+
+Al descomprimir el ZIP en la carpeta del sitio, `index.html` y `.htaccess` deben quedar directamente en ella (no dentro de otra subcarpeta). `.htaccess` es un archivo oculto: si el administrador de archivos no lo muestra, activar «Mostrar archivos ocultos».
 
 ---
 
@@ -89,17 +93,25 @@ $db_pass = 'TuContraseñaSegura';
 
 *(Opcional: Si se utilizan variables de entorno de servidor en Hostinger, el script las lee automáticamente mediante `getenv()`)*.
 
+### Paso 4b: Crear `config/ia.php` (credenciales de la IA de la UNAD)
+1. En el File Manager, dentro de `config/`, copiar `ia.example.php` con el nombre `ia.php`.
+2. Abrir `ia.php` y escribir los valores de `UNAD_GEMINI_X_API_KEY` y `UNAD_GEMINI_BEARER` (los entrega el equipo del Laboratorio por un canal seguro, nunca por correo junto con este ZIP). `UNAD_GEMINI_BASE_URL` ya trae la dirección de la pasarela IA 360.
+3. `.htaccess` impide abrir `config/` desde la web, así que el archivo queda protegido.
+
 ### Paso 5: Subir los Archivos al Servidor
 1. Mediante **File Manager** de hPanel o cliente **SFTP / FileZilla**:
    - Conectarse al host de Hostinger (`ftp.tudominio.com` o IP del servidor).
    - Si se despliega en un subdominio (ej. `laboratorio.innovahub360.net`), subir a la carpeta raíz de ese subdominio.
-   - Si se despliega en subcarpeta del observatorio, subir a `public_html/laboratorio/`.
+   - **Debe ir en la raíz de un dominio o subdominio, no en una subcarpeta** (como `public_html/laboratorio/`): la aplicación usa rutas absolutas (`/assets/…`, `/api/unad-gemini`) y el `.htaccess` trabaja con `RewriteBase /`. Para tenerlo «dentro» del observatorio, crear en hPanel el subdominio `laboratorio.innovahub360.net` y subir ahí.
+   - Lo más rápido: subir el ZIP con el File Manager y usar «Extraer» en la carpeta de destino.
 2. Confirmar que se subieron:
    - `index.html`
-   - `assets/`
-   - `config/`
-   - `includes/`
    - `.htaccess`
+   - `assets/`
+   - `REPOSITORIO_CIP_DF/`
+   - `config/` (con el `ia.php` del Paso 4b)
+   - `includes/`
+   - `database/` (solo hace falta para importar en phpMyAdmin)
 
 ### Paso 6: Activar Certificado SSL
 1. En hPanel, ir a **Seguridad** → **SSL**.
@@ -109,7 +121,15 @@ $db_pass = 'TuContraseñaSegura';
 Visitar en el navegador:
 - `https://tudominio.com/includes/api.php?action=status`
   - Debe responder: `{"success":true,"sistema":"Laboratorio Digital de Innovación InnovaHub360","php_version":"8.x","db_connected":true}`
-- Navegar por las 5 herramientas para validar fluidez, estado y asistencia de ZOE.
+- **IA:** abrir el menú (☰) → botón **IA**. Se verifica solo y debe decir «IA conectada · UNAD». Si dice «La IA no está configurada en el servidor», falta o está incompleto `config/ia.php`; si dice 401/403, las credenciales no son válidas.
+- Navegar por las herramientas (Radar, Estudio, Ideación, Árbol, Prototipado y Banco) y conversar con ZOE.
+
+### Servicios externos que usa el navegador
+El sitio no tiene una política CSP que los bloquee; si el servidor agrega una, deben permitirse:
+- `chatbot-ia-360.unad.edu.co`: lo llama **el servidor** (PHP con `curl`), no el navegador.
+- `huggingface.co`: la voz de ZOE (modelo Piper de 63 MB) se descarga una sola vez por navegador y queda guardada en él.
+- `cdnjs.cloudflare.com` y `cdn.jsdelivr.net`: motor de voz (ONNX y fonetizador).
+- Google Fonts para las tipografías.
 
 ---
 
