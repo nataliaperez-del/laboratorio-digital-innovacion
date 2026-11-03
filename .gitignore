@@ -40,3 +40,6 @@ modelo-para-autorig/
 
 # Paquetes ZIP generados a mano: pueden traer config/ia.php con credenciales
 *.zip
+
+public/assets/badges_original_backup/
+hostinger_deploy/assets/badges_original_backup/
