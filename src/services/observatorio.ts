@@ -79,7 +79,16 @@ let feedPromise: Promise<RadarFeed> | null = null;
 export function loadRadarFeed(): Promise<RadarFeed> {
   if (feedPromise) return feedPromise;
   feedPromise = (async () => {
-    const res = await fetch('/api/observatorio/radar');
+    let res: Response;
+    try {
+      res = await fetch('/api/observatorio/radar');
+    } catch {
+      // «Failed to fetch»: el navegador no llegó al servidor (apagado, reiniciándose o sin red).
+      throw new Error(
+        'No hay conexión con el servidor del Laboratorio para leer el Radar del Observatorio. Revisa tu internet o que el servidor esté encendido.',
+      );
+    }
+    // Un cuerpo que no es JSON (p. ej. una página de error del hosting) se trata como respuesta vacía.
     const body = await res.json().catch(() => null);
     if (!res.ok || !Array.isArray(body?.senales)) {
       throw new Error(body?.error || `No se pudo leer el Radar del Observatorio (HTTP ${res.status}).`);

@@ -31,7 +31,8 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
         // Silenciar autoplay si el navegador lo bloquea con sonido
         if (videoRef.current) {
           videoRef.current.muted = true;
-          videoRef.current.play().catch(() => {});
+          // Si ni silenciado deja reproducir, queda el póster del video: no es un error que mostrar.
+          videoRef.current.play().catch(() => undefined);
         }
       });
     } else if (slideIndex === 0 && videoRef.current) {
