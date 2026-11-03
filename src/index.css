@@ -370,6 +370,7 @@ button.lab-card:hover { border-color: var(--brand-teal-text); }
 .lab-btn:hover:not(:disabled) { border-color: var(--brand-teal-text); }
 .lab-btn:disabled, .metal:disabled { opacity: .45; cursor: not-allowed; }
 .lab-btn-sm { padding: 4px 10px; font-size: 11px; }
+.lab-btn-icon { padding: 8px; aspect-ratio: 1; justify-content: center; }
 .metal { cursor: pointer; }
 .lab-seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: 12px; background: var(--lab-surface-2); border: 1px solid var(--lab-border); }
 .lab-seg button { padding: 5px 11px; border-radius: 9px; font-size: 12px; font-weight: 500; color: var(--text-muted); cursor: pointer; }

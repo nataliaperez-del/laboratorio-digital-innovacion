@@ -175,6 +175,13 @@ for name in ("Chin", "Head"):
     if group:
         body.vertex_groups.active_index = group.index
         bpy.ops.object.vertex_group_smooth(group_select_mode="ACTIVE", factor=0.5, repeat=6, expand=0.0)
+# Hombros: al sentarse el pecho gira casi 50° respecto de las manos; con una frontera de pesos
+# estrecha, la piel entre pecho y escápula se pliega y deja una ranura junto al arnés.
+for name in ("Front_Leg_Shoulder_L", "Front_Leg_Shoulder_R", "Front_Leg_Upper_L", "Front_Leg_Upper_R", "Spine_2001"):
+    group = body.vertex_groups.get(name)
+    if group:
+        body.vertex_groups.active_index = group.index
+        bpy.ops.object.vertex_group_smooth(group_select_mode="ACTIVE", factor=0.5, repeat=5, expand=0.1)
 bpy.ops.object.vertex_group_smooth(group_select_mode="ALL", factor=0.35, repeat=2, expand=0.0)
 bpy.ops.object.vertex_group_limit_total(group_select_mode="ALL", limit=4)
 bpy.ops.object.vertex_group_normalize_all(group_select_mode="ALL", lock_active=False)

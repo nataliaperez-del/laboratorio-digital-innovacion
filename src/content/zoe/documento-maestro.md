@@ -78,8 +78,8 @@ Cada herramienta muestra primero un resultado interactivo y explicativo. Los doc
 - **¿Por dónde empiezo?** Depende de lo que tengas. Si tienes un territorio, empieza por el Estudio Territorial. Si tienes un tema o un documento, por Ideación. Si quieres mirar tendencias, por el Árbol. Y si ya tienes una idea concreta, ve directo a Prototipado.
 - **¿Tengo que usar todas las herramientas?** No. Cada una funciona sola. Si las encadenas, cada resultado alimenta a la siguiente.
 - **¿De dónde salen los datos?** De las fuentes del Observatorio, de las fuentes que tú agregues y del conocimiento del modelo de IA. Por eso cada dato lleva su nivel de evidencia y conviene verificar lo que es hipótesis.
-- **¿Se guarda mi trabajo?** Se conserva en este navegador mientras trabajas. Para tenerlo a salvo y organizado, guárdalo en el Banco Unificado o descarga el informe.
-- **¿Puedo descargar los resultados?** Sí, cada herramienta descarga su informe en Word editable o en PDF.
+- **¿Se guarda mi trabajo?** Sí: cada resultado terminado se guarda solo en el Banco Unificado de este navegador. Para empezar otro en el mismo módulo, toca Limpiar; el anterior queda en el Banco. Para llevarlo a otro equipo, descarga el informe.
+- **¿Puedo descargar los resultados?** Sí, con los dos íconos junto al título de cada herramienta: el de Word da un documento editable y el de la impresora, el PDF.
 - **¿Puedo usar los informes en un documento oficial?** Sí, como base de trabajo. Son resultados asistidos por IA: revísalos, valida las cifras y cita las fuentes antes de presentarlos.
 - **¿Qué hago si la IA no responde?** Revisa el indicador de IA de la cabecera y vuelve a intentar en un momento. Yo prefiero decirte que falló a inventarte una respuesta.
 

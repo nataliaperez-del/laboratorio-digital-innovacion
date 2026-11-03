@@ -25,7 +25,7 @@ Cada herramienta funciona **sola** o **encadenada**: el resultado de una puede s
 - **Navegador:** Chrome o Edge actualizados. Para hablar con ZOE son necesarios, porque el reconocimiento de voz depende del navegador.
 - **Conexión:** las herramientas usan inteligencia artificial institucional y necesitan internet.
 - **Micrófono:** para ZOE. La primera vez el navegador pide permiso: elige «Permitir».
-- **Dónde se guarda tu trabajo:** en este navegador mientras trabajas. Para conservarlo, guárdalo en el Banco Unificado o descarga el informe.
+- **Dónde se guarda tu trabajo:** cada resultado terminado se guarda solo en el Banco Unificado, en este navegador. Para llevarlo a otro equipo, descarga el informe.
 - **Revisión humana:** todos los resultados se generan con IA. Revisa cifras, fuentes e interpretaciones antes de usarlos en un documento oficial.
 
 ## 3. Recorrido rápido
@@ -33,8 +33,8 @@ Cada herramienta funciona **sola** o **encadenada**: el resultado de una puede s
 1. Abre **Inicio** y elige por dónde empezar. Si es tu primera vez, mira la presentación de ZOE.
 2. Si tienes un territorio, empieza por **Estudio Territorial**. Si tienes un tema o un documento, por **Ideación**. Si quieres mirar tendencias, por el **Árbol**. Si ya tienes una idea concreta, por **Prototipado**.
 3. Revisa el resultado en pantalla: es interactivo y explica cada parte.
-4. Descarga el informe formal en **Word** (editable) o **PDF**.
-5. Guarda el ejercicio en el **Banco Unificado** y gana tus insignias.
+4. Descarga el informe formal con el ícono de **Word** (editable) o el de **PDF**.
+5. El ejercicio ya quedó en el **Banco Unificado**: el aviso «Guardado en el Banco» lo confirma. Toca **Limpiar** para dejar el módulo listo para otro.
 
 ## 4. Herramientas, paso a paso
 
@@ -90,7 +90,7 @@ Cada herramienta funciona **sola** o **encadenada**: el resultado de una puede s
 
 ### 4.6 Banco Unificado e insignias
 
-1. Desde cada herramienta, guarda el ejercicio terminado en el Banco.
+1. Cada ejercicio terminado se guarda solo en el Banco; si rehaces un bloque, la entrada se actualiza. Con **Limpiar** el módulo queda vacío para empezar otro, sin perder nada.
 2. En el Banco encontrarás cuatro pestañas (estudios, ideaciones, árboles y prototipos) y la pestaña de **logros**.
 3. Las insignias se desbloquean así:
    - **Pionero Territorial:** hacer o guardar un Estudio Territorial.
@@ -166,5 +166,5 @@ ZOE conoce el Laboratorio, sus herramientas, los conceptos de innovación y lo q
 - Mientras más contexto des en la Ficha Base o en el tema, mejor será el resultado.
 - Agrega tus propias fuentes: suben el nivel de evidencia.
 - Trata los elementos **N3** como hipótesis y valídalas con la comunidad.
-- Guarda en el Banco cada ejercicio terminado y descarga el informe.
+- Antes de empezar otro ejercicio en el mismo módulo, toca **Limpiar**: el anterior ya está en el Banco.
 - Pregúntale a ZOE cuando no sepas por dónde seguir.

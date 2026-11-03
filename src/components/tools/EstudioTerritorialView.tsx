@@ -21,7 +21,7 @@ import {
   type Pillar,
 } from '@/lib/territorialInsights';
 import { Disclosure, RichDocument } from '@/components/lab/RichDocument';
-import { EmptyState, ErrorNotice, GenerationProgress, ReportActions, SectionReview, ToolHeader, type ProgressState } from '@/components/lab/common';
+import { BancoStatus, ClearButton, EmptyState, ErrorNotice, GenerationProgress, ReportActions, SectionReview, ToolHeader, type ProgressState } from '@/components/lab/common';
 import type { ToolId } from '@/components/layout/Header';
 
 const ZONAS_UNAD = [
@@ -298,8 +298,9 @@ export const EstudioTerritorialView: React.FC<Props> = ({ onNavigate }) => {
     fuentesConexion,
     institutionalDriveBundle,
     setIdeationResult,
-    addSavedStudy,
+    clearEstudio,
   } = useStore();
+  const inBank = useStore((st) => st.savedStudies.some((entry) => entry.id === st.bankIds.estudio));
 
   const [form, setForm] = useState<Prompt0Data>({ ...prompt0Data });
   const [editing, setEditing] = useState(!prompt0Data.municipality);
@@ -317,6 +318,15 @@ export const EstudioTerritorialView: React.FC<Props> = ({ onNavigate }) => {
 
   const busy = progress !== null || busyIndex !== null;
   const hasStudy = contenedor2Sections.length > 0;
+
+  /** El estudio ya está en el Banco: se vacía la Ficha Base y el resultado para empezar otro. */
+  const clearAll = () => {
+    clearEstudio();
+    setForm({ ...useStore.getState().prompt0Data });
+    setEditing(true);
+    setActive(1);
+    setError(null);
+  };
   const alerts = useMemo(() => parseAlerts(containerData), [containerData]);
   const issues = contenedor2Sections.filter((s) => s.status !== 'ok').length;
   const municipalities = form.department ? DIVIPOLA_LOCATIONS[form.department] || [] : [];
@@ -390,21 +400,6 @@ export const EstudioTerritorialView: React.FC<Props> = ({ onNavigate }) => {
     onNavigate('ideacion');
   };
 
-  const saveToBanco = () => {
-    if (!hasStudy) return;
-    addSavedStudy({
-      id: `study-${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      territoryName: prompt0Data.municipality || 'Territorio',
-      department: prompt0Data.department || '',
-      zonaUNAD: prompt0Data.zonaUNAD || '',
-      prompt0Data: { ...prompt0Data },
-      containerData,
-      sections: [...contenedor2Sections],
-    });
-    onNavigate('banco');
-  };
-
   const section = contenedor2Sections.find((s) => s.number === active);
   const meta = CONTENEDOR2_SECTIONS.find((s) => s.number === active)!;
 
@@ -415,19 +410,9 @@ export const EstudioTerritorialView: React.FC<Props> = ({ onNavigate }) => {
         titleColor="#A8C63C"
         description="Diagnóstico de un territorio en doce puntos de entrega con la metodología MDVT: caracterización productiva, lectura por pilares, matriz FODA y contraste con fuentes propias. Funciona solo y puede alimentar a Ideación y al Árbol."
       >
-        {hasStudy && (
-          <button
-            type="button"
-            className="lab-btn lab-btn-sm text-[#A8C63C] border-[#A8C63C]/40 hover:bg-[#A8C63C]/15 flex items-center gap-1.5"
-            disabled={busy}
-            onClick={saveToBanco}
-            title="Depositar este estudio en el Banco Unificado"
-          >
-            <FolderArchive className="w-3.5 h-3.5 text-[#A8C63C]" aria-hidden="true" />
-            Depositar en Banco
-          </button>
-        )}
+        {hasStudy && inBank && <BancoStatus color="#A8C63C" onOpen={() => onNavigate('banco')} />}
         {hasStudy && <ReportActions disabled={busy} getReport={() => estudioReport(prompt0Data, containerData)} />}
+        {hasStudy && <ClearButton disabled={busy} onClear={clearAll} />}
         {hasStudy && (
           <button type="button" className="metal px-4 py-2 text-xs font-bold flex items-center gap-2" disabled={busy} onClick={sendToIdeation}>
             Llevar a Ideación <ArrowRight className="w-4 h-4" aria-hidden="true" />

@@ -155,6 +155,9 @@ export interface AppState {
   prototypes: PrototypePlan[];
   addPrototype: (plan: PrototypePlan) => void;
   removePrototype: (id: string) => void;
+  /** Plan que se está viendo en Prototipado; null = el módulo está limpio. Los planes viven en el Banco. */
+  activePrototypeId: string | null;
+  setActivePrototypeId: (id: string | null) => void;
 
   // ── Banco Unificado de Innovación (Transversal) ──
   savedStudies: SavedStudy[];
@@ -166,6 +169,14 @@ export interface AppState {
   savedTrees: SavedTree[];
   addSavedTree: (tree: SavedTree) => void;
   removeSavedTree: (id: string) => void;
+  /** Entrada del Banco que corresponde al ejercicio abierto en cada módulo (se actualiza, no se duplica). */
+  bankIds: { estudio: string | null; ideacion: string | null; arbol: string | null };
+
+  // ── Limpiar: el trabajo ya está en el Banco; el módulo queda listo para empezar de nuevo ──
+  clearEstudio: () => void;
+  clearIdeacion: () => void;
+  clearArbol: () => void;
+  clearPrototipado: () => void;
 
   // ── Gamificación e Insignias de Innovación ──
   zoeInteractions: number;
@@ -259,8 +270,14 @@ export const useStore = create<AppState>()(
       prototypeSeed: null,
       setPrototypeSeed: (seed) => set({ prototypeSeed: seed }),
       prototypes: [],
-      addPrototype: (plan) => set((state) => ({ prototypes: [plan, ...state.prototypes] })),
-      removePrototype: (id) => set((state) => ({ prototypes: state.prototypes.filter((p) => p.id !== id) })),
+      addPrototype: (plan) => set((state) => ({ prototypes: [plan, ...state.prototypes], activePrototypeId: plan.id })),
+      removePrototype: (id) =>
+        set((state) => ({
+          prototypes: state.prototypes.filter((p) => p.id !== id),
+          activePrototypeId: state.activePrototypeId === id ? null : state.activePrototypeId,
+        })),
+      activePrototypeId: null,
+      setActivePrototypeId: (id) => set({ activePrototypeId: id }),
       savedStudies: [],
       addSavedStudy: (study) =>
         set((state) => ({ savedStudies: [study, ...state.savedStudies.filter((s) => s.id !== study.id)] })),
@@ -274,6 +291,33 @@ export const useStore = create<AppState>()(
       addSavedTree: (tree) =>
         set((state) => ({ savedTrees: [tree, ...state.savedTrees.filter((t) => t.id !== tree.id)] })),
       removeSavedTree: (id) => set((state) => ({ savedTrees: state.savedTrees.filter((t) => t.id !== id) })),
+      bankIds: { estudio: null, ideacion: null, arbol: null },
+      clearEstudio: () =>
+        set((state) => ({
+          prompt0Data: { ...INITIAL_PROMPT0 },
+          containerData: '',
+          contenedor2Sections: [],
+          containerProcedencia: null,
+          bankIds: { ...state.bankIds, estudio: null },
+        })),
+      clearIdeacion: () =>
+        set((state) => ({
+          ideationSource: null,
+          themeProposalMarkdown: '',
+          vocationSections: [],
+          selectedLabThemeIndex: null,
+          bankIds: { ...state.bankIds, ideacion: null },
+        })),
+      clearArbol: () =>
+        set((state) => ({
+          treeSeed: null,
+          treeRequest: null,
+          innovationTreeMarkdown: '',
+          innovationTreeSections: [],
+          treeGraph: null,
+          bankIds: { ...state.bankIds, arbol: null },
+        })),
+      clearPrototipado: () => set({ prototypeSeed: null, activePrototypeId: null }),
       zoeInteractions: 0,
       recordZoeInteraction: () => set((state) => ({ zoeInteractions: (state.zoeInteractions || 0) + 1 })),
       acknowledgedBadges: [],
@@ -364,6 +408,8 @@ export const useStore = create<AppState>()(
         innovationTreeSections: state.innovationTreeSections,
         treeGraph: state.treeGraph,
         prototypes: state.prototypes,
+        activePrototypeId: state.activePrototypeId,
+        bankIds: state.bankIds,
         savedStudies: state.savedStudies,
         savedIdeations: state.savedIdeations,
         savedTrees: state.savedTrees,

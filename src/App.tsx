@@ -11,6 +11,7 @@ import { BadgesModal } from './components/gamification/BadgesModal';
 import { BadgeNotificationToast } from './components/gamification/BadgeNotificationToast';
 import { ZoeFreePresence, type ZoeRequest } from './components/zoe/ZoeFreePresence';
 import { useStore } from './store/useStore';
+import { startAutoDeposit } from './store/bancoAutomatico';
 
 const ZoeIntro = lazy(() => import('./components/zoe/ZoeIntro'));
 
@@ -26,6 +27,8 @@ export const App: React.FC = () => {
     setTool(tool);
     window.scrollTo({ top: 0 });
   };
+  // Cada resultado terminado se guarda solo en el Banco: los módulos no necesitan botón para eso.
+  useEffect(() => startAutoDeposit(), []);
   useEffect(() => {
     const onHash = () => setTool(readHash());
     window.addEventListener('hashchange', onHash);

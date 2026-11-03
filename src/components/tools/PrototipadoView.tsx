@@ -14,7 +14,7 @@ import {
 import { signalAsInput } from '@/services/observatorio';
 import { FRUIT_LABEL, LEVEL_LABEL } from '@/lib/innovationTreeGraph';
 import { prototipadoReport } from '@/lib/labReports';
-import { EmptyState, ErrorNotice, GenerationProgress, ReportActions, SegmentedControl, ToolHeader, type ProgressState } from '@/components/lab/common';
+import { BancoStatus, ClearButton, EmptyState, ErrorNotice, GenerationProgress, ReportActions, SegmentedControl, ToolHeader, type ProgressState } from '@/components/lab/common';
 import { ObservatorioPicker } from '@/components/lab/ObservatorioPicker';
 import type { ToolId } from '@/components/layout/Header';
 
@@ -137,7 +137,7 @@ interface Props {
 }
 
 export const PrototipadoView: React.FC<Props> = ({ onNavigate }) => {
-  const { prompt0Data, treeGraph, prototypeSeed, setPrototypeSeed, prototypes, addPrototype, removePrototype } = useStore();
+  const { prompt0Data, treeGraph, prototypeSeed, setPrototypeSeed, prototypes, addPrototype, removePrototype, activePrototypeId, clearPrototipado } = useStore();
 
   const [mode, setMode] = useState<OriginMode>('idea');
   const [topic, setTopic] = useState('');
@@ -148,7 +148,6 @@ export const PrototipadoView: React.FC<Props> = ({ onNavigate }) => {
   const [scope, setScope] = useState<string>(SCOPE_OPTIONS[1]);
   const [progress, setProgress] = useState<ProgressState | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [activeId, setActiveId] = useState<string | null>(prototypes[0]?.id ?? null);
 
   // Insumo que llega del Árbol, de Ideación o del Radar.
   useEffect(() => {
@@ -161,7 +160,8 @@ export const PrototipadoView: React.FC<Props> = ({ onNavigate }) => {
   }, [prototypeSeed, setPrototypeSeed]);
 
   const fruits = useMemo(() => treeGraph?.nodos.filter((n) => n.nivel === 'fruto' || n.nivel === 'hoja') ?? [], [treeGraph]);
-  const active = prototypes.find((p) => p.id === activeId) ?? prototypes[0] ?? null;
+  // Solo el plan en curso: los anteriores están en el Banco y no reaparecen al volver al módulo.
+  const active = prototypes.find((p) => p.id === activePrototypeId) ?? null;
   const busy = progress !== null;
 
   const changeMode = (next: OriginMode) => {
@@ -178,12 +178,24 @@ export const PrototipadoView: React.FC<Props> = ({ onNavigate }) => {
     try {
       const plan = await generatePrototypePlan({ origin, topic: topic.trim(), context, category, trl, scope });
       addPrototype(plan);
-      setActiveId(plan.id);
     } catch (e) {
       if (!(e instanceof GenerationCancelledError)) setError(e instanceof Error ? e.message : 'Error al generar el plan.');
     } finally {
       setProgress(null);
     }
+  };
+
+  /** El plan ya está en el Banco: se vacía el formulario y el resultado para armar otro. */
+  const clearAll = () => {
+    clearPrototipado();
+    setMode('idea');
+    setTopic('');
+    setContext('');
+    setOrigin({ kind: 'idea', label: 'Idea libre' });
+    setCategory(PROTOTYPE_CATEGORIES[0]);
+    setTrl(TRL_OPTIONS[1]);
+    setScope(SCOPE_OPTIONS[1]);
+    setError(null);
   };
 
   const remove = (plan: PrototypePlan) => {
@@ -196,7 +208,9 @@ export const PrototipadoView: React.FC<Props> = ({ onNavigate }) => {
         title="Prototipado"
         titleColor="#E024A5"
         description="Arma un plan de prototipado completo con IA: hipótesis, arquitectura, fases, métricas y riesgos. Parte de una idea libre o de un resultado del Árbol de Innovación."
-      />
+      >
+        {active && <ClearButton disabled={busy} onClear={clearAll} />}
+      </ToolHeader>
 
       <ErrorNotice message={error} onClose={() => setError(null)} />
 
@@ -294,9 +308,7 @@ export const PrototipadoView: React.FC<Props> = ({ onNavigate }) => {
                 <span className="lab-chip">{active.category}</span>
                 <span className="lab-chip">{active.trlTarget}</span>
                 <span className="lab-chip">{active.scope}</span>
-                <span className="text-[11px] font-semibold text-[#E024A5] px-2.5 py-0.5 rounded-full bg-[#E024A5]/10 border border-[#E024A5]/30">
-                  ✓ Depositado en el Banco de Innovación
-                </span>
+                <BancoStatus color="#E024A5" onOpen={() => onNavigate('banco')} />
               </div>
               <h2 className="text-2xl font-bold text-[#E024A5] sy">{active.name}</h2>
               {active.tagline && <p className="text-sm text-[var(--brand-teal-text)] mt-0.5">{active.tagline}</p>}
@@ -306,14 +318,6 @@ export const PrototipadoView: React.FC<Props> = ({ onNavigate }) => {
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                className="lab-btn lab-btn-sm text-[#E024A5] border-[#E024A5]/40 hover:bg-[#E024A5]/15"
-                onClick={() => onNavigate('banco')}
-                title="Ver todos los ejercicios en el Banco Unificado"
-              >
-                Ver en Banco Unificado
-              </button>
               <ReportActions getReport={() => prototipadoReport(prompt0Data, active)} />
               <button
                 type="button"

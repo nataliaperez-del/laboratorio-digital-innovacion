@@ -267,6 +267,8 @@ def pose_sit(rest, s, angle, t=0.0, look=0.0):
         hock.z += math.sin(math.pi * s) * rest.hip_height * 0.05  # la pata se recoge en arco, no se arrastra
         flat = rest.dirs[f"Back_Leg_Ankle_{side}"].lerp(FLAT, s).normalized()
         solve_leg(side, "back", hock, bend=-1, flat=flat)
+        # La escápula acompaña: absorbe la mitad del giro del pecho y el hombro no se pliega.
+        pitch(f"Front_Leg_Shoulder_{side}", a * 0.5)
         solve_leg(side, "front", rest.joint[f"Front_Leg_Ankle_{side}"], bend=1, rest_dirs=rest.dirs)
     level_head(rest)
     if look:

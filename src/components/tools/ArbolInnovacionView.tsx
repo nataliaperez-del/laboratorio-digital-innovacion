@@ -9,7 +9,7 @@ import { renderTreeSvg } from '@/lib/innovationTreeSvg';
 import { arbolReport } from '@/lib/labReports';
 import { INNOVATION_TREE_PARTS } from '@/prompts/themeAndInnovationPrompts';
 import { Disclosure, RichDocument } from '@/components/lab/RichDocument';
-import { EmptyState, ErrorNotice, FileDrop, GenerationProgress, ReportActions, SectionReview, SegmentedControl, ToolHeader, type ProgressState } from '@/components/lab/common';
+import { BancoStatus, ClearButton, EmptyState, ErrorNotice, FileDrop, GenerationProgress, ReportActions, SectionReview, SegmentedControl, ToolHeader, type ProgressState } from '@/components/lab/common';
 import { ObservatorioPicker } from '@/components/lab/ObservatorioPicker';
 import type { ToolId } from '@/components/layout/Header';
 
@@ -203,8 +203,9 @@ export const ArbolInnovacionView: React.FC<Props> = ({ onNavigate }) => {
     treeGraph,
     setTreeResult,
     setPrototypeSeed,
-    addSavedTree,
+    clearArbol,
   } = useStore();
+  const inBank = useStore((st) => st.savedTrees.some((entry) => entry.id === st.bankIds.arbol));
 
   const [themeMode, setThemeMode] = useState<ThemeMode>('texto');
   const [theme, setTheme] = useState(treeRequest?.themeName ?? '');
@@ -230,6 +231,20 @@ export const ArbolInnovacionView: React.FC<Props> = ({ onNavigate }) => {
 
   const busy = progress !== null || busyIndex !== null;
   const hasStudy = Boolean(containerData.trim());
+
+  /** El árbol ya está en el Banco: se vacía el tema y el resultado para empezar otro. */
+  const clearAll = () => {
+    clearArbol();
+    setThemeMode('texto');
+    setTheme('');
+    setExplanation('');
+    setFileName(null);
+    setSignalId(null);
+    setUseStudy(false);
+    setSelected(null);
+    setFilter('todos');
+    setError(null);
+  };
   const selectedNode = treeGraph?.nodos.find((n) => n.codigo === selected) ?? null;
 
   const stats = useMemo(() => {
@@ -285,19 +300,6 @@ export const ArbolInnovacionView: React.FC<Props> = ({ onNavigate }) => {
     [treeGraph, setPrototypeSeed, onNavigate],
   );
 
-  const saveToBanco = () => {
-    if (!treeGraph) return;
-    addSavedTree({
-      id: `tree-${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      theme: treeGraph.tema,
-      explanation: treeRequest?.themeExplanation || '',
-      markdown: innovationTreeMarkdown,
-      graph: treeGraph,
-    });
-    onNavigate('banco');
-  };
-
   return (
     <div className="w-full space-y-6">
       <ToolHeader
@@ -305,19 +307,9 @@ export const ArbolInnovacionView: React.FC<Props> = ({ onNavigate }) => {
         titleColor="#5EC2DD"
         description="De las tendencias globales a las de Colombia y el territorio, y de allí a oportunidades y frutos: proyectos, servicios y prototipos. La IA lo construye para cualquier tema; explóralo aquí y descarga el informe formal."
       >
-        {treeGraph && (
-          <button
-            type="button"
-            className="lab-btn lab-btn-sm text-[#5EC2DD] border-[#5EC2DD]/40 hover:bg-[#5EC2DD]/15 flex items-center gap-1.5"
-            disabled={busy}
-            onClick={saveToBanco}
-            title="Depositar este árbol en el Banco Unificado"
-          >
-            <FolderArchive className="w-3.5 h-3.5 text-[#5EC2DD]" aria-hidden="true" />
-            Depositar en Banco
-          </button>
-        )}
+        {treeGraph && inBank && <BancoStatus color="#5EC2DD" onOpen={() => onNavigate('banco')} />}
         {treeGraph && <ReportActions disabled={busy} getReport={() => (treeGraph ? arbolReport(prompt0Data, innovationTreeMarkdown, treeGraph) : null)} />}
+        {treeGraph && <ClearButton disabled={busy} onClear={clearAll} />}
       </ToolHeader>
 
       <ErrorNotice message={error} onClose={() => setError(null)} />

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AlertCircle, CheckCircle2, FileDown, FileText, FileUp, Printer, RefreshCw, Sparkles, Square, X } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Eraser, FileDown, FileText, FileUp, FolderArchive, Loader2, Printer, RefreshCw, Sparkles, Square, X } from 'lucide-react';
 import { cancelActiveGeneration } from '@/services/ai';
 import { INPUT_FILE_ACCEPT, readInputFile } from '@/lib/readInputFile';
 import { buildDocumentPlan } from '@/lib/documentPlan';
@@ -154,20 +154,59 @@ export const ReportActions: React.FC<{ getReport: () => LabReport | null; disabl
     }
   };
 
+  // Solo íconos: el nombre del formato va en la descripción, que también leen los lectores de pantalla.
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <button type="button" className="lab-btn" disabled={disabled || busy !== null} onClick={downloadWord} title="Informe formal en Word editable: portada, tabla de contenido, índices y numeración">
-        <FileDown className="w-4 h-4 text-[var(--brand-teal-text)]" aria-hidden="true" />
-        {busy === 'word' ? 'Armando Word…' : 'Informe Word'}
+      <button
+        type="button"
+        className="lab-btn lab-btn-icon"
+        disabled={disabled || busy !== null}
+        onClick={downloadWord}
+        aria-label={busy === 'word' ? 'Armando el informe en Word' : 'Descargar informe en Word'}
+        title="Informe formal en Word editable: portada, tabla de contenido, índices y numeración"
+      >
+        {busy === 'word' ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" /> : <FileDown className="w-4 h-4 text-[var(--brand-teal-text)]" aria-hidden="true" />}
       </button>
-      <button type="button" className="lab-btn" disabled={disabled || busy !== null} onClick={downloadPdf} title="Informe formal en PDF: elige «Guardar como PDF» en la ventana de impresión">
-        <Printer className="w-4 h-4 text-[var(--brand-olive)]" aria-hidden="true" />
-        {busy === 'pdf' ? 'Preparando PDF…' : 'Informe PDF'}
+      <button
+        type="button"
+        className="lab-btn lab-btn-icon"
+        disabled={disabled || busy !== null}
+        onClick={downloadPdf}
+        aria-label={busy === 'pdf' ? 'Preparando el informe en PDF' : 'Descargar informe en PDF'}
+        title="Informe formal en PDF: elige «Guardar como PDF» en la ventana de impresión"
+      >
+        {busy === 'pdf' ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" /> : <Printer className="w-4 h-4 text-[var(--brand-olive)]" aria-hidden="true" />}
       </button>
       {error && <span className="text-xs text-rose-300" role="alert">{error}</span>}
     </div>
   );
 };
+
+/** Aviso de que el resultado ya está en el Banco (se guarda solo); abre el Banco al tocarlo. */
+export const BancoStatus: React.FC<{ color: string; onOpen: () => void }> = ({ color, onOpen }) => (
+  <button
+    type="button"
+    className="lab-chip lab-chip-btn flex items-center gap-1.5"
+    style={{ color, borderColor: `${color}66` }}
+    onClick={onOpen}
+    title="Se guardó automáticamente en el Banco Unificado. Toca para verlo."
+  >
+    <FolderArchive className="w-3.5 h-3.5" aria-hidden="true" /> Guardado en el Banco
+  </button>
+);
+
+/** Limpia el módulo: el trabajo ya está en el Banco y el espacio queda listo para empezar de nuevo. */
+export const ClearButton: React.FC<{ onClear: () => void; disabled?: boolean }> = ({ onClear, disabled }) => (
+  <button
+    type="button"
+    className="lab-btn lab-btn-sm"
+    disabled={disabled}
+    onClick={onClear}
+    title="Limpiar el módulo. El trabajo ya está guardado en el Banco Unificado."
+  >
+    <Eraser className="w-3.5 h-3.5" aria-hidden="true" /> Limpiar
+  </button>
+);
 
 /** Zona de carga de archivo: extrae el texto real de PDF, Word y texto plano. */
 export const FileDrop: React.FC<{ fileName: string | null; onLoaded: (name: string, text: string) => void; onError: (message: string) => void }> = ({

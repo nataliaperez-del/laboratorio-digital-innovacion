@@ -1,4 +1,4 @@
-import{r as xi,j as Ol}from"./index-DzUm_cBn.js";/**
+import{r as xi,j as Ol}from"./index-DWC0YORU.js";/**
  * @license
  * Copyright 2010-2025 Three.js Authors
  * SPDX-License-Identifier: MIT

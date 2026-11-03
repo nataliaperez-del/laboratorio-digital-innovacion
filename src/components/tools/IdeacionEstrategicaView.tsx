@@ -10,7 +10,7 @@ import { buildDocumentPlan, inlineToPlainText } from '@/lib/documentPlan';
 import { parseAlerts } from '@/lib/territorialInsights';
 import { VOCATION_PARTS, type InputSource } from '@/prompts/themeAndInnovationPrompts';
 import { Disclosure, RichDocument } from '@/components/lab/RichDocument';
-import { EmptyState, ErrorNotice, FileDrop, GenerationProgress, ReportActions, SectionReview, SegmentedControl, ToolHeader, type ProgressState } from '@/components/lab/common';
+import { BancoStatus, ClearButton, EmptyState, ErrorNotice, FileDrop, GenerationProgress, ReportActions, SectionReview, SegmentedControl, ToolHeader, type ProgressState } from '@/components/lab/common';
 import { ObservatorioPicker } from '@/components/lab/ObservatorioPicker';
 import type { ToolId } from '@/components/layout/Header';
 
@@ -93,8 +93,9 @@ export const IdeacionEstrategicaView: React.FC<Props> = ({ onNavigate }) => {
     setSelectedLabThemeIndex,
     setTreeSeed,
     setPrototypeSeed,
-    addSavedIdeation,
+    clearIdeacion,
   } = useStore();
+  const inBank = useStore((st) => st.savedIdeations.some((entry) => entry.id === st.bankIds.ideacion));
 
   const [mode, setMode] = useState<InputMode>(ideationSource?.kind === 'estudio' ? 'estudio' : 'texto');
   const [text, setText] = useState('');
@@ -115,6 +116,16 @@ export const IdeacionEstrategicaView: React.FC<Props> = ({ onNavigate }) => {
 
   const busy = progress !== null || busyIndex !== null;
   const hasStudy = Boolean(containerData.trim());
+
+  /** La propuesta ya está en el Banco: se vacía el insumo y el resultado para empezar otra. */
+  const clearAll = () => {
+    clearIdeacion();
+    setMode('texto');
+    setText('');
+    setFile(null);
+    setSignal(null);
+    setError(null);
+  };
 
   const source: InputSource | null = useMemo(() => {
     if (mode === 'texto') return text.trim() ? { kind: 'texto', label: text.trim().slice(0, 80), text: text.trim() } : null;
@@ -177,20 +188,6 @@ export const IdeacionEstrategicaView: React.FC<Props> = ({ onNavigate }) => {
     onNavigate('prototipado');
   };
 
-  const saveToBanco = () => {
-    if (!hasResult) return;
-    addSavedIdeation({
-      id: `ideation-${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      topicName: chosen?.title || ideationSource?.label || 'Ideación Estratégica',
-      sourceLabel: ideationSource?.label || 'General',
-      markdown: themeProposalMarkdown,
-      sections: [...vocationSections],
-      selectedThemeIndex: selectedLabThemeIndex,
-    });
-    onNavigate('banco');
-  };
-
   return (
     <div className="w-full space-y-6">
       <ToolHeader
@@ -198,19 +195,9 @@ export const IdeacionEstrategicaView: React.FC<Props> = ({ onNavigate }) => {
         titleColor="#F29F05"
         description="Construye la vocación y tres alternativas de tema con el mismo proceso de la vocación territorial: identifica dinámicas, cruza brechas y oportunidades, y deja la decisión al equipo. Parte de un tema, un archivo, una señal del Observatorio o el Estudio Territorial."
       >
-        {hasResult && (
-          <button
-            type="button"
-            className="lab-btn lab-btn-sm text-[#F29F05] border-[#F29F05]/40 hover:bg-[#F29F05]/15 flex items-center gap-1.5"
-            disabled={busy}
-            onClick={saveToBanco}
-            title="Depositar esta propuesta de ideación en el Banco Unificado"
-          >
-            <FolderArchive className="w-3.5 h-3.5 text-[#F29F05]" aria-hidden="true" />
-            Depositar en Banco
-          </button>
-        )}
+        {hasResult && inBank && <BancoStatus color="#F29F05" onOpen={() => onNavigate('banco')} />}
         {hasResult && <ReportActions disabled={busy} getReport={() => ideacionReport(prompt0Data, themeProposalMarkdown, ideationSource?.label || 'Ideación')} />}
+        {hasResult && <ClearButton disabled={busy} onClear={clearAll} />}
       </ToolHeader>
 
       <ErrorNotice message={error} onClose={() => setError(null)} />
