@@ -349,14 +349,19 @@
   --lab-surface-2: rgba(4, 34, 43, 0.72);
   --lab-border: rgba(255, 255, 255, 0.14);
   --lab-input: #04222B;
+  /* Fondo de los paneles: el mismo tono que daba el vidrio desenfocado, sin su costo. */
+  --lab-panel: rgba(17, 47, 57, 0.8);
 }
 [data-theme="light"] {
   --lab-surface: rgba(255, 255, 255, 0.82);
   --lab-surface-2: rgba(255, 255, 255, 0.92);
   --lab-border: rgba(4, 47, 60, 0.16);
   --lab-input: #FFFFFF;
+  --lab-panel: rgba(255, 255, 255, 0.88);
 }
-.lab-panel { background: var(--lab-surface); border: 1px solid var(--lab-border); border-radius: 18px; padding: 20px; backdrop-filter: blur(12px); }
+/* Sin backdrop-filter: con 20 o más paneles por módulo, el navegador recalculaba el desenfoque
+   de cada uno en cada cuadro del desplazamiento, y eso era lo que trababa el scroll. */
+.lab-panel { background: var(--lab-panel); border: 1px solid var(--lab-border); border-radius: 18px; padding: 20px; }
 .lab-card { background: var(--lab-surface-2); border: 1px solid var(--lab-border); border-radius: 14px; padding: 14px; transition: border-color .15s ease; min-width: 0; }
 button.lab-card { cursor: pointer; }
 button.lab-card:hover { border-color: var(--brand-teal-text); }
@@ -437,6 +442,21 @@ button.lab-card:hover { border-color: var(--brand-teal-text); }
 @keyframes zoe-zzz { 0% { opacity: 0; transform: translate(0, 12px); } 25% { opacity: .9; } 100% { opacity: 0; transform: translate(26px, -44px); } }
 @media (hover: none) { .zoe-toolbar { opacity: 1; transform: none; } }
 @media (max-width: 767px) { .zoe-toolbar { display: none; } }
+
+/* Firma y logos: flotan abajo a la izquierda y no se van con el scroll (la casita de ZOE va a la derecha) */
+.lab-credits { position: fixed; left: 16px; bottom: 12px; z-index: 30; display: flex; align-items: center; gap: 10px; padding: 6px 12px 6px 8px; border-radius: 14px; background: rgba(4, 34, 43, .86); border: 1px solid rgba(255, 255, 255, .12); box-shadow: 0 8px 24px rgba(0, 0, 0, .35); }
+[data-theme="light"] .lab-credits { background: rgba(255, 255, 255, .92); border-color: rgba(4, 47, 60, .14); box-shadow: 0 8px 22px rgba(4, 47, 60, .12); }
+.lab-credits-unad { height: 38px; width: auto; object-fit: contain; }
+.lab-credits-viem { height: 32px; width: auto; object-fit: contain; }
+.lab-credits-names { margin: 0; padding-left: 10px; border-left: 1px solid var(--lab-border); font-size: 8.5px; font-style: italic; font-weight: 300; line-height: 1.35; color: var(--text-secondary); white-space: nowrap; }
+.lab-credits-names span { display: block; margin-bottom: 2px; font-size: 6.5px; font-style: normal; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #F29F05; }
+@media (max-width: 639px) {
+  .lab-credits { left: 10px; bottom: 10px; gap: 7px; padding: 5px 9px 5px 6px; }
+  .lab-credits-unad { height: 28px; }
+  .lab-credits-viem { height: 24px; }
+  .lab-credits-names { padding-left: 7px; font-size: 7.5px; }
+}
+@media print { .lab-credits { display: none; } }
 
 /* Casita de ZOE: ahí descansa cuando no se la necesita */
 .zoe-house { position: fixed; z-index: 39; padding: 0; border: 0; background: none; pointer-events: none; }

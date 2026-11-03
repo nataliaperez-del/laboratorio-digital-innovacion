@@ -172,7 +172,7 @@ export const Header: React.FC<HeaderProps> = ({
 
                   {/* Tooltip Flotante que aparece al señalar (hover) con el color característico */}
                   <div
-                    className="absolute top-full mt-2.5 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-xl bg-[#04222B]/95 text-white text-[11px] font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 shadow-[0_8px_20px_rgba(0,0,0,0.6)] backdrop-blur-md z-50 flex items-center gap-1.5 transform group-hover:translate-y-0 translate-y-1"
+                    className="absolute top-full mt-2.5 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-xl bg-[#04222B]/95 text-white text-[11px] font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 shadow-[0_8px_20px_rgba(0,0,0,0.6)] z-50 flex items-center gap-1.5 transform group-hover:translate-y-0 translate-y-1"
                     style={{ border: `1px solid ${tool.color}60` }}
                   >
                     <span

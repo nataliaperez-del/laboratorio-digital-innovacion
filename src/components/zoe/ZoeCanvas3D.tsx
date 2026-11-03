@@ -495,11 +495,17 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
     let animId = 0;
     let lastFrame = 0;
     const FRAME_MS = 1000 / 30;
+    // Mientras la página se desplaza, la GPU es para el scroll: ZOE espera quieta un instante.
+    let scrollingUntil = 0;
+    const onScroll = () => {
+      scrollingUntil = performance.now() + 160;
+    };
+    window.addEventListener('scroll', onScroll, { passive: true, capture: true });
 
     const animate = (now = 0) => {
       animId = requestAnimationFrame(animate);
-      // ZOE acompaña, no es protagonista: 30 cuadros y en pausa si la pestaña no se ve.
-      if (document.hidden || now - lastFrame < FRAME_MS) return;
+      // ZOE acompaña, no es protagonista: 30 cuadros y en pausa si la pestaña no se ve o se está desplazando.
+      if (document.hidden || now < scrollingUntil || now - lastFrame < FRAME_MS) return;
       const dt = Math.min(0.1, (now - lastFrame) / 1000);
       lastFrame = now;
       const t = clock.getElapsedTime();
@@ -726,6 +732,7 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
       cancelAnimationFrame(animId);
       resizeObserver.disconnect();
       window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('scroll', onScroll, { capture: true });
       mixer?.stopAllAction();
       zoeGroup?.traverse((node) => {
         const mesh = node as THREE.Mesh;

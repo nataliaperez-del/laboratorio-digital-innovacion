@@ -307,7 +307,7 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
                       </div>
                     </header>
 
-                    <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
+                    <div className="space-y-4">
                       {study.sections && study.sections.length > 0 ? (
                         study.sections.map((sec) => (
                           <div key={sec.number} className="lab-card space-y-2">
@@ -452,7 +452,7 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
                       </div>
                     </header>
 
-                    <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
+                    <div className="space-y-4">
                       <div className="text-xs text-white/90 leading-relaxed whitespace-pre-line p-4 rounded-xl bg-white/5 border border-white/10">
                         {ideation.markdown}
                       </div>
@@ -586,7 +586,7 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
                       </div>
                     </header>
 
-                    <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-2">
+                    <div className="space-y-3">
                       <span className="text-[11px] font-bold uppercase tracking-wider text-white/70 block">
                         Frutos y Oportunidades del Árbol:
                       </span>
@@ -825,7 +825,7 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
                   key={badge.id}
                   className={`p-5 rounded-2xl border transition-all flex flex-col justify-between relative overflow-hidden ${
                     isUnlocked
-                      ? 'bg-white/[0.04] backdrop-blur-md shadow-sm'
+                      ? 'bg-white/[0.06] shadow-sm'
                       : 'bg-black/25 border-white/10'
                   }`}
                   style={
