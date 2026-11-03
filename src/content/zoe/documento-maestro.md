@@ -66,7 +66,7 @@ Cada herramienta muestra primero un resultado interactivo y explicativo. Los doc
 - **¿Qué no puedes hacer?** No invento datos ni escribo los informes por mi cuenta: los generan las herramientas, aunque yo puedo presionar el botón por ti. Tampoco subo archivos ni escribo claves. Y antes de limpiar o borrar algo, siempre te pregunto.
 - **¿Me escuchas todo el tiempo?** No. Solo escucho cuando tocas mi figura o el botón del micrófono y aparece «Te escucho». Cuando termina la conversación dejo de escuchar.
 - **¿Duermes?** A veces, cuando nadie me necesita, busco un rincón tranquilo de la pantalla y me echo un rato. Tócame y me despierto al instante.
-- **¿Qué órdenes entiendes?** Puedes decirme «llévame al árbol», «abre el estudio», «pon el modo claro», «siéntate», «levántate», «camina», «a dormir» o «ve a tu casita».
+- **¿Qué órdenes entiendes?** Puedes decirme «llévame al árbol», «abre el estudio», «pon el modo claro», «siéntate», «levántate», «camina», «a dormir» o «vete a tu casa».
 - **¿Tienes casa?** Sí, una casita en la esquina de la pantalla. Cuando no me necesitas me meto ahí y te dejo todo el espacio. Toca la casita y salgo enseguida.
 
 ### Uso de la voz

@@ -1,10 +1,13 @@
 /**
  * Voz propia de ZOE: Piper con la voz «es_MX-claude-high» (licencia Apache 2.0), ejecutada en el
  * navegador con ONNX. Es la variante «tierna» que eligió el equipo
- * (`muestras-voz-zoe/zoe-mexico-claude-tierna.wav`): tres semitonos más aguda y al mismo ritmo.
+ * (`muestras-voz-zoe/zoe-mexico-claude-tierna.wav`, tres semitonos más aguda), llevada un 50 % más
+ * allá a pedido de la usuaria: cuatro semitonos y medio, masculina y fluida
+ * (`muestras-voz-zoe/zoe-tierna-masculina-fluida.wav`).
  *
  * Para subir el tono sin acelerar, el modelo habla un poco más lento (su `length_scale` sube en la
- * misma proporción) y el audio se reproduce más rápido.
+ * misma proporción) y el audio se reproduce más rápido. Ese cambio de tono también aclara el timbre:
+ * la salida le devuelve cuerpo en los graves y suaviza los agudos para que siga sonando masculina.
  *
  * El motor es propio: la sesión de `@mintplex-labs/piper-tts-web` vuelve a crear el fonetizador
  * (espeak-ng) en cada frase, unos 2 s de espera cada vez; aquí se crea una sola vez. De esa librería
@@ -18,12 +21,12 @@ const VOICE_FILE = 'es_MX-claude-high.onnx';
 const MODEL_URL = `https://huggingface.co/diffusionstudio/piper-voices/resolve/main/es/es_MX/claude/high/${VOICE_FILE}`;
 const ONNX_WASM = 'https://cdnjs.cloudflare.com/ajax/libs/onnxruntime-web/1.18.0/';
 const PHONEMIZER_WASM = 'https://cdn.jsdelivr.net/npm/@diffusionstudio/piper-wasm@1.0.0/build/piper_phonemize';
-/** Tres semitonos más aguda: la muestra «tierna». */
-export const TENDER_RATE = 2 ** (3 / 12);
+/** Cuatro semitonos y medio más aguda: un 50 % más tierna que la muestra elegida (3 semitonos). */
+export const TENDER_RATE = 2 ** (4.5 / 12);
 /** Ritmo final de la muestra: un 5 % más pausado que la voz original. */
 const PACE = 0.95;
 /** Marca de la configuración ajustada: si cambia el ajuste, se rehace. */
-const TUNING = 'tierna-v1';
+const TUNING = 'tierna-v2';
 
 interface VoiceConfig {
   zoe?: string;
@@ -107,7 +110,8 @@ async function loadConfig(): Promise<VoiceConfig> {
   }
   const config = JSON.parse(await (await download(`${MODEL_URL}.json`)).text()) as VoiceConfig;
   config.zoe = TUNING;
-  config.inference = { length_scale: (config.inference?.length_scale ?? 1) * PACE * TENDER_RATE, noise_scale: 0.7, noise_w: 0.9 };
+  // noise_w 0,8: duraciones más parejas entre sílabas, un hablar más fluido.
+  config.inference = { length_scale: (config.inference?.length_scale ?? 1) * PACE * TENDER_RATE, noise_scale: 0.7, noise_w: 0.8 };
   await writeStored(name, new Blob([JSON.stringify(config)], { type: 'application/json' }));
   return config;
 }
@@ -274,8 +278,8 @@ export function withQuickStart(parts: string[]): string[] {
 /** Respiro después de una parte, según cómo termina; con algo de variación, como al hablar. */
 export function pauseAfter(part: string, random: () => number = Math.random): number {
   const end = part.trim().replace(/["»”')\]]+$/, '');
-  const base = /(\.\.\.|…)$/.test(end) ? 520 : /[?!]$/.test(end) ? 380 : /\.$/.test(end) ? 320 : /[;:]$/.test(end) ? 260 : /,$/.test(end) ? 150 : 220;
-  return Math.round(base + (random() - 0.5) * 80);
+  const base = /(\.\.\.|…)$/.test(end) ? 450 : /[?!]$/.test(end) ? 330 : /\.$/.test(end) ? 280 : /[;:]$/.test(end) ? 230 : /,$/.test(end) ? 130 : 200;
+  return Math.round(base + (random() - 0.5) * 60);
 }
 
 /** Pico al que se lleva cada frase: todas con el mismo volumen. */
@@ -308,8 +312,8 @@ export function shapeSentence(pcm: Float32Array, sampleRate: number): Float32Arr
   return out;
 }
 
-/** Respiro entre oraciones de una misma parte (Piper usa 0,2 s). */
-const SENTENCE_SILENCE_S = 0.24;
+/** Respiro entre oraciones de una misma parte (el mismo de Piper). */
+const SENTENCE_SILENCE_S = 0.2;
 
 /** Convierte una frase en audio con la voz de ZOE. */
 export async function synthesizeZoe(text: string): Promise<AudioBuffer> {
@@ -343,27 +347,32 @@ export async function synthesizeZoe(text: string): Promise<AudioBuffer> {
 let output: AudioNode | null = null;
 
 /**
- * Salida de la voz: un compresor suave iguala lo fuerte y lo débil, y un filtro baja un poco los
- * agudos, que el cambio de tono vuelve estridentes.
+ * Salida de la voz: más cuerpo en los graves y agudos más suaves (el cambio de tono aclara el
+ * timbre y lo vuelve estridente; así sigue sonando masculina), y un compresor suave que iguala lo
+ * fuerte y lo débil.
  */
 function voiceOutput(ctx: AudioContext): AudioNode {
   if (output?.context === ctx) return output;
+  const body = ctx.createBiquadFilter();
+  body.type = 'lowshelf';
+  body.frequency.value = 220;
+  body.gain.value = 2;
   const soften = ctx.createBiquadFilter();
   soften.type = 'highshelf';
-  soften.frequency.value = 5500;
-  soften.gain.value = -3;
+  soften.frequency.value = 4500;
+  soften.gain.value = -4.5;
   const compressor = ctx.createDynamicsCompressor();
   compressor.threshold.value = -18;
   compressor.knee.value = 12;
   compressor.ratio.value = 3;
   compressor.attack.value = 0.003;
   compressor.release.value = 0.25;
-  soften.connect(compressor).connect(ctx.destination);
-  output = soften;
+  body.connect(soften).connect(compressor).connect(ctx.destination);
+  output = body;
   return output;
 }
 
-/** Reproduce el audio tres semitonos más agudo; devuelve con qué detenerlo. */
+/** Reproduce el audio con el tono de ZOE (TENDER_RATE); devuelve con qué detenerlo. */
 export function playZoe(buffer: AudioBuffer, onEnded: () => void): () => void {
   const ctx = context();
   void ctx.resume();

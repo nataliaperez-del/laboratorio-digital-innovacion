@@ -58,14 +58,14 @@ describe('voz propia: oraciones', () => {
 describe('voz propia: ritmo y bordes', () => {
   it('respira más tras una pregunta o unos puntos suspensivos que tras una coma', () => {
     const fixed = () => 0.5;
-    expect(pauseAfter('¿Seguimos?', fixed)).toBe(380);
-    expect(pauseAfter('Listo.', fixed)).toBe(320);
-    expect(pauseAfter('Bueno…', fixed)).toBe(520);
-    expect(pauseAfter('Primero,', fixed)).toBe(150);
-    expect(pauseAfter('Dijo «hola».', fixed)).toBe(320);
+    expect(pauseAfter('¿Seguimos?', fixed)).toBe(330);
+    expect(pauseAfter('Listo.', fixed)).toBe(280);
+    expect(pauseAfter('Bueno…', fixed)).toBe(450);
+    expect(pauseAfter('Primero,', fixed)).toBe(130);
+    expect(pauseAfter('Dijo «hola».', fixed)).toBe(280);
     const varied = pauseAfter('Listo.', () => 1);
-    expect(varied).toBeGreaterThan(320);
-    expect(varied).toBeLessThanOrEqual(360);
+    expect(varied).toBeGreaterThan(280);
+    expect(varied).toBeLessThanOrEqual(310);
   });
 
   it('recorta el silencio de los bordes, iguala el volumen y suaviza la entrada', () => {

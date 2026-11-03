@@ -78,6 +78,15 @@ const TOOL_WORDS: Array<[RegExp, ToolId]> = [
 ];
 
 /**
+ * Mandar a ZOE a su casita, dicho como se diga: «vete a tu casa», «ya puedes irte a tu casita»,
+ * «regresa a la casa», «a tu casita, Zoe», «escóndete». Se busca en toda la frase (el nombre o un
+ * «ya» pueden ir antes) y vale también como pregunta cortés («¿puedes irte a tu casa?»). «La casa
+ * de la cultura» no cuenta: es un lugar del territorio, no la casita de ZOE.
+ */
+const HOME_ORDER =
+  /(?<![a-zñáéíóúü])(ve|vete|v[aá]yase|anda|[aá]ndate|corre|regresa|vu[eé]lve(te)?|m[eé]tete|entra|ir(te|se)?|dormir)\s+(a|para|pa|en|hacia)\s+((tu|la|su)\s+)?cas(it)?a\b(?!\s+de\b)|^((zo[eé]y?|so[eé])[,\s]+)?(ya\s+)?(a\s+)?(tu|la)\s+cas(it)?a\b(?!\s+de\b)|^((zo[eé]y?|so[eé])[,\s]+)?a\s+cas(it)?a\b|\b(esc[oó]ndete|gu[aá]rdate)\b/i;
+
+/**
  * Órdenes que ZOE cumple sin consultar a la IA. Exigen un verbo de acción: antes bastaba
  * con mencionar «tema» o «territorio» en cualquier pregunta para que cambiara de pantalla.
  */
@@ -85,13 +94,13 @@ export function parseZoeCommand(text: string): ZoeCommand | null {
   const t = text.trim();
   if (/\b(modo|tema|pantalla)\s+(claro|d[ií]a)\b/i.test(t) && /\b(pon|cambia|activa|usa|modo)\b/i.test(t)) return { type: 'theme', value: 'light' };
   if (/\b(modo|tema|pantalla)\s+(oscuro|noche)\b/i.test(t) && /\b(pon|cambia|activa|usa|modo)\b/i.test(t)) return { type: 'theme', value: 'dark' };
-  const order = t.replace(/^(zoe[,\s]+)?(por favor[,\s]+)?/i, '');
+  // El reconocedor a veces escribe el nombre como «Zoé», «Zoey» o «Soe».
+  const order = t.replace(/^((zo[eé]y?|so[eé])[,\s]+)?(por favor[,\s]+)?/i, '');
+  if (HOME_ORDER.test(t)) return { type: 'home' };
   if (/^(a\s+dormir|duerme|du[eé]rmete|desc[aá]nsa|ac[uú][eé]state|[eé]chate|toma una siesta)\b/i.test(order)) return { type: 'sleep' };
   if (/^(si[eé]ntate|sentado|a\s+sentarse)\b/i.test(order)) return { type: 'sit' };
   if (/^(lev[aá]ntate|p[aá]rate|de\s+pie|arriba)\b/i.test(order)) return { type: 'stand' };
   if (/^(camina|caminemos|da\s+un\s+paseo|pas[eé]a|ponte\s+a\s+caminar)\b/i.test(order)) return { type: 'walk' };
-  // «Ve a tu casita» empieza como una orden de navegación: se reconoce antes.
-  if (/^(ve(te)?\s+(a|para)\s+|a\s+|m[eé]tete\s+en\s+|entra\s+a\s+)(tu|la)\s+cas(it)?a\b|^esc[oó]ndete\b/i.test(order)) return { type: 'home' };
   if (!NAVIGATION_VERB.test(t) || t.endsWith('?')) return null;
   const hit = TOOL_WORDS.find(([re]) => re.test(t));
   return hit ? { type: 'navigate', tool: hit[1] } : null;

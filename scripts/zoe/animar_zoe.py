@@ -235,7 +235,11 @@ def plant_standing(rest):
 
 # ─── Posturas finales ───────────────────────────────────────────────────────
 
-SIT = {"hip": 0.30, "hock_back": 0.12, "hock_out": 0.05, "max_pitch": 55, "chest": 0.15, "neck": 0.5, "head": 0.45}
+# «chest»: parte del giro de la cadera que el pecho devuelve al sentarse. Con 0,15 el pecho quedaba
+# casi tan erguido como la espalda y el cuello se doblaba ~49° para enderezar la cabeza: la piel
+# entre el collar y la placa del arnés se estiraba hasta ×40 y la tira central se partía. Con 0,6
+# la curva se hace en la zona lumbar, como en un perro real, y el cuello apenas se dobla.
+SIT = {"hip": 0.30, "hock_back": 0.12, "hock_out": 0.05, "max_pitch": 55, "chest": 0.6, "neck": 0.5, "head": 0.45}
 LIE = {"hip": 0.30, "shoulder": 0.32, "hock_back": 0.20, "hock_out": 0.10, "head": 6}
 
 
