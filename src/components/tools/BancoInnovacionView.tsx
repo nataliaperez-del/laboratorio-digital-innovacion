@@ -17,6 +17,7 @@ import {
   CheckCircle2,
   Lock,
   Zap,
+  Printer,
 } from 'lucide-react';
 import { useStore, type SavedStudy, type SavedIdeation, type SavedTree } from '@/store/useStore';
 import { ToolHeader, EmptyState, ReportActions } from '@/components/lab/common';
@@ -25,6 +26,8 @@ import { SectionReview } from '@/components/lab/common';
 import { CONTENEDOR2_SECTIONS } from '@/prompts/contenedor2Sections';
 import { estudioReport, ideacionReport, arbolReport, prototipadoReport } from '@/lib/labReports';
 import { evaluateGamification, INNOVATION_BADGES } from '@/lib/gamification';
+import { BadgeGraphicRenderer, RankEmblem } from '../gamification/BadgeGraphics';
+import { openCertificatePrintWindow } from '@/lib/certificatePdfExport';
 import type { PrototypePlan } from '@/services/prototyping';
 import type { ToolId } from '@/components/layout/Header';
 
@@ -724,6 +727,36 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
       {/* PESTAÑA 5: INSIGNIAS Y LOGROS DE INNOVACIÓN */}
       {activeTab === 'logros' && (
         <div className="space-y-6">
+          {/* Barra Superior con Botón de Descarga PDF */}
+          <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-white/[0.03] border border-white/10">
+            <div>
+              <span className="text-xs font-bold text-white sy block">
+                Acreditación de Logros y Mérito en Innovación
+              </span>
+              <span className="text-[11px] text-brand-textMuted">
+                Genera tu certificado oficial en formato PDF para constancia de competencias
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                openCertificatePrintWindow({
+                  recipientName: prompt0Data.labName || 'Equipo Innovador UNAD',
+                  territoryName: prompt0Data.municipality || 'Territorio Regional',
+                  department: prompt0Data.department || '',
+                  zonaUNAD: prompt0Data.zonaUNAD || 'UNAD',
+                  rank: gamification.currentRank,
+                  totalXp: gamification.totalXp,
+                  unlockedBadgeIds: gamification.unlockedBadgeIds,
+                });
+              }}
+              className="metal px-4 py-2 text-xs font-bold flex items-center gap-2 cursor-pointer"
+            >
+              <Printer className="w-4 h-4 text-[#FFD700]" />
+              <span>Imprimir Credencial PDF</span>
+            </button>
+          </div>
+
           {/* Tarjeta de Rango Actual y Progreso XP */}
           <div
             className="p-5 sm:p-6 rounded-2xl border relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6"
@@ -736,14 +769,13 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
             {/* Información del Rango */}
             <div className="flex items-center gap-4 relative z-10 w-full md:w-auto">
               <div
-                className="w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 border shadow-lg"
+                className="w-18 h-18 rounded-2xl flex items-center justify-center shrink-0 border shadow-lg bg-black/40"
                 style={{
-                  backgroundColor: `${gamification.currentRank.color}25`,
                   borderColor: gamification.currentRank.color,
                   boxShadow: `0 0 20px ${gamification.currentRank.color}40`,
                 }}
               >
-                <Award className="w-8 h-8" style={{ color: gamification.currentRank.color }} />
+                <RankEmblem level={gamification.currentRank.level} size={56} />
               </div>
               <div>
                 <span className="text-[11px] font-bold uppercase tracking-wider text-[#A6C0CA] block">
@@ -791,7 +823,6 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {INNOVATION_BADGES.map((badge) => {
               const isUnlocked = gamification.unlockedBadgeIds.includes(badge.id);
-              const Icon = badge.icon;
               return (
                 <div
                   key={badge.id}
@@ -811,21 +842,11 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
                 >
                   <div>
                     <div className="flex items-center justify-between mb-3">
-                      <div
-                        className="w-11 h-11 rounded-xl flex items-center justify-center border shrink-0 transition-transform hover:scale-105"
-                        style={{
-                          backgroundColor: isUnlocked ? `${badge.color}25` : 'rgba(255,255,255,0.05)',
-                          borderColor: isUnlocked ? badge.color : 'rgba(255,255,255,0.15)',
-                          boxShadow: isUnlocked ? `0 0 14px ${badge.color}40` : 'none',
-                        }}
-                      >
-                        <Icon
-                          className="w-5 h-5"
-                          style={{ color: isUnlocked ? badge.color : 'rgba(255,255,255,0.4)' }}
-                        />
+                      <div className="shrink-0 transition-transform hover:scale-105">
+                        <BadgeGraphicRenderer badgeId={badge.id} size={54} isUnlocked={isUnlocked} />
                       </div>
 
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex flex-col items-end gap-1">
                         <span
                           className="text-[10px] font-bold px-2 py-0.5 rounded-full border"
                           style={{

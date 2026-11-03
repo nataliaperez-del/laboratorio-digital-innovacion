@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Sparkles, Trophy, X, ArrowRight } from 'lucide-react';
+import { Trophy, X, ArrowRight } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { evaluateGamification, INNOVATION_BADGES, type BadgeDefinition } from '@/lib/gamification';
+import { BadgeGraphicRenderer } from './BadgeGraphics';
 
 interface Props {
   onOpenBadgesModal: () => void;
@@ -35,7 +36,6 @@ export const BadgeNotificationToast: React.FC<Props> = ({ onOpenBadgesModal }) =
       zoeInteractions,
     });
 
-    // Buscar la primera insignia desbloqueada que aún no haya sido notificada/reconocida
     const unacknowledgedId = gamification.unlockedBadgeIds.find(
       (id) => !(acknowledgedBadges || []).includes(id)
     );
@@ -61,8 +61,6 @@ export const BadgeNotificationToast: React.FC<Props> = ({ onOpenBadgesModal }) =
   ]);
 
   if (!activeToast) return null;
-
-  const Icon = activeToast.icon;
 
   const handleDismiss = () => {
     acknowledgeBadge(activeToast.id);
@@ -95,16 +93,9 @@ export const BadgeNotificationToast: React.FC<Props> = ({ onOpenBadgesModal }) =
         />
 
         <div className="flex items-start gap-3.5 relative z-10">
-          {/* Icono de la insignia */}
-          <div
-            className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border shadow-lg"
-            style={{
-              backgroundColor: `${activeToast.color}25`,
-              borderColor: activeToast.color,
-              boxShadow: `0 0 16px ${activeToast.color}50`,
-            }}
-          >
-            <Icon className="w-6 h-6 animate-bounce" style={{ color: activeToast.color }} />
+          {/* Insignia Vectorial Holográfica Animada */}
+          <div className="shrink-0 transition-transform hover:scale-105 drop-shadow-[0_0_12px_rgba(255,255,255,0.3)]">
+            <BadgeGraphicRenderer badgeId={activeToast.id} size={52} isUnlocked={true} />
           </div>
 
           {/* Información */}
@@ -147,7 +138,7 @@ export const BadgeNotificationToast: React.FC<Props> = ({ onOpenBadgesModal }) =
                 onClick={handleViewModal}
                 className="text-xs font-semibold text-[#27DCFF] hover:underline flex items-center gap-1 cursor-pointer"
               >
-                <span>Ver vitrina</span>
+                <span>Ver vitrina y credencial</span>
                 <ArrowRight className="w-3 h-3" />
               </button>
             </div>
