@@ -133,6 +133,21 @@ ZOE es un schnauzer holográfico que vive en la pantalla. No tiene chat de texto
 | «A dormir», «acuéstate» | Busca un rincón tranquilo y se echa a dormir |
 | «Ve a tu casita», «escóndete» | Se va a su casita de la esquina |
 
+### ZOE maneja la pantalla por ti
+
+Mientras conversan, ZOE puede hacer en la pantalla lo que le pidas: cambiar de herramienta, escribir en los campos, elegir en las listas, marcar casillas y presionar botones. Mientras te cuenta lo que hace, el campo o el botón en que trabaja se ilumina.
+
+| Le dices | ZOE hace |
+|---|---|
+| «Llévame al árbol y escribe como tema turismo comunitario» | Abre el Árbol y escribe el tema en su campo |
+| «En prototipado escribe la idea sensores para cacao y elige TRL 3» | Cambia de pantalla, escribe la idea y elige la madurez |
+| «Genera el árbol» | Presiona el botón que lo genera |
+| «Limpia el estudio» | Te pregunta «¿Me confirmas que presione Limpiar?» y solo lo hace si dices «sí» |
+
+- Escribe lo que le dictas, tal cual. Si falta un dato, te lo pregunta en vez de inventarlo.
+- Nunca sube archivos ni escribe claves: eso lo haces tú.
+- Antes de limpiar, borrar o eliminar algo, siempre pide tu confirmación.
+
 ### Su vida en la pantalla
 
 - Si nadie lo necesita, a veces pasea, se sienta o busca el rincón con menos botones y se echa a dormir un rato. Tocarlo lo despierta.
@@ -150,7 +165,7 @@ ZOE es un schnauzer holográfico que vive en la pantalla. No tiene chat de texto
 
 ### Qué sabe y qué no
 
-ZOE conoce el Laboratorio, sus herramientas, los conceptos de innovación y lo que tienes en pantalla. Bromea, motiva y agradece, pero no inventa datos ni genera informes por su cuenta. Si la IA falla, lo dice en lugar de improvisar.
+ZOE conoce el Laboratorio, sus herramientas, los conceptos de innovación y lo que tienes en pantalla. Bromea, motiva y agradece, pero no inventa datos: los informes los generan las herramientas, aunque ZOE puede presionar el botón por ti. Si la IA falla, lo dice en lugar de improvisar.
 
 ## 6. Solución de problemas
 

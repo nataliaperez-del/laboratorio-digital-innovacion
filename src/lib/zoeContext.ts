@@ -115,6 +115,15 @@ export function isDoneReply(text: string): boolean {
   return t.split(/\s+/).length <= 5 && /^(s[ií]|ya|listo|eso es todo|es todo|termin[eé]|ya termin[eé]|nada m[aá]s|correcto|exacto|as[ií] es)(?=$|[\s,.;!?¡¿])/.test(t);
 }
 
+/** Respuesta a «¿me confirmas?»: true si es un sí, false si es un no y null si habla de otra cosa. */
+export function isConfirmation(text: string): boolean | null {
+  const t = text.trim().toLowerCase().replace(/^zoe[,\s]+/, '');
+  const end = '(?=$|[\\s,.;!?¡¿])';
+  if (new RegExp(`^(no|mejor no|cancela|cancelar|d[eé]jalo|todav[ií]a no|nada|ni se te ocurra)${end}`).test(t)) return false;
+  if (new RegExp(`^(s[ií]|dale|hazlo|conf[ií]rmo|claro|de una|ok|okay|adelante|correcto|listo|h[aá]gale|h[aá]galo|por supuesto|presi[oó]nalo|b[oó]rralo|l[ií]mpialo|elim[ií]nalo)${end}`).test(t)) return true;
+  return null;
+}
+
 /** La persona pide tiempo: ZOE espera en vez de contestar. */
 export function wantsMoreTime(text: string): boolean {
   return /^(zoe[,\s]+)?(espera|esp[eé]rame|un momento|un segundo|d[eé]jame pensar|d[eé]jame terminar|no he terminado|todav[ií]a no)\b/i.test(text.trim());

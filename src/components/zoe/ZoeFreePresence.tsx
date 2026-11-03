@@ -5,7 +5,8 @@ import { splitSentences, useZoeVoice, type ZoeListenFailure } from './useZoeVoic
 import { doghouseDoor, ZoeDoghouse } from './ZoeDoghouse';
 import type { ToolId } from '../layout/Header';
 import { askZoe } from '@/services/zoeAi';
-import { isDoneReply, parseZoeCommand, seemsUnfinished, TOOL_HINTS, TOOL_NAMES, wantsMoreTime, type ZoeTurn } from '@/lib/zoeContext';
+import { isConfirmation, isDoneReply, parseZoeCommand, seemsUnfinished, TOOL_HINTS, TOOL_NAMES, wantsMoreTime, type ZoeTurn } from '@/lib/zoeContext';
+import { labelOfControl, needsConfirmation, performActions, type ZoeAction } from '@/lib/zoeScreen';
 
 // El modelo 3D y Three.js pesan: se descargan aparte, sin demorar la herramienta que se abrió.
 const ZoeCanvas3D = lazy(() => import('./ZoeCanvas3D'));
@@ -27,6 +28,8 @@ const HOUSE_MS = 650;
 const FILLER_AFTER_MS = 1500;
 const FILLERS = ['A ver…', 'Mmm, déjame olfatear eso.', 'Buena pregunta, dame un segundo.', 'Déjame pensarlo.', 'Interesante…'];
 const AFTER_SPEECH_MS = 250;
+/** Vueltas máximas de un mismo pedido (cambiar de pantalla y terminar allá cuenta como dos). */
+const MAX_AGENT_ROUNDS = 3;
 /** Lo que ZOE explica cuando no puede escuchar; cada causa tiene una solución distinta. */
 const MIC_PROBLEMS: Partial<Record<ZoeListenFailure, string>> = {
   'sin-permiso': 'El navegador no me deja usar el micrófono. Dale permiso en el candadito de la barra de direcciones y me vuelves a tocar.',
@@ -293,28 +296,39 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
   // ── La conversación: escuchar → pensar → hablar → volver a escuchar ──
   const listenRef = useRef<() => void>(() => undefined);
 
+  /** Al terminar de hablar: si la conversación sigue abierta, vuelve a escuchar. */
+  const afterSpeech = useCallback((keepListening: boolean) => {
+    setBehavior('idle');
+    if (keepListening && talkingRef.current) {
+      // Un respiro antes de abrir el micrófono: que no se oiga a sí mismo.
+      window.setTimeout(() => {
+        if (talkingRef.current) listenRef.current();
+      }, AFTER_SPEECH_MS);
+    } else window.setTimeout(() => setCaption(null), 2500);
+  }, []);
+
+  /** Dice algo y avisa cuando termina; si otra locución la interrumpe, no avisa. */
+  const sayAndWait = useCallback(
+    (text: string) =>
+      new Promise<void>((resolve) => {
+        setBehavior('speaking');
+        setHeard(null);
+        setCaption(splitSentences(text)[0] ?? text);
+        voice.speak(text, resolve, setCaption);
+      }),
+    [voice],
+  );
+
   /** Dice algo y, si la conversación sigue abierta, vuelve a escuchar. */
   const say = useCallback(
     (text: string, keepListening = true) => {
-      setBehavior('speaking');
-      setHeard(null);
-      setCaption(splitSentences(text)[0] ?? text);
-      voice.speak(
-        text,
-        () => {
-          setBehavior('idle');
-          if (keepListening && talkingRef.current) {
-            // Un respiro antes de abrir el micrófono: que no se oiga a sí mismo.
-            window.setTimeout(() => {
-              if (talkingRef.current) listenRef.current();
-            }, AFTER_SPEECH_MS);
-          } else window.setTimeout(() => setCaption(null), 2500);
-        },
-        setCaption,
-      );
+      void sayAndWait(text).then(() => afterSpeech(keepListening));
     },
-    [voice],
+    [afterSpeech, sayAndWait],
   );
+
+  /** Lo que ZOE preguntó si podía presionar (limpiar, eliminar…): espera un sí o un no. */
+  const pendingActions = useRef<ZoeAction[] | null>(null);
 
   const endConversation = useCallback(() => {
     setTalking(false);
@@ -330,6 +344,20 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
   const answer = useCallback(
     async (text: string) => {
       setHeard(text);
+      // ¿Es la respuesta a «¿me confirmas que presione…?»? Si habla de otra cosa, se olvida la pregunta.
+      const pending = pendingActions.current;
+      pendingActions.current = null;
+      const confirmed = pending ? isConfirmation(text) : null;
+      if (pending && confirmed !== null) {
+        if (!confirmed) {
+          say('Entendido, no toco nada.');
+          return;
+        }
+        say('Listo, ya lo hago.');
+        await performActions(pending, onSelectTool);
+        return;
+      }
+
       const command = parseZoeCommand(text);
       if (command?.type === 'navigate') {
         onSelectTool(command.tool);
@@ -373,11 +401,39 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
         voice.speak(line);
       }, FILLER_AFTER_MS);
       try {
-        const reply = await askZoe(text, historyRef.current, toolRef.current);
+        let reply = await askZoe(text, historyRef.current, toolRef.current);
         window.clearTimeout(filler);
-        if (!talkingRef.current && !request) return; // La persona cerró mientras pensaba.
-        historyRef.current = [...historyRef.current, { role: 'user' as const, text }, { role: 'zoe' as const, text: reply }].slice(-12);
-        say(reply);
+        const done: string[] = [];
+        for (let round = 1; ; round++) {
+          if (!talkingRef.current && !request) return; // La persona cerró mientras pensaba.
+          // Lo que borra o descarta algo espera un sí de la persona; lo demás se hace mientras habla.
+          const risky = reply.acciones.filter(needsConfirmation);
+          const safe = reply.acciones.filter((a) => !needsConfirmation(a));
+          const last = !reply.seguir || round >= MAX_AGENT_ROUNDS || risky.length > 0;
+          const question = risky.length
+            ? ` ¿Me confirmas que presione ${risky.map((a) => `«${'id' in a ? labelOfControl(a.id) : ''}»`).join(' y ')}?`
+            : '';
+          const spoken = `${reply.decir}${question}`.trim() || 'Listo.';
+          const [results] = await Promise.all([performActions(safe, onSelectTool), sayAndWait(spoken)]);
+          done.push(...results.filter((r) => r.ok).map((r) => r.note));
+          if (!last) {
+            // La tarea sigue en la pantalla nueva: la mira y continúa con el mismo pedido.
+            setBehavior('thinking');
+            reply = await askZoe(text, historyRef.current, toolRef.current, done);
+            continue;
+          }
+          const failed = results.filter((r) => !r.ok);
+          if (failed.length) console.warn('[ZOE] Acciones que no se pudieron hacer:', failed.map((r) => r.note));
+          historyRef.current = [
+            ...historyRef.current,
+            { role: 'user' as const, text },
+            { role: 'zoe' as const, text: `${spoken}${failed.length ? ` (No pude: ${failed.map((r) => r.note).join('; ')}.)` : ''}` },
+          ].slice(-12);
+          if (risky.length) pendingActions.current = risky;
+          if (failed.length) say('Hubo algo que no pude hacer en la pantalla. ¿Me lo repites o lo hacemos de otra forma?');
+          else afterSpeech(true);
+          return;
+        }
       } catch (e) {
         window.clearTimeout(filler);
         console.warn('[ZOE] La IA no respondió:', e);
@@ -385,7 +441,7 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
         say('Se me cayó la conexión con la IA y no quiero inventarte una respuesta. Revisa el botón I A de la cabecera y me vuelves a llamar.', false);
       }
     },
-    [endConversation, goHome, nap, onSelectTool, onToggleTheme, request, say, showCaption, stroll, theme, voice, wake],
+    [afterSpeech, endConversation, goHome, nap, onSelectTool, onToggleTheme, request, say, sayAndWait, showCaption, stroll, theme, voice, wake],
   );
 
   const onListenFail = useCallback(

@@ -467,6 +467,10 @@ button.lab-card:hover { border-color: var(--brand-teal-text); }
 }
 @media print { .lab-credits { display: none; } }
 
+/* Las manos de ZOE: el campo o botón en que está actuando se ilumina (zoeScreen.ts) */
+.zoe-acting { outline: 2px solid #27DCFF !important; outline-offset: 3px; box-shadow: 0 0 0 6px rgba(39, 220, 255, .22), 0 0 22px rgba(39, 220, 255, .45) !important; transition: outline-color .2s ease, box-shadow .2s ease; }
+@media (prefers-reduced-motion: reduce) { .zoe-acting { transition: none; } }
+
 /* Casita de ZOE: ahí descansa cuando no se la necesita */
 .zoe-house { position: fixed; z-index: 39; padding: 0; border: 0; background: none; pointer-events: none; }
 .zoe-house-art { display: block; overflow: visible; filter: drop-shadow(0 0 10px rgba(39, 220, 255, .35)); }
