@@ -443,12 +443,12 @@ export const BadgesModal: React.FC<Props> = ({ isOpen, onClose, onNavigate }) =>
                   }}
                 />
 
-                {/* Header: Logo InnovaHub360 Oficial */}
+                {/* Header: Logo InnovaHub360 Oficial del Repositorio */}
                 <div className="relative z-10 flex items-center justify-between mb-4">
                   <img
                     src="/assets/innovahub360_cert_logo.png"
                     alt="InnovaHub360"
-                    className="h-10 sm:h-12 object-contain"
+                    className="h-10 sm:h-12 object-contain filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]"
                     onError={(e) => {
                       (e.currentTarget as HTMLImageElement).src = '/assets/logo-innovahub360-aislado.png';
                     }}
@@ -526,23 +526,11 @@ export const BadgesModal: React.FC<Props> = ({ isOpen, onClose, onNavigate }) =>
                     <span>{todayFormatted}</span>
                   </div>
 
-                  <div className="flex items-center gap-4 sm:gap-6">
+                  <div className="flex items-center">
                     <img
-                      src="/assets/unad_logo_dark_cert.png"
-                      alt="UNAD Acreditada Institucionalmente"
-                      className="h-10 sm:h-12 object-contain"
-                      onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).src = '/assets/unad_acreditada.png';
-                      }}
-                    />
-                    <div className="w-[1.5px] h-8 sm:h-10 bg-[#00F5FF] opacity-60" />
-                    <img
-                      src="/assets/viem_logo_dark_cert.png"
-                      alt="Vicerrectoría de Innovación y Emprendimiento - VIEM"
-                      className="h-9 sm:h-11 object-contain"
-                      onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).src = '/assets/viem_logo.png';
-                      }}
+                      src="/assets/cert_logos_unad_viem.png"
+                      alt="UNAD Acreditada en Alta Calidad · VIEM Vicerrectoría de Innovación y Emprendimiento"
+                      className="h-12 sm:h-14 object-contain filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]"
                     />
                   </div>
                 </div>

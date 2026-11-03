@@ -186,6 +186,11 @@ export function generateCertificateHtml(data: CertificateData): string {
       object-fit: contain;
     }
 
+    .logos-unad-viem {
+      height: 16mm;
+      object-fit: contain;
+    }
+
     /* Área Central: Dos Columnas */
     .cert-body {
       position: relative;
@@ -456,9 +461,7 @@ export function generateCertificateHtml(data: CertificateData): string {
       </div>
 
       <div class="institutions-block">
-        <img src="/assets/unad_logo_dark_cert.png" alt="UNAD Acreditada" class="logo-unad" onerror="this.onerror=null; this.src='/assets/unad_acreditada.png';" />
-        <div class="logo-divider"></div>
-        <img src="/assets/viem_logo_dark_cert.png" alt="VIEM UNAD" class="logo-viem" onerror="this.onerror=null; this.src='/assets/viem_logo.png';" />
+        <img src="/assets/cert_logos_unad_viem.png" alt="UNAD · VIEM" class="logos-unad-viem" style="height: 15mm; object-fit: contain;" />
       </div>
     </div>
 
