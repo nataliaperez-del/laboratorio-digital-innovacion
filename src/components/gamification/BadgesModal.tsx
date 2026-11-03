@@ -20,7 +20,7 @@ import {
   evaluateGamification,
   INNOVATION_BADGES,
 } from '@/lib/gamification';
-import { BadgeGraphicRenderer } from './BadgeGraphics';
+import { BadgeGraphicRenderer, BADGE_UNIT_THEMES } from './BadgeGraphics';
 import {
   openCertificatePrintWindow,
   BADGE_CERTIFICATES,
@@ -500,22 +500,41 @@ export const BadgesModal: React.FC<Props> = ({ isOpen, onClose, onNavigate }) =>
                     </div>
                   </div>
 
-                  {/* Columna Derecha: Insignia Gigante 3D Oficial con Resplandor */}
+                  {/* Columna Derecha: Insignia Gigante 3D Oficial con Resplandor con Color de la Unidad */}
                   <div className="w-full md:w-[280px] flex flex-col items-center justify-center shrink-0 relative py-4">
-                    {/* Resplandor Halo Esférico */}
-                    <div className="absolute w-56 h-56 rounded-full bg-gradient-to-br from-[#00F5FF]/30 to-[#B4FF2B]/15 blur-2xl pointer-events-none" />
-
-                    <img
-                      src={`/assets/badges/${currentBadgeCert.badgeAsset}.png`}
-                      alt={currentBadgeCert.badgeTitle}
-                      className="relative z-10 w-52 sm:w-60 h-52 sm:h-60 object-contain drop-shadow-[0_0_25px_rgba(0,245,255,0.6)] drop-shadow-[0_0_10px_rgba(180,255,43,0.4)] transition-transform duration-500 hover:scale-105"
-                      onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).src = `/assets/badges/${currentBadgeCert.badgeAsset}.webp`;
-                      }}
-                    />
-
-                    {/* Resplandor de suelo */}
-                    <div className="w-44 h-4 rounded-full bg-[#00F5FF]/40 blur-md -mt-2 pointer-events-none" />
+                    {/* Resplandor Halo Esférico con color de unidad */}
+                    {(() => {
+                      const theme = BADGE_UNIT_THEMES[currentBadgeCert.badgeAsset] || {
+                        primary: '#00F5FF',
+                        glow: 'rgba(0, 245, 255, 0.45)',
+                      };
+                      return (
+                        <>
+                          <div
+                            className="absolute w-56 h-56 rounded-full blur-2xl pointer-events-none transition-all duration-500 opacity-60"
+                            style={{
+                              background: `radial-gradient(circle, ${theme.primary}50 0%, ${theme.primary}10 60%, transparent 100%)`,
+                            }}
+                          />
+                          <img
+                            src={`/assets/badges/${currentBadgeCert.badgeAsset}.png`}
+                            alt={currentBadgeCert.badgeTitle}
+                            className="relative z-10 w-52 sm:w-60 h-52 sm:h-60 object-contain transition-transform duration-500 hover:scale-105"
+                            style={{
+                              filter: `drop-shadow(0 0 20px ${theme.glow}) drop-shadow(0 0 8px ${theme.primary}80)`,
+                            }}
+                            onError={(e) => {
+                              (e.currentTarget as HTMLImageElement).src = `/assets/badges/${currentBadgeCert.badgeAsset}.webp`;
+                            }}
+                          />
+                          {/* Resplandor de suelo con color de unidad */}
+                          <div
+                            className="w-44 h-4 rounded-full blur-md -mt-2 pointer-events-none opacity-80"
+                            style={{ backgroundColor: `${theme.primary}60` }}
+                          />
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
 

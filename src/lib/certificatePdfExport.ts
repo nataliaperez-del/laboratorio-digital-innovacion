@@ -84,6 +84,44 @@ export interface CertificateData {
   issueDate?: string;
 }
 
+export const BADGE_UNIT_COLORS: Record<string, { primary: string; glow: string; label: string }> = {
+  pionero_territorial: {
+    primary: '#10B981', // Verde esmeralda territorial distinguido
+    glow: 'rgba(16, 185, 129, 0.45)',
+    label: 'Estudio Territorial',
+  },
+  visionario_estrategico: {
+    primary: '#F29F05', // Ámbar cálido de ideación
+    glow: 'rgba(242, 159, 5, 0.50)',
+    label: 'Ideación Estratégica',
+  },
+  arquitecto_tendencias: {
+    primary: '#00C8FF', // Azul celeste / Cian de árbol de tendencias
+    glow: 'rgba(0, 200, 255, 0.50)',
+    label: 'Árbol de Innovación',
+  },
+  ingeniero_prototipos: {
+    primary: '#E024A5', // Fucsia prototipado
+    glow: 'rgba(224, 36, 165, 0.52)',
+    label: 'Prototipado TRL',
+  },
+  custodio_conocimiento: {
+    primary: '#A78BFA', // Púrpura / Violeta banco unificado
+    glow: 'rgba(167, 139, 250, 0.50)',
+    label: 'Banco de Innovación',
+  },
+  vinculo_cognitivo: {
+    primary: '#00F5FF', // Cian digital ZOE
+    glow: 'rgba(0, 245, 255, 0.50)',
+    label: 'Agente ZOE 3D',
+  },
+  maestro_innovador_360: {
+    primary: '#FFD700', // Oro imperial 360
+    glow: 'rgba(255, 215, 0, 0.55)',
+    label: 'Maestría 360',
+  },
+};
+
 export function generateCertificateHtml(data: CertificateData): string {
   const recipientName = data.recipientName?.trim() || 'Natalia Elizabeth Pérez Cabrera';
   const recipientId = data.recipientId?.trim() || 'C.C. 1.085.241.978';
@@ -91,6 +129,7 @@ export function generateCertificateHtml(data: CertificateData): string {
   
   const normalizedBadgeId = (data.badgeId || 'pionero_territorial').toLowerCase().replace(/-/g, '_');
   const badgeInfo = BADGE_CERTIFICATES[normalizedBadgeId] || BADGE_CERTIFICATES['pionero_territorial'];
+  const unitTheme = BADGE_UNIT_COLORS[badgeInfo.id] || BADGE_UNIT_COLORS['pionero_territorial'];
 
   const now = new Date();
   const issueDateFormatted = data.issueDate || `${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()}`;
@@ -308,7 +347,7 @@ export function generateCertificateHtml(data: CertificateData): string {
       width: 75mm;
       height: 75mm;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(0, 245, 255, 0.3) 0%, rgba(180, 255, 43, 0.15) 45%, transparent 70%);
+      background: radial-gradient(circle, ${unitTheme.primary}45 0%, ${unitTheme.primary}12 50%, transparent 70%);
       filter: blur(15px);
       z-index: 1;
     }
@@ -319,7 +358,7 @@ export function generateCertificateHtml(data: CertificateData): string {
       width: 78mm;
       height: 78mm;
       object-fit: contain;
-      filter: drop-shadow(0 0 25px rgba(0, 245, 255, 0.6)) drop-shadow(0 0 10px rgba(180, 255, 43, 0.4));
+      filter: drop-shadow(0 0 20px ${unitTheme.glow}) drop-shadow(0 0 8px ${unitTheme.primary}80);
       animation: float 6s ease-in-out infinite;
     }
 
@@ -330,7 +369,7 @@ export function generateCertificateHtml(data: CertificateData): string {
       width: 55mm;
       height: 8mm;
       border-radius: 50%;
-      background: radial-gradient(ellipse at center, rgba(0, 245, 255, 0.6) 0%, transparent 75%);
+      background: radial-gradient(ellipse at center, ${unitTheme.primary}80 0%, transparent 75%);
       filter: blur(4px);
       z-index: 1;
     }

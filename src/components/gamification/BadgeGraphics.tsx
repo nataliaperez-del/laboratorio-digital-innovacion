@@ -11,6 +11,44 @@ interface InternalBadgeProps extends BadgeGraphicProps {
   title: string;
 }
 
+export const BADGE_UNIT_THEMES: Record<string, { primary: string; glow: string; label: string }> = {
+  pionero_territorial: {
+    primary: '#10B981', // Verde esmeralda territorial distinguido y sobrio
+    glow: 'rgba(16, 185, 129, 0.45)',
+    label: 'Estudio Territorial',
+  },
+  visionario_estrategico: {
+    primary: '#F29F05', // Ámbar / Oro cálido de ideación
+    glow: 'rgba(242, 159, 5, 0.50)',
+    label: 'Ideación Estratégica',
+  },
+  arquitecto_tendencias: {
+    primary: '#00C8FF', // Azul celeste / Cian de árbol de tendencias
+    glow: 'rgba(0, 200, 255, 0.50)',
+    label: 'Árbol de Innovación',
+  },
+  ingeniero_prototipos: {
+    primary: '#E024A5', // Fucsia prototipado
+    glow: 'rgba(224, 36, 165, 0.52)',
+    label: 'Prototipado TRL',
+  },
+  custodio_conocimiento: {
+    primary: '#A78BFA', // Púrpura / Violeta banco unificado
+    glow: 'rgba(167, 139, 250, 0.50)',
+    label: 'Banco de Innovación',
+  },
+  vinculo_cognitivo: {
+    primary: '#00F5FF', // Cian digital ZOE
+    glow: 'rgba(0, 245, 255, 0.50)',
+    label: 'Agente ZOE 3D',
+  },
+  maestro_innovador_360: {
+    primary: '#FFD700', // Oro imperial 360
+    glow: 'rgba(255, 215, 0, 0.55)',
+    label: 'Maestría 360',
+  },
+};
+
 const BaseImageBadge: React.FC<InternalBadgeProps> = ({
   assetName,
   title,
@@ -20,6 +58,11 @@ const BaseImageBadge: React.FC<InternalBadgeProps> = ({
 }) => {
   const pngSrc = `/assets/badges/${assetName}.png`;
   const webpSrc = `/assets/badges/${assetName}.webp`;
+  const theme = BADGE_UNIT_THEMES[assetName] || {
+    primary: '#00F5FF',
+    glow: 'rgba(0, 245, 255, 0.45)',
+    label: 'Innovación',
+  };
 
   return (
     <div
@@ -36,8 +79,8 @@ const BaseImageBadge: React.FC<InternalBadgeProps> = ({
           className="w-full h-full object-contain pointer-events-none transition-all duration-300"
           style={{
             filter: isUnlocked
-              ? 'drop-shadow(0 0 14px rgba(0, 245, 255, 0.5)) drop-shadow(0 0 6px rgba(180, 255, 43, 0.35))'
-              : 'drop-shadow(0 0 6px rgba(0, 245, 255, 0.2)) saturate(0.9) opacity(0.92)',
+              ? `drop-shadow(0 0 12px ${theme.glow}) drop-shadow(0 0 4px ${theme.primary}60)`
+              : 'drop-shadow(0 0 5px rgba(255, 255, 255, 0.12)) saturate(0.85) opacity(0.88)',
           }}
         />
       </picture>
