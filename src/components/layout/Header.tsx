@@ -4,7 +4,9 @@ import { Sparkles, Sun, Moon, Layers, Compass, Trees, BrainCircuit, Rocket, Menu
 import { useStore } from '@/store/useStore';
 import { evaluateGamification, INNOVATION_BADGES } from '@/lib/gamification';
 
+/** Identificador de cada pantalla del Laboratorio. */
 export type ToolId = 'portal' | 'radar' | 'estudio' | 'ideacion' | 'arbol' | 'prototipado' | 'banco';
+/** Pantallas en el orden del menú. */
 export const TOOL_IDS: readonly ToolId[] = ['portal', 'radar', 'estudio', 'ideacion', 'arbol', 'prototipado', 'banco'];
 
 interface HeaderProps {
@@ -18,6 +20,7 @@ interface HeaderProps {
   onOpenBadges?: () => void;
 }
 
+/** Cabecera: navegación entre herramientas, insignias, panel de IA, ZOE y tema claro/oscuro. */
 export const Header: React.FC<HeaderProps> = ({ currentTool, onSelectTool, theme, onToggleTheme, isZoeOpen, onToggleZoe, zoeState, onOpenBadges }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);

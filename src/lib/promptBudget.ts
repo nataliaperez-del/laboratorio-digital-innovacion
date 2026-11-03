@@ -101,6 +101,7 @@ export function truncateAtBoundary(text: string, maxChars: number, label: string
   };
 }
 
+/** Recorta un texto al presupuesto del prompt y devuelve el aviso que se agrega cuando se recortó. */
 export function truncateContainerForDocument(containerData: string, maxChars: number): { text: string; wasTruncated: boolean; notice: string } {
   if (containerData.length <= maxChars) {
     return { text: containerData, wasTruncated: false, notice: '' };

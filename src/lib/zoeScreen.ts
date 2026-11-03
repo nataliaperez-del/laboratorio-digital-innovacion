@@ -10,8 +10,10 @@
 import type { ToolId } from '@/components/layout/Header';
 import { cleanZoeReply } from '@/lib/zoeContext';
 
+/** Tipo de control de la pantalla que ZOE puede manejar. */
 export type ZoeControlKind = 'texto' | 'lista' | 'casilla' | 'opcion' | 'boton';
 
+/** Un control visible para la IA: id, tipo, etiqueta, valor y opciones. */
 export interface ZoeControl {
   id: string;
   kind: ZoeControlKind;
@@ -22,6 +24,7 @@ export interface ZoeControl {
   disabled?: boolean;
 }
 
+/** Una acción que la IA pide sobre la pantalla: ir, escribir, elegir, marcar o presionar. */
 export type ZoeAction =
   | { hacer: 'ir'; herramienta: ToolId }
   | { hacer: 'escribir'; id: string; texto: string }
@@ -29,6 +32,7 @@ export type ZoeAction =
   | { hacer: 'marcar'; id: string; valor: boolean }
   | { hacer: 'presionar'; id: string };
 
+/** Respuesta de la IA: lo que dice, lo que hace y si le falta terminar en otra pantalla. */
 export interface ZoeAgentReply {
   /** Lo que ZOE dice en voz alta. */
   decir: string;
@@ -297,6 +301,7 @@ async function typeInto(el: HTMLInputElement | HTMLTextAreaElement, text: string
   }
 }
 
+/** Resultado de ejecutar una acción, con una nota para la conversación. */
 export interface ActionResult {
   action: ZoeAction;
   ok: boolean;

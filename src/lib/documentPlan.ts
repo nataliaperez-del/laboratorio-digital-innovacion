@@ -9,6 +9,7 @@ import { marked, type Token, type Tokens } from 'marked';
 import { normalizeAsciiDiagrams } from '@/lib/formatMarkdownDoc';
 import type { FigureSpec } from '@/lib/figures';
 
+/** Un fragmento de texto con formato (negrita, cursiva, enlace, salto de línea). */
 export interface InlineNode {
   text: string;
   bold?: boolean;
@@ -22,11 +23,13 @@ export interface InlineNode {
   lineBreak?: boolean;
 }
 
+/** Un elemento de lista, que puede tener sublistas. */
 export interface PlanListItem {
   inline: InlineNode[];
   children: PlanBlock[];
 }
 
+/** Un bloque del documento: título, párrafo, lista, tabla, cita, figura o alerta de revisión humana. */
 export type PlanBlock =
   | { kind: 'heading'; depth: number; inline: InlineNode[]; plainText: string }
   | { kind: 'paragraph'; inline: InlineNode[] }
@@ -44,6 +47,7 @@ export type PlanBlock =
     }
   | { kind: 'figure'; number: number; spec: FigureSpec };
 
+/** Documento ya estructurado a partir del Markdown: lo comparten la pantalla, Word y PDF. */
 export interface DocumentPlan {
   blocks: PlanBlock[];
   /** Índice de tablas, en orden de aparición. */
@@ -52,6 +56,7 @@ export interface DocumentPlan {
   figures: Array<{ number: number; title: string; spec: FigureSpec }>;
 }
 
+/** Portada del informe: título, subtítulo, territorio, fecha y procedencia. */
 export interface DocumentMeta {
   /** Portada: tipo de informe en mayúsculas («Árbol de Innovación»). */
   reportType: string;
@@ -197,6 +202,7 @@ function flattenInline(tokens: readonly Token[] | undefined, base: InlineNode = 
   return out;
 }
 
+/** Texto plano de una línea con formato (los saltos se vuelven espacios). */
 export function inlineToPlainText(nodes: readonly InlineNode[]): string {
   return nodes
     .map((n) => (n.lineBreak ? ' ' : n.text))
@@ -376,6 +382,7 @@ export function formatTerritory(meta: DocumentMeta): string {
     .join(', ');
 }
 
+/** Fecha en español de Colombia, p. ej. «3 de noviembre de 2026». */
 export function formatSpanishDate(date: Date): string {
   return new Intl.DateTimeFormat('es-CO', { day: 'numeric', month: 'long', year: 'numeric' }).format(date);
 }

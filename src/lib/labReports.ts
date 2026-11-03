@@ -10,6 +10,7 @@ import { FRUIT_LABEL } from '@/lib/innovationTreeGraph';
 import type { Prompt0Data } from '@/store/useStore';
 import type { PrototypePlan } from '@/services/prototyping';
 
+/** Informe listo para descargar: nombre de archivo, Markdown, figuras y portada. */
 export interface LabReport {
   fileName: string;
   markdown: string;
@@ -29,6 +30,7 @@ function territoryMeta(ficha: Prompt0Data): Pick<DocumentMeta, 'zonaUNAD' | 'mun
   };
 }
 
+/** Nombre de archivo sin tildes ni símbolos: `Prefijo_Rotulo`. */
 export function safeFileName(prefix: string, label: string): string {
   const clean = label
     .normalize('NFD')
@@ -39,6 +41,7 @@ export function safeFileName(prefix: string, label: string): string {
   return clean ? `${prefix}_${clean}` : prefix;
 }
 
+/** Informe del Estudio Territorial del municipio de la ficha. */
 export function estudioReport(ficha: Prompt0Data, markdown: string): LabReport {
   const place = [ficha.municipality, ficha.department].filter(Boolean).join(', ') || 'Territorio';
   return {
@@ -56,6 +59,7 @@ export function estudioReport(ficha: Prompt0Data, markdown: string): LabReport {
   };
 }
 
+/** Informe de la Ideación, nombrado por su insumo. */
 export function ideacionReport(ficha: Prompt0Data, markdown: string, sourceLabel: string): LabReport {
   return {
     fileName: safeFileName('Ideacion_Vocacion_y_Temas', sourceLabel),
@@ -72,6 +76,7 @@ export function ideacionReport(ficha: Prompt0Data, markdown: string, sourceLabel
   };
 }
 
+/** Informe del Árbol de Innovación con la figura del árbol tras su título. */
 export function arbolReport(ficha: Prompt0Data, markdown: string, graph: TreeGraph): LabReport {
   return {
     fileName: safeFileName('Arbol_de_Innovacion', graph.tema),
@@ -131,6 +136,7 @@ export function prototypeMarkdown(plan: PrototypePlan): string {
     .join('\n\n');
 }
 
+/** Informe del plan de prototipado con la figura del cronograma. */
 export function prototipadoReport(ficha: Prompt0Data, plan: PrototypePlan): LabReport {
   return {
     fileName: safeFileName('Plan_de_Prototipado', plan.name),

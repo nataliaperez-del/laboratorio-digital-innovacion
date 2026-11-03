@@ -3,8 +3,10 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { restClip, ZoeClipDirector, type ClipRole, type ZoeBodyState, type ZoeGesture } from './zoeClipDirector';
 
+/** Ánimo de ZOE: tranquilo, escucha, piensa, habla, feliz o duerme. */
 export type ZoeSoulState = 'idle' | 'listening' | 'thinking' | 'speaking' | 'happy' | 'sleeping';
 
+/** Lo que se le pide al ZOE 3D: ánimo, postura, caminar o trotar, hacia dónde mira, entorno y modelo. */
 export interface ZoeCanvas3DProps {
   behavior?: ZoeSoulState;
   isWalking?: boolean;
@@ -24,6 +26,7 @@ export interface ZoeCanvas3DProps {
   onModelInfo?: (info: ZoeModelInfo) => void;
 }
 
+/** Lo que trae el modelo cargado: clips, papel de cada uno, huesos y si es el esqueleto propio. */
 export interface ZoeModelInfo {
   clips: string[];
   roles: Partial<Record<ClipRole, string>>;

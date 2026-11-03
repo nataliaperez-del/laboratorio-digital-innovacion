@@ -9,6 +9,7 @@ interface PortalCatalogProps {
   onOpenBadges?: () => void;
 }
 
+/** Inicio: presentación del Laboratorio, sus herramientas, el video de ZOE y accesos rápidos. */
 export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOpenZoe, onOpenBadges }) => {
   // 0: Presentación del LAB, 1: Video Proyección Holográfica de ZOE
   const [slideIndex, setSlideIndex] = useState<0 | 1>(0);

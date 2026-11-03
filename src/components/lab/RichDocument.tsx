@@ -123,6 +123,7 @@ export const DataTable: React.FC<{ title?: string; header: InlineNode[][]; rows:
   </figure>
 );
 
+/** Sección plegable de un documento. */
 export const Disclosure: React.FC<{ title: React.ReactNode; defaultOpen?: boolean; children: React.ReactNode }> = ({ title, defaultOpen, children }) => {
   const [open, setOpen] = useState(Boolean(defaultOpen));
   return (

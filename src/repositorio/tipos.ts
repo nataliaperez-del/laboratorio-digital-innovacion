@@ -7,6 +7,7 @@
  */
 import type { REPO_GRUPOS } from '@/constants/repositorio';
 
+/** Carpetas del núcleo metodológico interno. */
 export type GrupoRepositorio = (typeof REPO_GRUPOS)[number];
 
 /** `prompt` = instrucción para el modelo (prefijo `prompt_`); `documento` = fuente de datos. */
@@ -37,12 +38,14 @@ export interface RecursoMeta {
   hash: string;
 }
 
+/** Totales del núcleo: recursos, caracteres y tokens estimados. */
 export interface ManifestTotales {
   recursos: number;
   caracteres: number;
   tokensEstimados: number;
 }
 
+/** Manifiesto sellado del núcleo metodológico (versión, firma y recursos vigentes). */
 export interface Manifest {
   /** ISO 8601 de cuándo se selló. */
   generadoEn: string;

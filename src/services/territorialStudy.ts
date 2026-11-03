@@ -328,6 +328,7 @@ async function generateContenedor2Section(ctx: Contenedor2Context, point: Conten
   };
 }
 
+/** Genera el Estudio Territorial punto por punto con el núcleo metodológico, las fuentes y la ficha; informa el avance. */
 export async function generateContainer(
   prompt0Data: Prompt0Data,
   institutionalDriveText?: string,

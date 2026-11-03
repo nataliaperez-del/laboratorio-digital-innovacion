@@ -35,6 +35,7 @@ const GOOGLE_EXPORTS: Record<string, { exportMime: string; label: string }> = {
   'application/vnd.google-apps.presentation': { exportMime: 'text/plain', label: 'Google Slides' },
 };
 
+/** Metadatos de un archivo de Google Drive (id, nombre, tipo, carpeta). */
 export interface DriveFileMeta {
   id: string;
   name: string;
@@ -109,6 +110,7 @@ function territoryNameForFile(file: DriveFileMeta): { name: string; segments: st
  */
 export type TerritoryMatchTier = 'exact' | 'nested' | 'partial';
 
+/** Carpeta de Drive que corresponde a un municipio, con las otras que también coincidieron. */
 export interface TerritoryMatch {
   sources: DriveTerritorySources;
   tier: TerritoryMatchTier;
@@ -141,6 +143,7 @@ export function findTerritoryMatch(territories: DriveTerritorySources[] | undefi
   return null;
 }
 
+/** Fuentes de Drive del municipio indicado, o null si ninguna carpeta coincide. */
 export function findTerritorySources(territories: DriveTerritorySources[] | undefined | null, municipality: string): DriveTerritorySources | null {
   return findTerritoryMatch(territories, municipality)?.sources ?? null;
 }
@@ -168,6 +171,7 @@ function isSupportedMime(meta: DriveFileMeta): boolean {
   );
 }
 
+/** Carga una sola vez el script de Google Identity Services (OAuth en el navegador). */
 export function loadGoogleIdentityScript(): Promise<void> {
   return new Promise((resolve, reject) => {
     if (window.google?.accounts?.oauth2) {
@@ -233,6 +237,7 @@ export function clearDriveToken(): void {
  */
 let pendingTokenRequest: Promise<string> | null = null;
 
+/** Token de solo lectura de Drive: reutiliza el vigente o abre una sola ventana de Google aunque lo pidan varias llamadas. */
 export function requestDriveReadonlyToken(): Promise<string> {
   if (cachedDriveToken && Date.now() < cachedDriveToken.expiresAt) {
     return Promise.resolve(cachedDriveToken.token);
@@ -549,6 +554,7 @@ export interface DriveDocumentMeta {
   modifiedTime?: string;
 }
 
+/** Texto combinado de los documentos institucionales leídos de Drive, con los errores por archivo. */
 export interface LoadInstitutionalDriveResult {
   text: string;
   fileNames: string[];
@@ -579,6 +585,7 @@ function territoryFolderNamesFromPaths(folderPaths: string[]): string[] {
   return all.filter((p) => !all.some((other) => other !== p && other.startsWith(`${p}/`)));
 }
 
+/** Lee los documentos institucionales de la carpeta de Drive y los une en un solo texto con marcadores por archivo. */
 export async function loadInstitutionalDocumentsFromDrive(folderId: string = INSTITUTIONAL_DRIVE_FOLDER_ID): Promise<LoadInstitutionalDriveResult> {
   await loadGoogleIdentityScript();
   const token = await requestDriveReadonlyToken();
@@ -907,6 +914,7 @@ export function extractFirstInstitutionalFileFromBundle(bundleText: string, file
   return hit?.text ?? null;
 }
 
+/** Bloque institucional ya recortado según la prioridad de cada documento y el presupuesto del prompt. */
 export interface PrioritizedInstitutionalBlock {
   text: string;
   /** Aviso para el prompt cuando algún archivo quedó fuera o recortado. */

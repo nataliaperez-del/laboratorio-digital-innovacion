@@ -9,6 +9,7 @@ import { sanitizeCredential } from '@/lib/sanitizeCredential';
 /** Modelo por defecto: mejor equilibrio calidad/velocidad que flash-lite para contenedores y documentos largos. */
 export const DEFAULT_UNAD_GEMINI_MODEL = 'gemini-3.5-flash';
 
+/** Respuesta del proxy UNAD (formato generateContent de Gemini). */
 export type UnadGeminiGenerateResponse = {
   candidates?: Array<{
     content?: { parts?: Array<{ text?: string }>; role?: string };
@@ -17,6 +18,7 @@ export type UnadGeminiGenerateResponse = {
   error?: { message?: string; code?: number };
 };
 
+/** Texto generado y motivo de fin (p. ej. «MAX_TOKENS» si se cortó). */
 export type UnadGeminiGenerateResult = {
   text: string;
   /** p. ej. "STOP" (completo) o "MAX_TOKENS" (salida cortada por límite). */
@@ -104,6 +106,7 @@ function parseProxyResponse(rawText: string, status: number): UnadGeminiGenerate
 /** Intentos ante un corte de conexión con el servidor (no ante respuestas de error, que se tratan aparte). */
 const NETWORK_ATTEMPTS = 3;
 
+/** Mensaje para cuando el navegador no llega al servidor del Laboratorio. */
 export const NO_SERVER_MESSAGE =
   'No hay conexión con el servidor del Laboratorio, que es el que habla con la IA de la UNAD. Revisa tu internet; si trabajas en local, que el servidor esté encendido (npm run dev).';
 

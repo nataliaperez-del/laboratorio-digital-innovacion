@@ -4,6 +4,7 @@ import mammoth from 'mammoth';
 
 GlobalWorkerOptions.workerSrc = workerSrc;
 
+/** Texto de un PDF, página por página (pdf.js). */
 export async function extractTextFromPdf(buffer: ArrayBuffer): Promise<string> {
   const loadingTask = getDocument({ data: buffer });
   const pdf = await loadingTask.promise;
@@ -22,6 +23,7 @@ export async function extractTextFromPdf(buffer: ArrayBuffer): Promise<string> {
   }
 }
 
+/** Texto plano de un Word .docx (mammoth). */
 export async function extractTextFromDocx(buffer: ArrayBuffer): Promise<string> {
   const result = await mammoth.extractRawText({ arrayBuffer: buffer });
   return result.value;

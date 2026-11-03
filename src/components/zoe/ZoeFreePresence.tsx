@@ -135,6 +135,7 @@ interface Props {
   request: ZoeRequest | null;
 }
 
+/** ZOE en la pantalla: vida propia, conversación por voz, órdenes, manos sobre la interfaz y casita. */
 export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, theme, onToggleTheme, isOpen, onToggleOpen, request }) => {
   const voice = useZoeVoice();
   const [behavior, setBehavior] = useState<ZoeSoulState>('idle');

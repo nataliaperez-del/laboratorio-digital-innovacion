@@ -237,6 +237,7 @@ interface Props {
   onNavigate: (tool: ToolId) => void;
 }
 
+/** Herramienta Árbol de Innovación: tema, árbol interactivo y documento. */
 export const ArbolInnovacionView: React.FC<Props> = ({ onNavigate }) => {
   const {
     prompt0Data,

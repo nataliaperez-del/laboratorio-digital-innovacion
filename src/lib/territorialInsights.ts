@@ -5,8 +5,10 @@
  */
 import { buildDocumentPlan, inlineToPlainText, type InlineNode, type PlanBlock } from '@/lib/documentPlan';
 
+/** Calificación de evidencia de un pilar del estudio. */
 export type EvidenceRating = 'alto' | 'medio' | 'bajo' | 'sin evidencia';
 
+/** Un pilar de competitividad del estudio con su calificación y su sustento. */
 export interface Pillar {
   /** Subtítulo tal como aparece en el documento. */
   title: string;
@@ -15,6 +17,7 @@ export interface Pillar {
   markdownBlocks: PlanBlock[];
 }
 
+/** Puntaje de cada calificación de evidencia, para dibujar los pilares. */
 export const EVIDENCE_SCORE: Record<EvidenceRating, number> = { alto: 100, medio: 66, bajo: 33, 'sin evidencia': 6 };
 
 /** Tolera «Nivel de evidencia: alto», «…declarada: Medio» y «…de este pilar: Alto». */
@@ -64,6 +67,7 @@ export function parsePillars(markdown: string): Pillar[] {
     });
 }
 
+/** Matriz FODA del estudio: fortalezas, oportunidades, debilidades y amenazas. */
 export interface FodaMatrix {
   fortalezas: string[];
   debilidades: string[];
@@ -136,6 +140,7 @@ export function parseFoda(markdown: string): FodaMatrix | null {
   return filled >= 2 ? matrix : null;
 }
 
+/** Tarjeta de hallazgo del estudio para la vista interactiva. */
 export interface InsightCard {
   title: string;
   body: string;
@@ -168,6 +173,7 @@ export function parseInsightCards(markdown: string): InsightCard[] {
   return cards.length >= 2 ? cards : [];
 }
 
+/** Alerta de verificación humana encontrada en el estudio. */
 export interface StudyAlert {
   label: 'VACÍO-VERIFICAR' | 'REQUIERE CONTRASTE' | 'SIN ETIQUETA';
   detail: string;

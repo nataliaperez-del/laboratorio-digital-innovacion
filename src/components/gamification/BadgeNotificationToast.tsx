@@ -8,6 +8,7 @@ interface Props {
   onOpenBadgesModal: () => void;
 }
 
+/** Aviso que aparece al desbloquear una insignia. */
 export const BadgeNotificationToast: React.FC<Props> = ({ onOpenBadgesModal }) => {
   const {
     containerData,

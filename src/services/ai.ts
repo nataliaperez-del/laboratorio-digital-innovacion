@@ -55,6 +55,7 @@ export async function testAIConnection(): Promise<void> {
   await callAI('Responde únicamente con la palabra: OK', { maxOutputTokens: 256 });
 }
 
+/** Opciones de una llamada a la IA. */
 export type CallAIOptions = {
   /** Tokens de salida (documentos largos necesitan valores altos) */
   maxOutputTokens?: number;
@@ -481,6 +482,7 @@ export function defaultCallOptions(provider: AIProvider): { maxOutputTokens: num
   return { maxOutputTokens: provider === 'unadGemini' ? getUnadGeminiMaxOutputTokens() : 8192 };
 }
 
+/** Tope de salida para la UNAD: `VITE_UNAD_GEMINI_MAX_OUTPUT_TOKENS` o 8192 (el proxy falla con valores muy altos). */
 export function getUnadGeminiMaxOutputTokens(): number {
   const raw = import.meta.env.VITE_UNAD_GEMINI_MAX_OUTPUT_TOKENS?.trim();
   if (raw) {

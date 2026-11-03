@@ -5,10 +5,14 @@
  */
 import { marked, type Tokens } from 'marked';
 
+/** Nivel de un nodo del árbol: tronco global/nacional/territorial, hoja, fruto, raíz o suelo. */
 export type TreeLevel = 'suelo' | 'raiz' | 'tronco' | 'global' | 'nacional' | 'territorial' | 'hoja' | 'fruto';
+/** Tipo de fruto: proyecto, servicio o prototipo. */
 export type FruitType = 'proyecto' | 'servicio' | 'prototipo';
+/** Nivel de evidencia: N1 (del Observatorio), N2 (fuente citada) o N3 (hipótesis por verificar). */
 export type EvidenceLevel = 'N1' | 'N2' | 'N3';
 
+/** Un nodo del árbol interactivo con su nivel, evidencia, descripción y relaciones. */
 export interface TreeNode {
   codigo: string;
   nivel: TreeLevel;
@@ -24,6 +28,7 @@ export interface TreeNode {
   alertas: string[];
 }
 
+/** Árbol interactivo completo de un tema. */
 export interface TreeGraph {
   tema: string;
   nodos: TreeNode[];
@@ -31,6 +36,7 @@ export interface TreeGraph {
   origen: 'ia' | 'documento';
 }
 
+/** Nombre visible de cada nivel del árbol. */
 export const LEVEL_LABEL: Record<TreeLevel, string> = {
   suelo: 'Suelo · fuentes de sustento',
   raiz: 'Raíz · problemas y brechas',
@@ -42,6 +48,7 @@ export const LEVEL_LABEL: Record<TreeLevel, string> = {
   fruto: 'Fruto · resultado posible',
 };
 
+/** Nombre visible de cada tipo de fruto. */
 export const FRUIT_LABEL: Record<FruitType, string> = { proyecto: 'Proyecto', servicio: 'Servicio', prototipo: 'Prototipo' };
 
 const LEVELS = new Set<TreeLevel>(['suelo', 'raiz', 'tronco', 'global', 'nacional', 'territorial', 'hoja', 'fruto']);

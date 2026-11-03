@@ -5,6 +5,7 @@
  */
 import type { ToolId } from '@/components/layout/Header';
 
+/** Nombre de cada pantalla tal como lo dice ZOE. */
 export const TOOL_NAMES: Record<ToolId, string> = {
   portal: 'Inicio del Laboratorio',
   radar: 'Radar del Observatorio',
@@ -15,6 +16,7 @@ export const TOOL_NAMES: Record<ToolId, string> = {
   banco: 'Banco Unificado de Innovación',
 };
 
+/** Pista breve que ZOE da la primera vez que se visita cada pantalla. */
 export const TOOL_HINTS: Record<ToolId, string> = {
   portal: '¡Hola, hola! ¿Qué invento tenemos entre manos hoy? Tócame si quieres que te oriente.',
   radar: 'Estas señales vienen del Observatorio. Elige una y la llevamos a otra herramienta.',
@@ -39,6 +41,7 @@ export interface ZoeWorkState {
   prototypes: string[];
 }
 
+/** Resumen en texto del trabajo real de la persona (estudio, ideación, árbol, prototipos) para el contexto de la IA. */
 export function describeWork(work: ZoeWorkState): string {
   const lines = [
     work.studyBlocks
@@ -57,6 +60,7 @@ export function describeWork(work: ZoeWorkState): string {
   return lines.join('\n');
 }
 
+/** Órdenes que ZOE cumple sin consultar a la IA. */
 export type ZoeCommand =
   | { type: 'navigate'; tool: ToolId }
   | { type: 'theme'; value: 'dark' | 'light' }
@@ -151,6 +155,7 @@ export function wantsMoreTime(text: string): boolean {
   return /^(zoe[,\s]+)?(espera|esp[eé]rame|un momento|un segundo|d[eé]jame pensar|d[eé]jame terminar|no he terminado|todav[ií]a no)\b/i.test(text.trim());
 }
 
+/** Un turno de la conversación con ZOE. */
 export interface ZoeTurn {
   role: 'user' | 'zoe';
   text: string;

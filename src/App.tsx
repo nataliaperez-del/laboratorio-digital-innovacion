@@ -15,6 +15,7 @@ import { startAutoDeposit } from './store/bancoAutomatico';
 
 const ZoeIntro = lazy(() => import('./components/zoe/ZoeIntro'));
 
+/** Raíz de la aplicación: fondo, cabecera, la herramienta activa, ZOE, insignias y créditos. */
 export const App: React.FC = () => {
   // La herramienta vive en el hash: permite enlazarla desde el Observatorio y usar «Atrás».
   const readHash = (): ToolId => {

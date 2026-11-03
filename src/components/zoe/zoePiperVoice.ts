@@ -52,6 +52,7 @@ let queue: Promise<unknown> = Promise.resolve();
 
 const context = () => (audio ??= new AudioContext());
 
+/** ¿La voz propia ya está cargada? Si no, `speak` usa la del sistema. */
 export const isZoeVoiceReady = () => ready;
 
 /** Con datos ahorrados, conexión lenta o sin dónde guardar el modelo, ZOE usa la voz del sistema. */

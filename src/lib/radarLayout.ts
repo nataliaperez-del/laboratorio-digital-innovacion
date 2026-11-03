@@ -9,6 +9,7 @@ export interface RadarInput {
   impacto: number;
 }
 
+/** Un sector del radar (un área) con su ángulo y color. */
 export interface RadarSector {
   area: string;
   color: string;
@@ -17,6 +18,7 @@ export interface RadarSector {
   end: number;
 }
 
+/** Posición de una señal en el radar: cercanía al centro según impacto y tamaño según adopción. */
 export interface RadarPlot {
   id: number;
   bearing: number;
@@ -38,6 +40,7 @@ export function polar(bearing: number, range: number) {
   return { x: Math.sin(a) * range, y: -Math.cos(a) * range };
 }
 
+/** Reparte las señales en sectores por área (el ancho según cuántas tiene) y calcula dónde dibujar cada una. */
 export function layoutRadar(signals: RadarInput[]): { sectors: RadarSector[]; plots: RadarPlot[] } {
   const byArea = new Map<string, RadarInput[]>();
   for (const s of signals) byArea.set(s.area, [...(byArea.get(s.area) ?? []), s]);

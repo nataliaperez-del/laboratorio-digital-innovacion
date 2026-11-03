@@ -5,6 +5,7 @@
 
 export const INPUT_FILE_ACCEPT = '.pdf,.docx,.txt,.md,.markdown,.csv,.json';
 
+/** Texto de un archivo que sube la persona (TXT, MD, PDF o DOCX; los lectores de PDF y Word se cargan solo si hacen falta). */
 export async function readInputFile(file: File): Promise<string> {
   const name = file.name.toLowerCase();
   let text: string;

@@ -21,6 +21,7 @@ import {
   type TreePromptInputs,
 } from '@/prompts/themeAndInnovationPrompts';
 
+/** Tema del árbol, su explicación y si se usa el Estudio Territorial como evidencia de la raíz. */
 export interface InnovationTreeRequest {
   themeName: string;
   themeExplanation?: string;
@@ -28,6 +29,7 @@ export interface InnovationTreeRequest {
   useTerritorialStudy?: boolean;
 }
 
+/** Documento del árbol, sus partes y el grafo interactivo. */
 export interface InnovationTreeResult {
   markdown: string;
   sections: GenerationPartResult[];
@@ -109,6 +111,7 @@ export async function buildGraphFromDocument(themeName: string, markdown: string
   }
 }
 
+/** Genera el documento del Árbol por partes y al final su grafo interactivo. */
 export async function generateInnovationTree(request: InnovationTreeRequest, onProgress?: (p: GenerationPartProgress) => void): Promise<InnovationTreeResult> {
   beginGenerationFlow();
   const ctx = await prepareContext(request);

@@ -1,3 +1,4 @@
+/** Un modelo de un proveedor en el selector del panel «IA». */
 export interface AIModelOption {
   id: string;
   label: string;
@@ -5,6 +6,7 @@ export interface AIModelOption {
   recommended?: boolean;
 }
 
+/** Un proveedor de IA del panel: nombre, categoría, modelos y ayuda para la clave. */
 export interface AIProviderConfig {
   id: string;
   name: string;
@@ -37,12 +39,14 @@ const RETIRED_ANTHROPIC_MODEL_REPLACEMENTS: Record<string, string> = {
   'claude-opus-4-1-20250805': 'claude-opus-5',
 };
 
+/** Modelo de Anthropic a usar: el pedido o su reemplazo si fue retirado; vacío → el predeterminado. */
 export function resolveAnthropicModel(modelId?: string | null): string {
   const id = modelId?.trim() ?? '';
   if (!id) return DEFAULT_ANTHROPIC_MODEL;
   return RETIRED_ANTHROPIC_MODEL_REPLACEMENTS[id] ?? id;
 }
 
+/** Proveedores que ofrece el panel «IA», empezando por el institucional UNAD. */
 export const AI_PROVIDERS_CATALOG: Record<string, AIProviderConfig> = {
   unadGemini: {
     id: 'unadGemini',

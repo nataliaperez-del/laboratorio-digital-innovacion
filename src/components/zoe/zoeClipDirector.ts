@@ -33,6 +33,7 @@ export const CLIP_ROLES = {
   rollOver: ['rollover'],
 } as const;
 
+/** Papel de un clip del modelo: reposo, caminar, trotar, sentarse, echarse, dormir y gestos. */
 export type ClipRole = keyof typeof CLIP_ROLES;
 /** Gestos de una sola vez que se pueden pedir encima de la postura. */
 export type ZoeGesture = Extract<ClipRole, 'happy' | 'play' | 'wave' | 'shake' | 'scratch' | 'sniff' | 'jump' | 'rollOver'>;
@@ -90,6 +91,7 @@ interface Step {
   fade: number;
 }
 
+/** Elige y encadena los clips del GLB según el estado del cuerpo (de pie, caminando, sentado, echado, dormido), con fundidos y transiciones naturales. */
 export class ZoeClipDirector {
   readonly roles: Partial<Record<ClipRole, string>>;
   private readonly actions = new Map<ClipRole | 'rest', THREE.AnimationAction>();

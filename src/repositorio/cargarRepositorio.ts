@@ -9,6 +9,7 @@
 import { REPO_BASE_URL, REPO_GRUPOS, REPO_MANIFEST_URL } from '@/constants/repositorio';
 import type { GrupoRepositorio, Manifest, RecursoMeta, TipoRecurso } from '@/repositorio/tipos';
 
+/** Un recurso del núcleo metodológico con su texto. */
 export type Recurso = { meta: RecursoMeta; texto: string };
 
 let manifestCache: Manifest | null = null;

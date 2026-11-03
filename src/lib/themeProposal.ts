@@ -4,6 +4,7 @@ export interface ParsedTheme {
   body: string;
 }
 
+/** La propuesta de Ideación ya leída: vocación y los tres temas. */
 export interface ParsedThemeProposal {
   vocationMarkdown: string;
   themes: ParsedTheme[];

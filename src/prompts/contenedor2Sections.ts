@@ -25,8 +25,10 @@ type AppPoint = {
   kind: 'app';
 };
 
+/** Uno de los doce puntos del Estudio Territorial (metodología MDVT). */
 export type Contenedor2Point = AiPoint | AppPoint;
 
+/** Número, título, fase y extensión mínima de un punto del estudio. */
 export type Contenedor2SectionMeta = Contenedor2Point;
 
 /**
@@ -36,6 +38,7 @@ export type Contenedor2SectionMeta = Contenedor2Point;
  */
 export type Contenedor2SectionStatus = 'ok' | 'warning' | 'failed';
 
+/** Un punto generado del estudio con su estado de revisión. */
 export type Contenedor2SectionResult = {
   number: number;
   title: string;
@@ -47,6 +50,7 @@ export type Contenedor2SectionResult = {
   issue?: string;
 };
 
+/** Estudio Territorial completo: Markdown y puntos. */
 export type Contenedor2DocumentResult = {
   markdown: string;
   sections: Contenedor2SectionResult[];
@@ -384,6 +388,7 @@ export function contenedor2Points(focusText: string): readonly Contenedor2Point[
   );
 }
 
+/** Avance mientras se genera el estudio. */
 export type Contenedor2SectionProgress = {
   currentSection: number;
   totalSections: number;

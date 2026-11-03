@@ -23,6 +23,7 @@ export interface ProcedenciaDocumento {
   modificado: string;
 }
 
+/** Qué fuentes alimentaron un resultado: núcleo, Drive, internet o documentos propios. */
 export type ProcedenciaFuentes =
   | { modo: 'sin_fuentes'; declarado: true }
   | {
@@ -34,6 +35,7 @@ export type ProcedenciaFuentes =
       documentos: ProcedenciaDocumento[];
     };
 
+/** Trazabilidad de un resultado: versión y firma del núcleo y fuentes usadas. */
 export interface Procedencia {
   repositorio: ProcedenciaRepositorio;
   fuentesPropias: ProcedenciaFuentes;

@@ -1,5 +1,6 @@
 import React from 'react';
 
+/** Insignia a dibujar, tamaño y si está desbloqueada. */
 export interface BadgeGraphicProps {
   size?: number;
   className?: string;
@@ -11,6 +12,7 @@ interface InternalBadgeProps extends BadgeGraphicProps {
   title: string;
 }
 
+/** Colores de cada insignia según su herramienta. */
 export const BADGE_UNIT_THEMES: Record<string, { primary: string; glow: string; label: string }> = {
   pionero_territorial: {
     primary: '#10B981', // Verde esmeralda territorial distinguido y sobrio

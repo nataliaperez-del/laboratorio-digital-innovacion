@@ -31,6 +31,7 @@ import { openCertificatePrintWindow } from '@/lib/certificatePdfExport';
 import type { PrototypePlan } from '@/services/prototyping';
 import type { ToolId } from '@/components/layout/Header';
 
+/** Pestañas del Banco: estudios, ideaciones, árboles, prototipos y logros. */
 export type BancoTab = 'estudio' | 'ideacion' | 'arbol' | 'prototipado' | 'logros';
 
 interface Props {
@@ -38,6 +39,7 @@ interface Props {
   defaultTab?: BancoTab;
 }
 
+/** Banco Unificado: consulta, descarga y reutiliza los ejercicios guardados; insignias y certificados. */
 export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 'prototipado' }) => {
   const [activeTab, setActiveTab] = useState<BancoTab>(defaultTab);
 

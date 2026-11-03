@@ -32,6 +32,7 @@ export function keywordsFromText(text: string): string[] {
   return [...new Set(words)];
 }
 
+/** Cómo nombrar el ejercicio según la Ficha Base: el nombre del proyecto o, si se escribió un tema, el tema como foco. */
 export function fichaIdentity(p: FichaIdentityFields): FichaIdentity {
   const written = p.labName?.trim() || '';
   if ((p.labNameKind ?? 'nombre') !== 'tema' || !written) {

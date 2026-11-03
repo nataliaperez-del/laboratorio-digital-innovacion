@@ -1,6 +1,7 @@
 import { Compass, BrainCircuit, Trees, Rocket, FolderArchive, Sparkles, Award, Crown, type LucideIcon } from 'lucide-react';
 import type { AppState } from '@/store/useStore';
 
+/** Una insignia: nombre, descripción, criterio y estilo. */
 export interface BadgeDefinition {
   id: string;
   title: string;
@@ -13,6 +14,7 @@ export interface BadgeDefinition {
   xp: number;
 }
 
+/** Las siete insignias del Laboratorio. */
 export const INNOVATION_BADGES: BadgeDefinition[] = [
   {
     id: 'pionero_territorial',
@@ -93,6 +95,7 @@ export const INNOVATION_BADGES: BadgeDefinition[] = [
   },
 ];
 
+/** Un nivel de experiencia, de Observador Regional a Líder de Innovación 360. */
 export interface InnovationRank {
   level: number;
   title: string;
@@ -103,6 +106,7 @@ export interface InnovationRank {
   description: string;
 }
 
+/** Niveles de experiencia en orden. */
 export const INNOVATION_RANKS: InnovationRank[] = [
   {
     level: 1,
@@ -142,6 +146,7 @@ export const INNOVATION_RANKS: InnovationRank[] = [
   },
 ];
 
+/** Insignias desbloqueadas, nivel y experiencia calculados del trabajo guardado. */
 export interface GamificationState {
   unlockedBadgeIds: string[];
   totalXp: number;

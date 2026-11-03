@@ -1207,4 +1207,5 @@ export const DIVIPOLA_LOCATIONS: Record<string, string[]> = Object.fromEntries(
     .sort((a, b) => a[0].localeCompare(b[0], 'es')),
 );
 
+/** Departamentos de Colombia según la codificación DIVIPOLA del DANE. */
 export const DIVIPOLA_DEPARTMENT_NAMES: string[] = Object.keys(DIVIPOLA_LOCATIONS);

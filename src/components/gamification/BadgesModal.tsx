@@ -12,6 +12,7 @@ interface Props {
   onNavigate?: (tool: ToolId) => void;
 }
 
+/** Vitrina de insignias y niveles, con acceso a los certificados. */
 export const BadgesModal: React.FC<Props> = ({ isOpen, onClose, onNavigate }) => {
   const { containerData, savedStudies, themeProposalMarkdown, savedIdeations, treeGraph, savedTrees, prototypes, zoeInteractions, prompt0Data } = useStore();
 

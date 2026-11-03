@@ -38,6 +38,7 @@ const TABS: Array<{ id: PlanTab; label: string }> = [
   { id: 'validacion', label: 'Validación y riesgos' },
 ];
 
+/** Vista por pestañas de un plan de prototipado. */
 export const PlanView: React.FC<{ plan: PrototypePlan }> = ({ plan }) => {
   const [tab, setTab] = useState<PlanTab>('general');
   const [phase, setPhase] = useState(0);
@@ -180,6 +181,7 @@ interface Props {
   onNavigate: (tool: ToolId) => void;
 }
 
+/** Herramienta de Prototipado: formulario de la idea y plan generado. */
 export const PrototipadoView: React.FC<Props> = ({ onNavigate }) => {
   const { prompt0Data, treeGraph, prototypeSeed, setPrototypeSeed, prototypes, addPrototype, removePrototype, activePrototypeId, clearPrototipado } =
     useStore();

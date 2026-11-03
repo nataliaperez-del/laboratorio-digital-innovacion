@@ -21,6 +21,7 @@ import {
   type VocationPromptInputs,
 } from '@/prompts/themeAndInnovationPrompts';
 
+/** Documento generado por partes: Markdown completo y partes con su estado. */
 export interface GeneratedDocument {
   markdown: string;
   sections: GenerationPartResult[];
@@ -91,6 +92,7 @@ async function generateVocationPart(ctx: VocationContext, partIndex: number, pre
   });
 }
 
+/** Genera la Ideación (vocación y tres temas) parte por parte, con revisión y reparación. */
 export async function generateThemeVocationAndOptions(source: InputSource, onProgress?: (p: GenerationPartProgress) => void): Promise<GeneratedDocument> {
   beginGenerationFlow();
   const ctx = await prepareVocationContext(source);
@@ -103,6 +105,7 @@ export async function generateThemeVocationAndOptions(source: InputSource, onPro
   return { markdown: assembleParts(sections), sections };
 }
 
+/** Vuelve a generar una sola parte de la Ideación con las demás como contexto. */
 export async function regenerateVocationSection(
   source: InputSource,
   partIndex: number,

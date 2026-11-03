@@ -24,6 +24,7 @@ export const ToolHeader: React.FC<{
   </div>
 );
 
+/** Aviso de error de una herramienta, con reintento opcional. */
 export const ErrorNotice: React.FC<{ message: string | null; onClose: () => void }> = ({ message, onClose }) =>
   message ? (
     <div className="lab-error" role="alert">
@@ -35,6 +36,7 @@ export const ErrorNotice: React.FC<{ message: string | null; onClose: () => void
     </div>
   ) : null;
 
+/** Avance de una generación por partes. */
 export interface ProgressState {
   current: number;
   total: number;
@@ -64,6 +66,7 @@ export const GenerationProgress: React.FC<{ progress: ProgressState | null; labe
   );
 };
 
+/** Bloque marcado «por revisar» con su motivo. */
 export interface ReviewItem {
   number: number;
   title: string;
@@ -263,6 +266,7 @@ export const FileDrop: React.FC<{ fileName: string | null; onLoaded: (name: stri
   );
 };
 
+/** Estado vacío de una herramienta, con una invitación a empezar. */
 export const EmptyState: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
   <div className="lab-panel text-center py-12 px-6 space-y-2">
     <FileText className="w-10 h-10 mx-auto text-white/25" aria-hidden="true" />
@@ -271,6 +275,7 @@ export const EmptyState: React.FC<{ title: string; children: React.ReactNode }> 
   </div>
 );
 
+/** Selector de opciones en botones contiguos (accesible como grupo de radio). */
 export const SegmentedControl = <T extends string>({
   options,
   value,

@@ -14,6 +14,7 @@ const DB_NAME = 'lab-drive-cache';
 const DB_VERSION = 1;
 const STORE = 'files';
 
+/** Texto de Drive guardado en caché con su fecha. */
 export interface DriveCacheEntry {
   /** ID del archivo en Google Drive (clave primaria). */
   id: string;

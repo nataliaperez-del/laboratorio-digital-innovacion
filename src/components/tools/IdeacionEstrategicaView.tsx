@@ -110,6 +110,7 @@ interface Props {
   onNavigate: (tool: ToolId) => void;
 }
 
+/** Herramienta Ideación: insumo, vocación y tres temas para elegir. */
 export const IdeacionEstrategicaView: React.FC<Props> = ({ onNavigate }) => {
   const {
     containerData,

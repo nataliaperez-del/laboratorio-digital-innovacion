@@ -1,5 +1,6 @@
 import { INNOVATION_BADGES, type InnovationRank } from './gamification';
 
+/** Datos del certificado de una insignia: competencia, horas, unidad y textos. */
 export interface BadgeCertificateMetadata {
   id: string;
   badgeTitle: string;
@@ -10,6 +11,7 @@ export interface BadgeCertificateMetadata {
   badgeColor: string;
 }
 
+/** Certificado de cada insignia del Laboratorio. */
 export const BADGE_CERTIFICATES: Record<string, BadgeCertificateMetadata> = {
   pionero_territorial: {
     id: 'pionero_territorial',
@@ -83,6 +85,7 @@ export const BADGE_CERTIFICATES: Record<string, BadgeCertificateMetadata> = {
   },
 };
 
+/** Lo que se imprime en un certificado: insignia, persona, documento, equipo y fecha. */
 export interface CertificateData {
   recipientName?: string;
   recipientId?: string;
@@ -91,6 +94,7 @@ export interface CertificateData {
   issueDate?: string;
 }
 
+/** Color y rótulo de la herramienta de cada insignia en el certificado. */
 export const BADGE_UNIT_COLORS: Record<string, { primary: string; glow: string; label: string }> = {
   pionero_territorial: {
     primary: '#10B981', // Verde esmeralda territorial distinguido
@@ -129,6 +133,7 @@ export const BADGE_UNIT_COLORS: Record<string, { primary: string; glow: string; 
   },
 };
 
+/** HTML imprimible del certificado de una insignia (se abre para guardar como PDF). */
 export function generateCertificateHtml(data: CertificateData): string {
   const recipientName = data.recipientName?.trim() || 'Natalia Elizabeth Pérez Cabrera';
   const recipientId = data.recipientId?.trim() || 'C.C. 1.085.241.978';

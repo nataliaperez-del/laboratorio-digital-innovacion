@@ -5,8 +5,10 @@
  */
 import { keywordsFromText } from '@/lib/fichaIdentity';
 
+/** Sitio público del Observatorio InnovaHub360. */
 export const OBSERVATORIO_URL = 'https://observatorio.innovahub360.net/';
 
+/** Una señal del Radar del Observatorio, ya normalizada. */
 export interface RadarSignal {
   id: number;
   nombre: string;
@@ -33,6 +35,7 @@ export interface RadarSignal {
   territorios: string[];
 }
 
+/** Señales del Radar con la fecha y la fuente de la consulta. */
 export interface RadarFeed {
   consultadoEn: string;
   fuente: string;
@@ -76,6 +79,7 @@ export function normalizeRadarSignal(raw: Record<string, unknown>): RadarSignal 
 
 let feedPromise: Promise<RadarFeed> | null = null;
 
+/** Lee el Radar del Observatorio una vez por sesión (comparte la misma promesa); si falla, el siguiente intento vuelve a consultar. */
 export function loadRadarFeed(): Promise<RadarFeed> {
   if (feedPromise) return feedPromise;
   feedPromise = (async () => {

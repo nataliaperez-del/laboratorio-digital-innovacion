@@ -9,6 +9,7 @@ import type { TreeGraph } from '@/lib/innovationTreeGraph';
 import type { PrototypeBrief, PrototypePlan } from '@/services/prototyping';
 import type { Procedencia } from '@/repositorio/procedencia';
 
+/** Proveedores de IA del panel «IA»: la UNAD (por defecto) o uno comercial/local con clave propia. */
 export type AIProvider = 'unadGemini' | 'gemini' | 'openai' | 'anthropic' | 'ollama';
 
 /**
@@ -18,6 +19,7 @@ export type AIProvider = 'unadGemini' | 'gemini' | 'openai' | 'anthropic' | 'oll
  */
 export type CipNameKind = 'nombre' | 'tema';
 
+/** Ficha Base: proyecto o idea, zona UNAD y territorio. */
 export interface Prompt0Data {
   labName: string;
   /** Fichas guardadas antes de existir este campo se leen como `nombre`. */
@@ -31,6 +33,7 @@ export interface Prompt0Data {
   specificLocation?: string;
 }
 
+/** Texto institucional leído de Drive, guardado solo en memoria. */
 export interface InstitutionalDriveBundle {
   text: string;
   fileNames: string[];
@@ -55,6 +58,7 @@ export interface SavedStudy {
   sections: Contenedor2SectionResult[];
 }
 
+/** Una ideación guardada en el Banco Unificado. */
 export interface SavedIdeation {
   id: string;
   createdAt: string;
@@ -65,6 +69,7 @@ export interface SavedIdeation {
   selectedThemeIndex: number | null;
 }
 
+/** Un Árbol de Innovación guardado en el Banco Unificado. */
 export interface SavedTree {
   id: string;
   createdAt: string;
@@ -74,6 +79,7 @@ export interface SavedTree {
   graph: TreeGraph;
 }
 
+/** De dónde salen las fuentes del Estudio: solo internet o también documentos propios. */
 export type FuentesMode = 'sin_fuentes' | 'con_fuentes';
 
 /** Un documento legible descubierto en la carpeta de fuentes propias del territorio. */
@@ -97,6 +103,7 @@ export interface FuentesConexion {
   documentos: FuenteDocumentoMeta[];
 }
 
+/** Estado global de la aplicación (zustand). Lo que se guarda en el navegador lo decide `partialize`; las claves de IA viven solo en la pestaña. */
 export interface AppState {
   institutionalDriveBundle: InstitutionalDriveBundle | null;
   setInstitutionalDriveBundle: (bundle: InstitutionalDriveBundle | null) => void;
@@ -215,6 +222,7 @@ const INITIAL_PROMPT0: Prompt0Data = {
   specificLocation: '',
 };
 
+/** Almacén global persistido en localStorage («lab-app-state», versión 4 con migraciones). */
 export const useStore = create<AppState>()(
   persist(
     (set) => ({

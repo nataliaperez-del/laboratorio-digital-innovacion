@@ -8,6 +8,7 @@
 import { LAB_SCOPE_RULES, scopeIssue, tailForCoherence } from '@/prompts/labGuardrails';
 import { parseThemeProposal } from '@/lib/themeProposal';
 
+/** Número y título de una parte del documento que se genera por partes. */
 export type GenerationPartMeta = {
   /** 1-based, dentro de su flujo */
   number: number;
@@ -15,14 +16,17 @@ export type GenerationPartMeta = {
   title: string;
 };
 
+/** Avance que se muestra mientras se genera: parte actual, total y título. */
 export type GenerationPartProgress = {
   currentPart: number;
   totalParts: number;
   partTitle: string;
 };
 
+/** Resultado de la revisión de una parte: «ok», «warning» (se muestra con aviso) o «failed» (sin contenido). */
 export type GenerationPartStatus = 'ok' | 'warning' | 'failed';
 
+/** Una parte generada con su estado de revisión; `issue` explica el aviso o el fallo. */
 export interface GenerationPartResult {
   number: number;
   title: string;
@@ -34,6 +38,7 @@ export interface GenerationPartResult {
 /** De dónde sale el insumo de una herramienta; todas pueden trabajar solas o encadenadas. */
 export type InputSourceKind = 'texto' | 'archivo' | 'estudio' | 'ideacion' | 'observatorio';
 
+/** Insumo de Ideación, el Árbol o Prototipado: un tema escrito, un archivo, el Estudio, la Ideación o una señal del Observatorio. */
 export interface InputSource {
   kind: InputSourceKind;
   /** Rótulo legible: nombre del archivo, señal del Radar, etc. */
@@ -89,6 +94,7 @@ La versión anterior de «${title}» tuvo esta observación: ${issue}
 Redacta el contenido completo sin rayas divisorias (---) y sin texto truncado.${extra}`;
 }
 
+/** Une el Markdown de las partes que tienen contenido, en orden, separadas por una línea en blanco. */
 export function assembleParts(sections: readonly GenerationPartResult[]): string {
   return sections
     .map((s) => s.markdown.trim())
@@ -100,11 +106,13 @@ export function assembleParts(sections: readonly GenerationPartResult[]): string
 // Ideación · Vocación + 3 opciones de tema
 // ─────────────────────────────────────────────────
 
+/** Partes de la Ideación: la vocación y las tres opciones de tema. */
 export const VOCATION_PARTS: readonly GenerationPartMeta[] = [
   { number: 1, title: 'Vocación' },
   { number: 2, title: 'Tres opciones de tema' },
 ] as const;
 
+/** Todo lo que necesita el prompt de Ideación: insumo, FODA, marco institucional, ficha y plantilla. */
 export interface VocationPromptInputs {
   source: InputSource;
   /** Matriz FODA, solo cuando el insumo es un Estudio Territorial que la trae. */
@@ -181,6 +189,7 @@ ${institutionalVocacionPromptText.trim()}
 `.trim();
 }
 
+/** Prompt de una parte de la Ideación, con lo ya generado como contexto para no repetirlo. */
 export function buildThemeVocationPartPrompt(inputs: VocationPromptInputs, partIndex: number, previousMarkdown: string): string {
   const meta = VOCATION_PARTS[partIndex];
   if (!meta) throw new Error(`Parte de vocación inválida: ${partIndex}`);
@@ -217,6 +226,7 @@ Redacta ahora **únicamente** esta parte.
 `.trim();
 }
 
+/** Revisa una parte de la Ideación (extensión mínima, menciones prohibidas, declaración de vocación…). */
 export function reviewVocationPart(partIndex: number, markdown: string): { status: GenerationPartStatus; issue?: string } {
   const common = reviewCommon(markdown, 120);
   if (common) return common;
@@ -233,6 +243,7 @@ export function reviewVocationPart(partIndex: number, markdown: string): { statu
   return { status: 'ok' };
 }
 
+/** Instrucción que se agrega al prompt de Ideación para corregir lo que encontró la revisión. */
 export function buildVocationSelfRepairSuffix(partIndex: number, issue: string): string {
   return selfRepairSuffix(
     VOCATION_PARTS[partIndex]?.title ?? 'esta parte',
@@ -245,6 +256,7 @@ export function buildVocationSelfRepairSuffix(partIndex: number, issue: string):
 // Árbol de innovación (10 → 5 → 3)
 // ─────────────────────────────────────────────────
 
+/** Partes del documento del Árbol de Innovación (tendencias 10-5-3, oportunidades, frutos, brechas y fuentes). */
 export const INNOVATION_TREE_PARTS: readonly GenerationPartMeta[] = [
   { number: 1, title: 'Tema central y 10 tendencias globales' },
   { number: 2, title: 'Tendencias en Colombia y en el territorio' },
@@ -261,6 +273,7 @@ const TREE_PART_SCOPES: readonly string[] = [
   `Las **Fuentes consultadas** (APA 7), el apartado **«Alertas pendientes de verificación»** (acumula TODAS las marcas de las partes anteriores) y la **síntesis estratégica final** en un párrafo académico.`,
 ] as const;
 
+/** Todo lo que necesita el prompt del Árbol: tema, ficha, estudio territorial opcional, señales del Observatorio y plantilla. */
 export interface TreePromptInputs {
   themeName: string;
   themeExplanation: string;
@@ -297,6 +310,7 @@ ${inputs.institutionalArbolPromptText.trim()}
 `.trim();
 }
 
+/** Prompt de una parte del Árbol, con lo ya generado como contexto. */
 export function buildInnovationTreePartPrompt(inputs: TreePromptInputs, partIndex: number, previousMarkdown: string): string {
   const meta = INNOVATION_TREE_PARTS[partIndex];
   const scope = TREE_PART_SCOPES[partIndex];
@@ -324,6 +338,7 @@ Redacta ahora **únicamente** esta parte.
 `.trim();
 }
 
+/** Revisa una parte del Árbol: extensión mínima y que estén sus tablas obligatorias. */
 export function reviewInnovationTreePart(partIndex: number, markdown: string): { status: GenerationPartStatus; issue?: string } {
   const common = reviewCommon(markdown, 150);
   if (common) return common;
@@ -339,6 +354,7 @@ export function reviewInnovationTreePart(partIndex: number, markdown: string): {
   return { status: 'ok' };
 }
 
+/** Instrucción que se agrega al prompt del Árbol para corregir lo que encontró la revisión. */
 export function buildInnovationTreeSelfRepairSuffix(partIndex: number, issue: string): string {
   return selfRepairSuffix(INNOVATION_TREE_PARTS[partIndex]?.title ?? 'esta parte', issue);
 }

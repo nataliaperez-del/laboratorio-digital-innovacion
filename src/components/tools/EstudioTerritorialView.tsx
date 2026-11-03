@@ -326,6 +326,7 @@ interface Props {
   onNavigate: (tool: ToolId) => void;
 }
 
+/** Herramienta Estudio Territorial: Ficha Base, fuentes y diagnóstico MDVT. */
 export const EstudioTerritorialView: React.FC<Props> = ({ onNavigate }) => {
   const {
     prompt0Data,

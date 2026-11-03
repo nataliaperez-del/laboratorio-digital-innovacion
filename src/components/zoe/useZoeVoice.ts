@@ -51,6 +51,7 @@ export function splitSentences(text: string): string[] {
   return sentences.flatMap((sentence) => (sentence.length <= MAX_UTTERANCE_CHARS ? [sentence] : splitLong(sentence)));
 }
 
+/** Por qué ZOE no pudo escuchar: permiso, micrófono, HTTPS, red, silencio u otro error. */
 export type ZoeListenFailure = 'sin-permiso' | 'sin-microfono' | 'mic-mudo' | 'sin-https' | 'sin-red' | 'sin-voz' | 'error';
 
 /** Espera a que la persona empiece a hablar; el reconocedor solo aguanta unos segundos y se reabre. */

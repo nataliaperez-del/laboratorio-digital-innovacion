@@ -9,9 +9,12 @@ import { LAB_SCOPE_RULES } from '@/prompts/labGuardrails';
 import { UNAD_ESCUELAS } from '@/constants/unadEscuelas';
 import { formatFichaCompact } from '@/services/ideation';
 
+/** Tipos de prototipo que ofrece el formulario de Prototipado. */
 export const PROTOTYPE_CATEGORIES = ['Prototipo Tecnológico', 'Servicio de Innovación', 'Proyecto Territorial', 'Transferencia Tecnológica'] as const;
+/** Uno de los tipos de `PROTOTYPE_CATEGORIES`. */
 export type PrototypeCategory = (typeof PROTOTYPE_CATEGORIES)[number];
 
+/** Niveles de madurez tecnológica (TRL, escala de la NASA) que se pueden fijar como meta: de la prueba de concepto (3) a la demostración real (6). */
 export const TRL_OPTIONS = [
   'TRL 3 · Prueba de concepto experimental',
   'TRL 4 · Validación en laboratorio',
@@ -19,10 +22,13 @@ export const TRL_OPTIONS = [
   'TRL 6 · Demostración en entorno real',
 ] as const;
 
+/** Alcances territoriales posibles del prototipo. */
 export const SCOPE_OPTIONS = ['Local y comunitario', 'Municipal y zonal', 'Regional o departamental', 'Nacional'] as const;
 
+/** De dónde viene la idea: escrita, un fruto del Árbol, la Ideación o una señal del Observatorio. */
 export type PrototypeOriginKind = 'idea' | 'arbol' | 'ideacion' | 'observatorio';
 
+/** Origen de la idea con su rótulo, para mostrarlo en el plan. */
 export interface PrototypeOrigin {
   kind: PrototypeOriginKind;
   /** Código del fruto cuando viene del árbol. */
@@ -30,6 +36,7 @@ export interface PrototypeOrigin {
   label: string;
 }
 
+/** Lo que la persona pide: idea, tipo, meta TRL, alcance y origen. */
 export interface PrototypeBrief {
   origin: PrototypeOrigin;
   topic: string;
@@ -40,6 +47,7 @@ export interface PrototypeBrief {
   scope: string;
 }
 
+/** Una fase del cronograma del plan. */
 export interface PrototypePhase {
   fase: string;
   semanas: string;
@@ -47,6 +55,7 @@ export interface PrototypePhase {
   entregables: string[];
 }
 
+/** Plan de prototipado completo: hipótesis, arquitectura, fases, métricas, riesgos y madurez. */
 export interface PrototypePlan {
   id: string;
   createdAt: string;
@@ -159,6 +168,7 @@ export function normalizePrototypePlan(raw: unknown, brief: PrototypeBrief): Pro
   };
 }
 
+/** Pide a la IA el plan de prototipado (JSON) y lo normaliza; lanza si la idea está vacía o la IA falla. */
 export async function generatePrototypePlan(brief: PrototypeBrief): Promise<PrototypePlan> {
   beginGenerationFlow();
   if (!brief.topic.trim()) throw new Error('Escribe la idea o elige un fruto del árbol para armar el plan.');
