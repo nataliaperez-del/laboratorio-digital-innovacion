@@ -167,6 +167,12 @@ interface AppState {
   addSavedTree: (tree: SavedTree) => void;
   removeSavedTree: (id: string) => void;
 
+  // ── Gamificación e Insignias de Innovación ──
+  zoeInteractions: number;
+  recordZoeInteraction: () => void;
+  acknowledgedBadges: string[];
+  acknowledgeBadge: (badgeId: string) => void;
+
   // ── Proveedor de IA (igual que Fase 1) ──
   aiProvider: AIProvider;
   setAiProvider: (provider: AIProvider) => void;
@@ -268,6 +274,15 @@ export const useStore = create<AppState>()(
       addSavedTree: (tree) =>
         set((state) => ({ savedTrees: [tree, ...state.savedTrees.filter((t) => t.id !== tree.id)] })),
       removeSavedTree: (id) => set((state) => ({ savedTrees: state.savedTrees.filter((t) => t.id !== id) })),
+      zoeInteractions: 0,
+      recordZoeInteraction: () => set((state) => ({ zoeInteractions: (state.zoeInteractions || 0) + 1 })),
+      acknowledgedBadges: [],
+      acknowledgeBadge: (badgeId) =>
+        set((state) => ({
+          acknowledgedBadges: (state.acknowledgedBadges || []).includes(badgeId)
+            ? state.acknowledgedBadges
+            : [...(state.acknowledgedBadges || []), badgeId],
+        })),
       aiProvider: 'unadGemini',
       setAiProvider: (provider) => set({ aiProvider: provider }),
       apiKeys: {
@@ -352,6 +367,8 @@ export const useStore = create<AppState>()(
         savedStudies: state.savedStudies,
         savedIdeations: state.savedIdeations,
         savedTrees: state.savedTrees,
+        zoeInteractions: state.zoeInteractions,
+        acknowledgedBadges: state.acknowledgedBadges,
         aiProvider: state.aiProvider,
         ollamaUrl: state.ollamaUrl,
         ollamaModel: state.ollamaModel,

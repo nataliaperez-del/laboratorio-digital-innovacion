@@ -12,8 +12,11 @@ import {
   Menu,
   X,
   Home,
-  FolderArchive
+  FolderArchive,
+  Trophy
 } from 'lucide-react';
+import { useStore } from '@/store/useStore';
+import { evaluateGamification, INNOVATION_BADGES } from '@/lib/gamification';
 
 export type ToolId = 'portal' | 'radar' | 'estudio' | 'ideacion' | 'arbol' | 'prototipado' | 'banco';
 export const TOOL_IDS: readonly ToolId[] = ['portal', 'radar', 'estudio', 'ideacion', 'arbol', 'prototipado', 'banco'];
@@ -26,6 +29,7 @@ interface HeaderProps {
   isZoeOpen: boolean;
   onToggleZoe: () => void;
   zoeState: string;
+  onOpenBadges?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -36,9 +40,32 @@ export const Header: React.FC<HeaderProps> = ({
   isZoeOpen,
   onToggleZoe,
   zoeState,
+  onOpenBadges,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const {
+    containerData,
+    savedStudies,
+    themeProposalMarkdown,
+    savedIdeations,
+    treeGraph,
+    savedTrees,
+    prototypes,
+    zoeInteractions,
+  } = useStore();
+
+  const gamification = evaluateGamification({
+    containerData,
+    savedStudies,
+    themeProposalMarkdown,
+    savedIdeations,
+    treeGraph,
+    savedTrees,
+    prototypes,
+    zoeInteractions,
+  });
 
   // Cerrar menú al hacer clic afuera
   useEffect(() => {
@@ -159,6 +186,23 @@ export const Header: React.FC<HeaderProps> = ({
             })}
           </nav>
 
+          {/* Botón de Insignias y Gamificación */}
+          <button
+            type="button"
+            onClick={onOpenBadges}
+            className="h-9 sm:h-10 px-2.5 sm:px-3 rounded-full g2 border border-[#FFD700]/30 hover:border-[#FFD700] hover:bg-[#FFD700]/15 transition-all cursor-pointer flex items-center gap-1.5 shadow-[0_0_12px_rgba(255,215,0,0.15)] group shrink-0"
+            title={`Vitrina de Insignias · ${gamification.currentRank.title} (${gamification.unlockedBadgeIds.length}/${INNOVATION_BADGES.length})`}
+            aria-label="Abrir vitrina de insignias"
+          >
+            <Trophy className="w-4 h-4 text-[#FFD700] group-hover:scale-110 transition-transform" />
+            <span className="text-xs font-bold text-white sy">
+              Nv.{gamification.currentRank.level}
+            </span>
+            <span className="hidden sm:inline text-[11px] font-semibold text-[#FFD700]">
+              {gamification.unlockedBadgeIds.length}/{INNOVATION_BADGES.length}
+            </span>
+          </button>
+
           {/* Botón y Menú Hamburguesa Superior Derecho */}
           <div className="relative" ref={menuRef}>
             <button
@@ -190,6 +234,39 @@ export const Header: React.FC<HeaderProps> = ({
                   <span className="text-[10px] m text-[#5EC2DD] px-2 py-0.5 rounded-full bg-white/5 border border-white/10">
                     InnovaHub360
                   </span>
+                </div>
+
+                {/* 0. Insignias de Innovación */}
+                <div className="space-y-1.5 p-2.5 rounded-xl bg-white/5 border border-white/10">
+                  <div className="flex items-center justify-between text-xs font-semibold text-white/90">
+                    <span>Insignias de Innovación</span>
+                    <span className="text-[10px] text-[#FFD700] font-mono">
+                      {gamification.totalXp} XP
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      onOpenBadges?.();
+                    }}
+                    className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg bg-[#FFD700]/10 border border-[#FFD700]/30 hover:bg-[#FFD700]/20 text-white transition-all cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Trophy className="w-4 h-4 text-[#FFD700]" />
+                      <div className="text-left">
+                        <span className="text-xs font-bold block sy">
+                          {gamification.currentRank.title}
+                        </span>
+                        <span className="text-[10px] text-brand-textMuted block">
+                          Nivel {gamification.currentRank.level} · {gamification.unlockedBadgeIds.length} de {INNOVATION_BADGES.length} insignias
+                        </span>
+                      </div>
+                    </div>
+                    <span className="text-[11px] font-semibold text-[#FFD700]">
+                      Vitrina
+                    </span>
+                  </button>
                 </div>
 
                 {/* 1. Selector de Proveedor / Configuración IA */}

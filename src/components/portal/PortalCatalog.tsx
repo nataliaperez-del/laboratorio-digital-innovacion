@@ -6,7 +6,8 @@ import {
   Trees,
   Rocket,
   Sparkles,
-  FolderArchive
+  FolderArchive,
+  Trophy
 } from 'lucide-react';
 import { ToolId } from '../layout/Header';
 
@@ -14,11 +15,13 @@ interface PortalCatalogProps {
   onSelectTool: (tool: ToolId) => void;
   onOpenZoe: (text?: string) => void;
   onPlayIntro: () => void;
+  onOpenBadges?: () => void;
 }
 
 export const PortalCatalog: React.FC<PortalCatalogProps> = ({
   onSelectTool,
   onOpenZoe,
+  onOpenBadges,
 }) => {
   // 0: Presentación del LAB, 1: Video Proyección Holográfica de ZOE
   const [slideIndex, setSlideIndex] = useState<0 | 1>(0);
@@ -183,8 +186,18 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({
             </div>
           </div>
 
-          {/* Barra Inferior: Botón para hablar con ZOE */}
-          <div className="relative z-10 max-w-5xl mx-auto w-full pt-4 flex items-center justify-end">
+          {/* Barra Inferior: Insignias de Innovación + Botón para hablar con ZOE */}
+          <div className="relative z-10 max-w-5xl mx-auto w-full pt-4 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={onOpenBadges}
+              className="px-4 py-2 rounded-full bg-white/5 backdrop-blur-md text-xs font-semibold text-[#FFD700] border border-[#FFD700]/30 hover:bg-[#FFD700]/15 flex items-center gap-2 cursor-pointer transition-all shadow-sm"
+              title="Abrir Vitrina de Insignias y Logros"
+            >
+              <Trophy className="w-3.5 h-3.5 text-[#FFD700]" />
+              <span>Insignias de Innovación</span>
+            </button>
+
             <button
               type="button"
               onClick={() => onOpenZoe()}

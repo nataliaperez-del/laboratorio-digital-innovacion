@@ -7,7 +7,10 @@ import { IdeacionEstrategicaView } from './components/tools/IdeacionEstrategicaV
 import { ArbolInnovacionView } from './components/tools/ArbolInnovacionView';
 import { PrototipadoView } from './components/tools/PrototipadoView';
 import { BancoInnovacionView } from './components/tools/BancoInnovacionView';
+import { BadgesModal } from './components/gamification/BadgesModal';
+import { BadgeNotificationToast } from './components/gamification/BadgeNotificationToast';
 import { ZoeFreePresence, type ZoeRequest } from './components/zoe/ZoeFreePresence';
+import { useStore } from './store/useStore';
 
 const ZoeIntro = lazy(() => import('./components/zoe/ZoeIntro'));
 
@@ -41,9 +44,12 @@ export const App: React.FC = () => {
     }
     return window.innerWidth >= 768;
   });
+  const { recordZoeInteraction } = useStore();
+  const [isBadgesModalOpen, setIsBadgesModalOpen] = useState(false);
   const [zoeRequest, setZoeRequest] = useState<ZoeRequest | null>(null);
   const [introOpen, setIntroOpen] = useState(false);
   const openZoe = (text?: string) => {
+    recordZoeInteraction();
     setIsZoeOpen(true);
     setZoeRequest((prev) => ({ id: (prev?.id ?? 0) + 1, text }));
   };
@@ -151,8 +157,12 @@ export const App: React.FC = () => {
         theme={theme}
         onToggleTheme={toggleTheme}
         isZoeOpen={isZoeOpen}
-        onToggleZoe={() => setIsZoeOpen((prev) => !prev)}
+        onToggleZoe={() => {
+          recordZoeInteraction();
+          setIsZoeOpen((prev) => !prev);
+        }}
         zoeState={zoeState}
+        onOpenBadges={() => setIsBadgesModalOpen(true)}
       />
 
       {/* Main Dynamic View Content (Fluid Full-Width Layout) */}
@@ -168,6 +178,7 @@ export const App: React.FC = () => {
             onSelectTool={setCurrentTool}
             onOpenZoe={openZoe}
             onPlayIntro={() => setIntroOpen(true)}
+            onOpenBadges={() => setIsBadgesModalOpen(true)}
           />
         )}
         {currentTool === 'radar' && <RadarView onNavigate={setCurrentTool} />}
@@ -196,6 +207,16 @@ export const App: React.FC = () => {
           request={zoeRequest}
         />
       )}
+
+      {/* Gamificación: Modal de Vitrina de Insignias y Toast de Notificación */}
+      <BadgesModal
+        isOpen={isBadgesModalOpen}
+        onClose={() => setIsBadgesModalOpen(false)}
+        onNavigate={setCurrentTool}
+      />
+      <BadgeNotificationToast
+        onOpenBadgesModal={() => setIsBadgesModalOpen(true)}
+      />
 
       {/* Footer Oficial: Desarrolladores justificados a la derecha junto al Logo UNAD */}
       <footer
