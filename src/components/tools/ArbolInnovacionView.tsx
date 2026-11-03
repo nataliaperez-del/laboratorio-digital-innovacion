@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowRight, BookOpen, ChevronRight, Rocket, Sparkles, Trees } from 'lucide-react';
+import { ArrowRight, BookOpen, ChevronRight, FolderArchive, Rocket, Sparkles, Trees } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { GenerationCancelledError } from '@/services/ai';
 import { generateInnovationTree, regenerateInnovationTreeSection } from '@/services/innovationTree';
@@ -203,6 +203,7 @@ export const ArbolInnovacionView: React.FC<Props> = ({ onNavigate }) => {
     treeGraph,
     setTreeResult,
     setPrototypeSeed,
+    addSavedTree,
   } = useStore();
 
   const [themeMode, setThemeMode] = useState<ThemeMode>('texto');
@@ -284,6 +285,19 @@ export const ArbolInnovacionView: React.FC<Props> = ({ onNavigate }) => {
     [treeGraph, setPrototypeSeed, onNavigate],
   );
 
+  const saveToBanco = () => {
+    if (!treeGraph) return;
+    addSavedTree({
+      id: `tree-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      theme: treeGraph.tema,
+      explanation: treeRequest?.themeExplanation || '',
+      markdown: innovationTreeMarkdown,
+      graph: treeGraph,
+    });
+    onNavigate('banco');
+  };
+
   return (
     <div className="w-full space-y-6">
       <ToolHeader
@@ -291,6 +305,18 @@ export const ArbolInnovacionView: React.FC<Props> = ({ onNavigate }) => {
         titleColor="#5EC2DD"
         description="De las tendencias globales a las de Colombia y el territorio, y de allí a oportunidades y frutos: proyectos, servicios y prototipos. La IA lo construye para cualquier tema; explóralo aquí y descarga el informe formal."
       >
+        {treeGraph && (
+          <button
+            type="button"
+            className="lab-btn lab-btn-sm text-[#5EC2DD] border-[#5EC2DD]/40 hover:bg-[#5EC2DD]/15 flex items-center gap-1.5"
+            disabled={busy}
+            onClick={saveToBanco}
+            title="Depositar este árbol en el Banco Unificado"
+          >
+            <FolderArchive className="w-3.5 h-3.5 text-[#5EC2DD]" aria-hidden="true" />
+            Depositar en Banco
+          </button>
+        )}
         {treeGraph && <ReportActions disabled={busy} getReport={() => (treeGraph ? arbolReport(prompt0Data, innovationTreeMarkdown, treeGraph) : null)} />}
       </ToolHeader>
 

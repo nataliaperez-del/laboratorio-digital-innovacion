@@ -6,6 +6,7 @@ import { EstudioTerritorialView } from './components/tools/EstudioTerritorialVie
 import { IdeacionEstrategicaView } from './components/tools/IdeacionEstrategicaView';
 import { ArbolInnovacionView } from './components/tools/ArbolInnovacionView';
 import { PrototipadoView } from './components/tools/PrototipadoView';
+import { BancoInnovacionView } from './components/tools/BancoInnovacionView';
 import { ZoeFreePresence, type ZoeRequest } from './components/zoe/ZoeFreePresence';
 
 const ZoeIntro = lazy(() => import('./components/zoe/ZoeIntro'));
@@ -174,6 +175,7 @@ export const App: React.FC = () => {
         {currentTool === 'ideacion' && <IdeacionEstrategicaView onNavigate={setCurrentTool} />}
         {currentTool === 'arbol' && <ArbolInnovacionView onNavigate={setCurrentTool} />}
         {currentTool === 'prototipado' && <PrototipadoView onNavigate={setCurrentTool} />}
+        {currentTool === 'banco' && <BancoInnovacionView onNavigate={setCurrentTool} />}
       </main>
 
       {/* ZOE: Alma de Innovación 3D - Presencia Libre por su Casa */}

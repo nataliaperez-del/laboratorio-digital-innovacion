@@ -47,6 +47,36 @@ export interface InstitutionalDriveBundle {
 }
 
 /** Modo del selector «Fuentes primarias del territorio» (Cambio B). */
+export interface SavedStudy {
+  id: string;
+  createdAt: string;
+  territoryName: string;
+  department: string;
+  zonaUNAD: string;
+  prompt0Data: Prompt0Data;
+  containerData: string;
+  sections: Contenedor2SectionResult[];
+}
+
+export interface SavedIdeation {
+  id: string;
+  createdAt: string;
+  topicName: string;
+  sourceLabel: string;
+  markdown: string;
+  sections: GenerationPartResult[];
+  selectedThemeIndex: number | null;
+}
+
+export interface SavedTree {
+  id: string;
+  createdAt: string;
+  theme: string;
+  explanation: string;
+  markdown: string;
+  graph: TreeGraph;
+}
+
 export type FuentesMode = 'sin_fuentes' | 'con_fuentes';
 
 /** Un documento legible descubierto en la carpeta de fuentes propias del territorio. */
@@ -125,6 +155,17 @@ interface AppState {
   prototypes: PrototypePlan[];
   addPrototype: (plan: PrototypePlan) => void;
   removePrototype: (id: string) => void;
+
+  // ── Banco Unificado de Innovación (Transversal) ──
+  savedStudies: SavedStudy[];
+  addSavedStudy: (study: SavedStudy) => void;
+  removeSavedStudy: (id: string) => void;
+  savedIdeations: SavedIdeation[];
+  addSavedIdeation: (ideation: SavedIdeation) => void;
+  removeSavedIdeation: (id: string) => void;
+  savedTrees: SavedTree[];
+  addSavedTree: (tree: SavedTree) => void;
+  removeSavedTree: (id: string) => void;
 
   // ── Proveedor de IA (igual que Fase 1) ──
   aiProvider: AIProvider;
@@ -214,6 +255,19 @@ export const useStore = create<AppState>()(
       prototypes: [],
       addPrototype: (plan) => set((state) => ({ prototypes: [plan, ...state.prototypes] })),
       removePrototype: (id) => set((state) => ({ prototypes: state.prototypes.filter((p) => p.id !== id) })),
+      savedStudies: [],
+      addSavedStudy: (study) =>
+        set((state) => ({ savedStudies: [study, ...state.savedStudies.filter((s) => s.id !== study.id)] })),
+      removeSavedStudy: (id) => set((state) => ({ savedStudies: state.savedStudies.filter((s) => s.id !== id) })),
+      savedIdeations: [],
+      addSavedIdeation: (ideation) =>
+        set((state) => ({ savedIdeations: [ideation, ...state.savedIdeations.filter((i) => i.id !== ideation.id)] })),
+      removeSavedIdeation: (id) =>
+        set((state) => ({ savedIdeations: state.savedIdeations.filter((i) => i.id !== id) })),
+      savedTrees: [],
+      addSavedTree: (tree) =>
+        set((state) => ({ savedTrees: [tree, ...state.savedTrees.filter((t) => t.id !== tree.id)] })),
+      removeSavedTree: (id) => set((state) => ({ savedTrees: state.savedTrees.filter((t) => t.id !== id) })),
       aiProvider: 'unadGemini',
       setAiProvider: (provider) => set({ aiProvider: provider }),
       apiKeys: {
@@ -295,6 +349,9 @@ export const useStore = create<AppState>()(
         innovationTreeSections: state.innovationTreeSections,
         treeGraph: state.treeGraph,
         prototypes: state.prototypes,
+        savedStudies: state.savedStudies,
+        savedIdeations: state.savedIdeations,
+        savedTrees: state.savedTrees,
         aiProvider: state.aiProvider,
         ollamaUrl: state.ollamaUrl,
         ollamaModel: state.ollamaModel,

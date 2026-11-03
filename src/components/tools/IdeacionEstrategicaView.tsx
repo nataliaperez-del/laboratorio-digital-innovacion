@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowRight, BrainCircuit, CheckCircle2, Lightbulb, Rocket, Sparkles, Target, Trees } from 'lucide-react';
+import { ArrowRight, BrainCircuit, CheckCircle2, FolderArchive, Lightbulb, Rocket, Sparkles, Target, Trees } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { GenerationCancelledError } from '@/services/ai';
 import { generateThemeVocationAndOptions, regenerateVocationSection } from '@/services/ideation';
@@ -93,6 +93,7 @@ export const IdeacionEstrategicaView: React.FC<Props> = ({ onNavigate }) => {
     setSelectedLabThemeIndex,
     setTreeSeed,
     setPrototypeSeed,
+    addSavedIdeation,
   } = useStore();
 
   const [mode, setMode] = useState<InputMode>(ideationSource?.kind === 'estudio' ? 'estudio' : 'texto');
@@ -176,6 +177,20 @@ export const IdeacionEstrategicaView: React.FC<Props> = ({ onNavigate }) => {
     onNavigate('prototipado');
   };
 
+  const saveToBanco = () => {
+    if (!hasResult) return;
+    addSavedIdeation({
+      id: `ideation-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      topicName: chosen?.title || ideationSource?.label || 'Ideación Estratégica',
+      sourceLabel: ideationSource?.label || 'General',
+      markdown: themeProposalMarkdown,
+      sections: [...vocationSections],
+      selectedThemeIndex: selectedLabThemeIndex,
+    });
+    onNavigate('banco');
+  };
+
   return (
     <div className="w-full space-y-6">
       <ToolHeader
@@ -183,6 +198,18 @@ export const IdeacionEstrategicaView: React.FC<Props> = ({ onNavigate }) => {
         titleColor="#F29F05"
         description="Construye la vocación y tres alternativas de tema con el mismo proceso de la vocación territorial: identifica dinámicas, cruza brechas y oportunidades, y deja la decisión al equipo. Parte de un tema, un archivo, una señal del Observatorio o el Estudio Territorial."
       >
+        {hasResult && (
+          <button
+            type="button"
+            className="lab-btn lab-btn-sm text-[#F29F05] border-[#F29F05]/40 hover:bg-[#F29F05]/15 flex items-center gap-1.5"
+            disabled={busy}
+            onClick={saveToBanco}
+            title="Depositar esta propuesta de ideación en el Banco Unificado"
+          >
+            <FolderArchive className="w-3.5 h-3.5 text-[#F29F05]" aria-hidden="true" />
+            Depositar en Banco
+          </button>
+        )}
         {hasResult && <ReportActions disabled={busy} getReport={() => ideacionReport(prompt0Data, themeProposalMarkdown, ideationSource?.label || 'Ideación')} />}
       </ToolHeader>
 

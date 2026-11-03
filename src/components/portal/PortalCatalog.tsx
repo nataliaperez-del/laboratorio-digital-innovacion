@@ -5,7 +5,8 @@ import {
   BrainCircuit,
   Trees,
   Rocket,
-  Sparkles
+  Sparkles,
+  FolderArchive
 } from 'lucide-react';
 import { ToolId } from '../layout/Header';
 
@@ -72,10 +73,17 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({
     },
     {
       id: 'prototipado' as ToolId,
-      name: 'Banco de Prototipado',
+      name: 'Prototipado',
       desc: 'Planes de solución e hipótesis con IA',
       icon: Rocket,
       color: '#E024A5',
+    },
+    {
+      id: 'banco' as ToolId,
+      name: 'Banco Unificado',
+      desc: 'Repositorio transversal de ejercicios',
+      icon: FolderArchive,
+      color: '#A78BFA',
     },
   ];
 
@@ -138,7 +146,7 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({
               <span className="text-[11px] uppercase tracking-wider text-[#5EC2DD] font-bold block mb-3 m">
                 Herramientas Disponibles en el Laboratorio:
               </span>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                 {tools.map((t) => {
                   const Icon = t.icon;
                   return (

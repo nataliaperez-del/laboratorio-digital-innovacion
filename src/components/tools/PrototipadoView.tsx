@@ -28,7 +28,7 @@ const TABS: Array<{ id: PlanTab; label: string }> = [
   { id: 'validacion', label: 'Validación y riesgos' },
 ];
 
-const PlanView: React.FC<{ plan: PrototypePlan }> = ({ plan }) => {
+export const PlanView: React.FC<{ plan: PrototypePlan }> = ({ plan }) => {
   const [tab, setTab] = useState<PlanTab>('general');
   const [phase, setPhase] = useState(0);
   useEffect(() => {
@@ -286,45 +286,47 @@ export const PrototipadoView: React.FC<Props> = ({ onNavigate }) => {
 
       <GenerationProgress progress={progress} label="Paso" />
 
-      {active ? (
-        <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-5 items-start">
-          <nav className="space-y-2" aria-label="Banco de prototipos">
-            <h2 className="l text-[#E024A5] font-bold">Banco de prototipos ({prototypes.length})</h2>
-            {prototypes.map((p) => (
-              <button key={p.id} type="button" aria-current={p.id === active.id} className={`lab-card text-left w-full ${p.id === active.id ? 'is-selected' : ''}`} onClick={() => setActiveId(p.id)}>
-                <span className="text-[11px] text-brand-textMuted block">{p.category}{p.origin.code ? ` · ${p.origin.code}` : ''}</span>
-                <span className="text-sm font-bold text-white sy block leading-snug">{p.name}</span>
-                <span className="text-[11px] text-brand-textMuted m">{p.durationWeeks ? `${p.durationWeeks} semanas` : 'Sin duración'}</span>
+      {active && (
+        <article className="lab-panel space-y-5 min-w-0">
+          <header className="flex flex-wrap items-start justify-between gap-3 pb-4 border-b border-white/10">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2 mb-2">
+                <span className="lab-chip">{active.category}</span>
+                <span className="lab-chip">{active.trlTarget}</span>
+                <span className="lab-chip">{active.scope}</span>
+                <span className="text-[11px] font-semibold text-[#E024A5] px-2.5 py-0.5 rounded-full bg-[#E024A5]/10 border border-[#E024A5]/30">
+                  ✓ Depositado en el Banco de Innovación
+                </span>
+              </div>
+              <h2 className="text-2xl font-bold text-[#E024A5] sy">{active.name}</h2>
+              {active.tagline && <p className="text-sm text-[var(--brand-teal-text)] mt-0.5">{active.tagline}</p>}
+              <p className="text-xs text-brand-textMuted mt-1">
+                Origen: {active.origin.label}
+                {active.origin.code ? ` (${active.origin.code})` : ''}
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                className="lab-btn lab-btn-sm text-[#E024A5] border-[#E024A5]/40 hover:bg-[#E024A5]/15"
+                onClick={() => onNavigate('banco')}
+                title="Ver todos los ejercicios en el Banco Unificado"
+              >
+                Ver en Banco Unificado
               </button>
-            ))}
-          </nav>
-
-          <article className="lab-panel space-y-5 min-w-0">
-            <header className="flex flex-wrap items-start justify-between gap-3 pb-4 border-b border-white/10">
-              <div className="min-w-0">
-                <div className="flex flex-wrap gap-1.5 mb-2">
-                  <span className="lab-chip">{active.category}</span>
-                  <span className="lab-chip">{active.trlTarget}</span>
-                  <span className="lab-chip">{active.scope}</span>
-                </div>
-                <h2 className="text-2xl font-bold text-[#E024A5] sy">{active.name}</h2>
-                {active.tagline && <p className="text-sm text-[var(--brand-teal-text)] mt-0.5">{active.tagline}</p>}
-                <p className="text-xs text-brand-textMuted mt-1">Origen: {active.origin.label}{active.origin.code ? ` (${active.origin.code})` : ''}</p>
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <ReportActions getReport={() => prototipadoReport(prompt0Data, active)} />
-                <button type="button" className="lab-btn" onClick={() => remove(active)} aria-label={`Eliminar ${active.name}`}><Trash2 className="w-4 h-4" aria-hidden="true" /></button>
-              </div>
-            </header>
-            <PlanView plan={active} />
-          </article>
-        </div>
-      ) : (
-        !progress && (
-          <EmptyState title="Aún no hay planes">
-            Escribe una idea o elige un resultado del Árbol. El plan queda guardado en este navegador, con su informe formal en Word o PDF.
-          </EmptyState>
-        )
+              <ReportActions getReport={() => prototipadoReport(prompt0Data, active)} />
+              <button
+                type="button"
+                className="lab-btn"
+                onClick={() => remove(active)}
+                aria-label={`Eliminar ${active.name}`}
+              >
+                <Trash2 className="w-4 h-4" aria-hidden="true" />
+              </button>
+            </div>
+          </header>
+          <PlanView plan={active} />
+        </article>
       )}
     </div>
   );

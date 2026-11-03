@@ -11,11 +11,12 @@ import {
   Rocket,
   Menu,
   X,
-  Home
+  Home,
+  FolderArchive
 } from 'lucide-react';
 
-export type ToolId = 'portal' | 'radar' | 'estudio' | 'ideacion' | 'arbol' | 'prototipado';
-export const TOOL_IDS: readonly ToolId[] = ['portal', 'radar', 'estudio', 'ideacion', 'arbol', 'prototipado'];
+export type ToolId = 'portal' | 'radar' | 'estudio' | 'ideacion' | 'arbol' | 'prototipado' | 'banco';
+export const TOOL_IDS: readonly ToolId[] = ['portal', 'radar', 'estudio', 'ideacion', 'arbol', 'prototipado', 'banco'];
 
 interface HeaderProps {
   currentTool: ToolId;
@@ -57,7 +58,8 @@ export const Header: React.FC<HeaderProps> = ({
     { id: 'estudio' as ToolId, name: 'Estudio Territorial', icon: Layers, color: '#A8C63C' },
     { id: 'ideacion' as ToolId, name: 'Ideación Estratégica', icon: BrainCircuit, color: '#F29F05' },
     { id: 'arbol' as ToolId, name: 'Árbol de Innovación', icon: Trees, color: '#5EC2DD' },
-    { id: 'prototipado' as ToolId, name: 'Banco de Prototipado', icon: Rocket, color: '#E024A5' },
+    { id: 'prototipado' as ToolId, name: 'Prototipado', icon: Rocket, color: '#E024A5' },
+    { id: 'banco' as ToolId, name: 'Banco Unificado', icon: FolderArchive, color: '#A78BFA' },
   ];
 
   return (

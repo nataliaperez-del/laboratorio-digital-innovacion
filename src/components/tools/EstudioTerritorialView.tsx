@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowRight, BookOpen, CheckCircle2, Compass, Edit3, Link2, RefreshCw, Save, ShieldCheck, Sparkles, Trash2 } from 'lucide-react';
+import { ArrowRight, BookOpen, CheckCircle2, Compass, Edit3, FolderArchive, Link2, RefreshCw, Save, ShieldCheck, Sparkles, Trash2 } from 'lucide-react';
 import { useStore, type FuentesMode, type Prompt0Data } from '@/store/useStore';
 import { DIVIPOLA_DEPARTMENT_NAMES, DIVIPOLA_LOCATIONS } from '@/constants/divipola';
 import { cargarManifest, manifestActual } from '@/repositorio/cargarRepositorio';
@@ -298,6 +298,7 @@ export const EstudioTerritorialView: React.FC<Props> = ({ onNavigate }) => {
     fuentesConexion,
     institutionalDriveBundle,
     setIdeationResult,
+    addSavedStudy,
   } = useStore();
 
   const [form, setForm] = useState<Prompt0Data>({ ...prompt0Data });
@@ -389,6 +390,21 @@ export const EstudioTerritorialView: React.FC<Props> = ({ onNavigate }) => {
     onNavigate('ideacion');
   };
 
+  const saveToBanco = () => {
+    if (!hasStudy) return;
+    addSavedStudy({
+      id: `study-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      territoryName: prompt0Data.municipality || 'Territorio',
+      department: prompt0Data.department || '',
+      zonaUNAD: prompt0Data.zonaUNAD || '',
+      prompt0Data: { ...prompt0Data },
+      containerData,
+      sections: [...contenedor2Sections],
+    });
+    onNavigate('banco');
+  };
+
   const section = contenedor2Sections.find((s) => s.number === active);
   const meta = CONTENEDOR2_SECTIONS.find((s) => s.number === active)!;
 
@@ -399,6 +415,18 @@ export const EstudioTerritorialView: React.FC<Props> = ({ onNavigate }) => {
         titleColor="#A8C63C"
         description="Diagnóstico de un territorio en doce puntos de entrega con la metodología MDVT: caracterización productiva, lectura por pilares, matriz FODA y contraste con fuentes propias. Funciona solo y puede alimentar a Ideación y al Árbol."
       >
+        {hasStudy && (
+          <button
+            type="button"
+            className="lab-btn lab-btn-sm text-[#A8C63C] border-[#A8C63C]/40 hover:bg-[#A8C63C]/15 flex items-center gap-1.5"
+            disabled={busy}
+            onClick={saveToBanco}
+            title="Depositar este estudio en el Banco Unificado"
+          >
+            <FolderArchive className="w-3.5 h-3.5 text-[#A8C63C]" aria-hidden="true" />
+            Depositar en Banco
+          </button>
+        )}
         {hasStudy && <ReportActions disabled={busy} getReport={() => estudioReport(prompt0Data, containerData)} />}
         {hasStudy && (
           <button type="button" className="metal px-4 py-2 text-xs font-bold flex items-center gap-2" disabled={busy} onClick={sendToIdeation}>
