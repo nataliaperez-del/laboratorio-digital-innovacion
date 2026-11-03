@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { cleanZoeReply, describeWork, isDoneReply, parseZoeCommand, seemsUnfinished, wantsMoreTime } from '@/lib/zoeContext';
 import { recognitionLang, splitSentences } from '@/components/zoe/useZoeVoice';
+import { normalizeClipName, pickClips } from '@/components/zoe/zoeClipDirector';
 
 describe('órdenes de voz', () => {
   it('navega solo con un verbo de acción', () => {
@@ -79,5 +80,22 @@ describe('turno de palabra', () => {
     expect(parts.length).toBeGreaterThan(1);
     expect(parts.every((p) => p.length <= 200)).toBe(true);
     expect(parts.join(' ').replace(/\s+/g, ' ')).toBe(long);
+  });
+});
+
+describe('director de clips', () => {
+  it('reconoce los clips de un autorig de cuadrúpedos (afk.ai)', () => {
+    const roles = pickClips(['Idle', 'Idle Alert', 'Walk', 'Trot', 'Sit', 'Lie Down', 'Sleep', 'Tail Wag', 'Play Bow', 'Beg', 'Ear Scratch', 'Shake', 'Bark']);
+    expect(roles).toMatchObject({ idle: 'Idle', alert: 'Idle Alert', walk: 'Walk', trot: 'Trot', sit: 'Sit', lie: 'Lie Down', sleep: 'Sleep', happy: 'Tail Wag', play: 'Play Bow', wave: 'Beg', scratch: 'Ear Scratch', shake: 'Shake' });
+  });
+
+  it('entiende los nombres de este proyecto y los prefijos de Blender', () => {
+    expect(pickClips(['walk', 'sit', 'lie'])).toEqual({ walk: 'walk', sit: 'sit', lie: 'lie' });
+    expect(normalizeClipName('Armature|Lie Down|baselayer')).toBe('liedown');
+    expect(pickClips(['Armature|Walking|baselayer'])).toEqual({ walk: 'Armature|Walking|baselayer' });
+  });
+
+  it('no confunde «Idle Alert» con el reposo cuando falta «Idle»', () => {
+    expect(pickClips(['Idle Alert'])).toEqual({ alert: 'Idle Alert' });
   });
 });

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { restClip, ZoeClipDirector, type ClipRole, type ZoeBodyState, type ZoeGesture } from './zoeClipDirector';
 
 export type ZoeSoulState = 'idle' | 'listening' | 'thinking' | 'speaking' | 'happy' | 'sleeping';
 
@@ -15,6 +16,18 @@ export interface ZoeCanvas3DProps {
   /** 0 = cuerpo sólido; 1 = malla de alambre, para la materialización de la presentación. */
   wire?: number;
   framing?: 'full' | 'close';
+  /** Otro GLB (por ejemplo, el que devuelve un autorig) para probarlo sin reemplazar el oficial. */
+  modelUrl?: string;
+  /** Avisa qué clips trae el modelo y qué papel tomó cada uno: lo usa el visor de clips. */
+  onModelInfo?: (info: ZoeModelInfo) => void;
+}
+
+export interface ZoeModelInfo {
+  clips: string[];
+  roles: Partial<Record<ClipRole, string>>;
+  bones: number;
+  /** El esqueleto es el de este proyecto (ojos de shader y gestos finos disponibles). */
+  ownRig: boolean;
 }
 
 /** Interpolación independiente de los cuadros por segundo: de aquí sale la suavidad. */
@@ -22,8 +35,9 @@ const damp = (from: number, to: number, speed: number, dt: number) => from + (to
 const range = (min: number, max: number) => min + Math.random() * (max - min);
 
 /**
- * El modelo (`public/assets/zoe/zoe.glb`) sale de `scripts/zoe/retopologia_zoe.py`: una sola piel
- * cerrada, la caminata «walk» y las posturas «sit» y «lie» calculadas con las patas en el piso.
+ * El modelo (`public/assets/zoe/zoe.glb`) sale de `scripts/zoe/retopologia_zoe.py`. Sus clips los
+ * reproduce `ZoeClipDirector`, que también entiende los de un autorig de cuadrúpedos: basta con
+ * reemplazar el GLB para que ZOE use animaciones nuevas.
  */
 const MODEL_URL = '/assets/zoe/zoe.glb';
 /** Alto y largo máximos de ZOE en la escena (la cámara ve ~1,6 de alto). */
@@ -37,23 +51,28 @@ interface PoseBone {
   /** Orientación de reposo del padre en el espacio del perro: permite girar sin depender de los ejes del hueso. */
   parent: THREE.Quaternion;
   parentInv: THREE.Quaternion;
+  depth: number;
 }
 
-type PoseTarget = Map<string, { q?: THREE.Quaternion; p?: THREE.Vector3 }>;
+/** Huesos que la capa procedimental mueve, con su nombre en este esqueleto o en uno de autorig. */
+interface ProceduralRig {
+  head?: string;
+  neck?: string;
+  chest?: string;
+  snout?: string;
+  tail: string[];
+}
 
-/** Primer fotograma de una postura del GLB, hueso por hueso. */
-function poseFromClip(clip: THREE.AnimationClip | undefined): PoseTarget {
-  const pose: PoseTarget = new Map();
-  for (const track of clip?.tracks ?? []) {
-    const dot = track.name.lastIndexOf('.');
-    const node = track.name.slice(0, dot);
-    const property = track.name.slice(dot + 1);
-    const entry = pose.get(node) ?? {};
-    if (property === 'quaternion') entry.q = new THREE.Quaternion().fromArray(track.values, 0);
-    else if (property === 'position') entry.p = new THREE.Vector3().fromArray(track.values, 0);
-    pose.set(node, entry);
-  }
-  return pose;
+function findRig(bones: Record<string, PoseBone>): ProceduralRig {
+  const names = Object.keys(bones);
+  const find = (...patterns: RegExp[]) => patterns.map((re) => names.find((n) => re.test(n))).find(Boolean);
+  return {
+    head: find(/^head$/i, /^(def[-_.])?head$/i, /head(?!.*(end|top|nose|tip))/i),
+    neck: find(/^neck$/i, /neck(?!.*(end|tip))/i),
+    chest: find(/^chest$/i, /spine.*(2|3|upper|chest)/i, /chest/i),
+    snout: find(/^headend$/i),
+    tail: names.filter((n) => /tail/i.test(n) && !/^tail$/i.test(n)).sort((a, b) => bones[a].depth - bones[b].depth),
+  };
 }
 
 // ── Ojos vivos: se dibujan por píxel sobre los ojos pintados de la textura ──
@@ -187,13 +206,6 @@ function furShellMaterial(base: THREE.MeshStandardMaterial, noise: THREE.Texture
   return material;
 }
 
-/** Huesos que se reinician cada cuadro antes de aplicar postura y gestos. */
-const TRACKED = [
-  'Hips', 'chest', 'neck', 'head', 'headend', 'tail', 'tailstart', 'tail1', 'tail2', 'tail3', 'earend', 'R_earend',
-  'backleg', 'backleg0', 'backlegknee', 'backleg1', 'backleg2', 'R_backleg', 'R_backleg0', 'R_backlegknee', 'R_backleg1', 'R_backleg2',
-  'frontleg', 'frontleg0', 'frontlegelbow', 'frontleg1', 'frontleg2', 'R_frontleg', 'R_frontleg0', 'R_frontlegelbow', 'R_frontleg1', 'R_frontleg2',
-];
-
 /**
  * ZOE en 3D. Sobre la caminata y las posturas del modelo se suma una capa procedimental:
  * respiración, mirada que sigue a la persona, cola en cadena, gestos según el ánimo y ojos vivos.
@@ -208,11 +220,15 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
   facing = 0,
   wire = 0,
   framing = 'full',
+  modelUrl = MODEL_URL,
+  onModelInfo,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const liveRef = useRef({ behavior, isWalking, posture, show360Environment, facing, wire, framing });
   liveRef.current = { behavior, isWalking, posture, show360Environment, facing, wire, framing };
   const petRef = useRef<() => void>(() => undefined);
+  const infoRef = useRef(onModelInfo);
+  infoRef.current = onModelInfo;
 
   useEffect(() => {
     if (petTrigger) petRef.current();
@@ -284,11 +300,8 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
     let disposed = false;
     let zoeGroup: THREE.Group | null = null;
     let mixer: THREE.AnimationMixer | null = null;
-    let walkAction: THREE.AnimationAction | null = null;
-    /** Huesos que mueve la caminata; los demás (rodilla, codo, cuello) siguen en reposo al andar. */
-    let walkBones = new Set<string>();
-    let sitPose: PoseTarget = new Map();
-    let liePose: PoseTarget = new Map();
+    let director: ZoeClipDirector | null = null;
+    let rig: ProceduralRig = { tail: [] };
     const bones: Record<string, PoseBone> = {};
     const bodyMaterials: THREE.MeshStandardMaterial[] = [];
     let wireMaterial: THREE.MeshBasicMaterial | null = null;
@@ -301,10 +314,11 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
 
     petRef.current = () => {
       sniffStart = clock.getElapsedTime();
+      director?.gesture('happy');
     };
 
     new GLTFLoader().load(
-      MODEL_URL,
+      modelUrl,
       (gltf) => {
         if (disposed) return;
         const group = gltf.scene;
@@ -322,17 +336,6 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
         contact.position.y = ground;
         pawLight.position.set(0, ground + 0.04, 0.15);
 
-        const clips = gltf.animations;
-        const walkClip = clips.find((c) => c.name === 'walk') ?? clips.find((c) => c.name !== 'sit' && c.name !== 'lie');
-        sitPose = poseFromClip(clips.find((c) => c.name === 'sit'));
-        liePose = poseFromClip(clips.find((c) => c.name === 'lie'));
-        if (walkClip) {
-          walkBones = new Set(walkClip.tracks.map((t) => t.name.slice(0, t.name.lastIndexOf('.'))));
-          mixer = new THREE.AnimationMixer(group);
-          walkAction = mixer.clipAction(walkClip);
-          walkAction.setEffectiveTimeScale(walkClip.name === 'walk' ? 1 : 0.85);
-        }
-
         // La orientación de reposo se mide con el cuerpo de frente, en el espacio del perro.
         const savedYaw = zoeContainer.rotation.y;
         zoeContainer.rotation.y = 0;
@@ -340,9 +343,19 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
         group.traverse((node) => {
           if (!(node as THREE.Bone).isBone || !node.parent) return;
           const parent = node.parent.getWorldQuaternion(new THREE.Quaternion());
-          bones[node.name] = { bone: node as THREE.Bone, restQuat: node.quaternion.clone(), restPos: node.position.clone(), parent, parentInv: parent.clone().invert() };
+          let depth = 0;
+          for (let p = node.parent; p; p = p.parent) depth++;
+          bones[node.name] = { bone: node as THREE.Bone, restQuat: node.quaternion.clone(), restPos: node.position.clone(), parent, parentInv: parent.clone().invert(), depth };
         });
         zoeContainer.rotation.y = savedYaw;
+        rig = findRig(bones);
+
+        // El reposo se mide antes de que ningún clip mueva el esqueleto.
+        mixer = new THREE.AnimationMixer(group);
+        director = new ZoeClipDirector(mixer, gltf.animations, restClip(group));
+        // Ojos de shader y gestos finos: solo con el esqueleto de este proyecto, que es donde se midieron.
+        const ownRig = Boolean(bones.head && bones.headend);
+        infoRef.current?.({ clips: gltf.animations.map((c) => c.name), roles: director.roles, bones: Object.keys(bones).length, ownRig });
 
         // Material sólido con la textura y el relieve horneados: la piel ya es cerrada, así que
         // basta la cara frontal y no hay transparencias que rompan el dibujo.
@@ -391,7 +404,7 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
           }
         }
 
-        const headPose = bones.head;
+        const headPose = ownRig ? bones.head : undefined;
         if (headPose) {
           const headWorld = headPose.parent.clone().multiply(headPose.restQuat);
           const headWorldInv = headWorld.clone().invert();
@@ -448,14 +461,18 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
     const q = new THREE.Quaternion();
     const qTurn = new THREE.Quaternion();
     const euler = new THREE.Euler();
+    /** Giros del cuadro: se deshacen tras dibujar, así no se acumulan en huesos que ningún clip reescribe. */
+    const turned: Array<[THREE.Bone, THREE.Quaternion]> = [];
     /** Gira un hueso alrededor de los ejes del perro (x: asentir, y: voltear, z: ladear). */
-    const turn = (name: string, x: number, y: number, z: number) => {
-      const b = bones[name];
+    const turn = (name: string | undefined, x: number, y: number, z: number) => {
+      const b = name ? bones[name] : undefined;
       if (!b) return;
+      turned.push([b.bone, b.bone.quaternion.clone()]);
       q.setFromEuler(euler.set(x, y, z));
       qTurn.copy(b.parentInv).multiply(q).multiply(b.parent);
       b.bone.quaternion.premultiply(qTurn);
     };
+    let lastMood: ZoeSoulState = 'idle';
 
     const look = { yaw: 0, pitch: 0, until: 0 };
     let nextGesture = range(3, 6);
@@ -465,7 +482,7 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
     let nextBlink = range(1.5, 3.5);
     let doubleBlink = false;
     const saccade = { x: 0, y: 0, next: 0 };
-    const pose = { yaw: 0, pitch: 0, roll: 0, sit: 0, lie: 0, walk: 0, tailAmp: 0.08, tailSpeed: 2.4, tailPhase: 0, hop: 0, bodyYaw: -0.35, glow: 0.18, wire: 0, camZ: 3.3, camY: 0.02 };
+    const pose = { yaw: 0, pitch: 0, roll: 0, sit: 0, lie: 0, tailAmp: 0.08, tailSpeed: 2.4, tailPhase: 0, hop: 0, bodyYaw: -0.35, glow: 0.18, wire: 0, camZ: 3.3, camY: 0.02 };
 
     let animId = 0;
     let lastFrame = 0;
@@ -482,40 +499,27 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
       const motion = reduceMotion ? 0 : 1;
       const mood = state.behavior;
 
-      // Caminata: entra y sale con fundido y deja la pose limpia al terminar.
+      // El cuerpo lo mueven los clips del modelo; el director elige cuál y cómo enlazarlos.
       const walking = state.isWalking && motion > 0;
-      if (walkAction) {
-        if (walking && !walkAction.isRunning()) walkAction.reset().fadeIn(0.3).play();
-        else if (!walking && pose.walk > 0.5) walkAction.fadeOut(0.3);
-        pose.walk = walking ? Math.min(1, pose.walk + dt / 0.3) : Math.max(0, pose.walk - dt / 0.3);
-        if (!walking && pose.walk === 0 && walkAction.isRunning()) walkAction.stop();
+      const body: ZoeBodyState = walking ? 'walk' : mood === 'sleeping' ? 'sleep' : state.posture === 'lying' ? 'lie' : state.posture === 'sitting' ? 'sit' : 'stand';
+      if (director) {
+        director.setState(body, mood === 'listening');
+        if (mood === 'happy' && lastMood !== 'happy') director.gesture('happy');
+        director.update(motion ? dt : 0);
       }
-      if (mixer && walkAction?.isRunning()) mixer.update(dt);
-      const clipActive = Boolean(walkAction?.isRunning());
-
-      // Postura: se mezcla desde el reposo hacia «sentado» o «echado» del modelo.
-      pose.sit = damp(pose.sit, !walking && state.posture === 'sitting' ? 1 : 0, 3, dt);
-      pose.lie = damp(pose.lie, !walking && state.posture === 'lying' ? 1 : 0, 2, dt);
-      if (zoeGroup) {
-        for (const name of TRACKED) {
-          const b = bones[name];
-          // Mientras camina, la caminata manda en sus huesos; el resto vuelve a su reposo.
-          if (!b || (clipActive && walkBones.has(name))) continue;
-          b.bone.quaternion.copy(b.restQuat);
-          b.bone.position.copy(b.restPos);
-          for (const [target, amount] of [[sitPose, pose.sit], [liePose, pose.lie]] as const) {
-            const key = target.get(name);
-            if (!key || amount < 0.001) continue;
-            if (key.q) b.bone.quaternion.slerp(key.q, amount);
-            if (key.p) b.bone.position.lerp(key.p, amount);
-          }
-        }
-      }
+      lastMood = mood;
+      pose.sit = damp(pose.sit, body === 'sit' ? 1 : 0, 3, dt);
+      pose.lie = damp(pose.lie, body === 'lie' || body === 'sleep' ? 1 : 0, 2, dt);
+      // Sin un «idle» propio en el modelo, la respiración y la cola las pone el código.
+      const lively = !director?.hasIdle;
 
       // Gestos en reposo: voltear a mirar algo, mover la cola, olfatear.
       if (mood === 'idle' && !walking && t > nextGesture && motion) {
         const roll = Math.random();
-        if (roll < 0.5) {
+        const gestures = (['scratch', 'shake', 'sniff', 'play'] as ZoeGesture[]).filter((g) => director?.has(g));
+        if (gestures.length && body === 'stand' && roll < 0.3) {
+          director?.gesture(gestures[Math.floor(Math.random() * gestures.length)]);
+        } else if (roll < 0.5) {
           look.yaw = range(-0.4, 0.4);
           look.pitch = range(-0.12, 0.08);
           look.until = t + range(1.2, 2.8);
@@ -565,7 +569,7 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
         tailAmp = 0.42;
         tailSpeed = 13;
         glow = 0.36;
-        hop = Math.abs(Math.sin(t * 6.5)) * 0.04 * motion * (1 - pose.lie);
+        hop = director?.has('happy') ? 0 : Math.abs(Math.sin(t * 6.5)) * 0.04 * motion * (1 - pose.lie);
       } else if (mood === 'sleeping') {
         // Dormido no sigue el puntero: la cabeza queda quieta, apenas ladeada.
         targetPitch = 0.2;
@@ -596,14 +600,17 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
       if (zoeGroup) {
         // Respiración repartida en pecho y cabeza: si solo se moviera la cabeza parecería muñeco.
         const asleep = mood === 'sleeping';
-        const breath = Math.sin(t * (asleep ? 0.85 : 1.55)) * (asleep ? 0.03 : 0.016) * motion;
-        turn('chest', breath * 0.7, pose.yaw * 0.22, 0);
-        turn('head', pose.pitch + breath * 0.5, pose.yaw * 0.78, pose.roll);
-        turn('headend', sniffTwitch, 0, 0);
-        // Cola en cadena: la onda viaja de la base a la punta.
-        ['tailstart', 'tail1', 'tail2', 'tail3'].forEach((name, i) => {
-          turn(name, 0, Math.sin(pose.tailPhase - i * 0.65) * pose.tailAmp * (0.55 + i * 0.2), 0);
-        });
+        const breath = lively ? Math.sin(t * (asleep ? 0.85 : 1.55)) * (asleep ? 0.03 : 0.016) * motion : 0;
+        // La mirada y el ánimo van encima de cualquier clip; el resto solo si el modelo no los trae.
+        turn(rig.chest, breath * 0.7, pose.yaw * 0.22, 0);
+        turn(rig.head, pose.pitch + breath * 0.5, pose.yaw * 0.78, pose.roll);
+        turn(rig.snout, sniffTwitch, 0, 0);
+        if (lively && !walking) {
+          // Cola en cadena: la onda viaja de la base a la punta.
+          rig.tail.forEach((name, i) => {
+            turn(name, 0, Math.sin(pose.tailPhase - i * 0.65) * pose.tailAmp * (0.55 + i * 0.2), 0);
+          });
+        }
       }
 
       // Cuerpo: gira hacia donde camina; en 360° orbita despacio.
@@ -698,6 +705,8 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
       }
 
       renderer.render(scene, camera);
+      for (let i = turned.length - 1; i >= 0; i--) turned[i][0].quaternion.copy(turned[i][1]);
+      turned.length = 0;
     };
     animId = requestAnimationFrame(animate);
 
@@ -719,7 +728,7 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
       renderer.dispose();
       container.innerHTML = '';
     };
-  }, []);
+  }, [modelUrl]);
 
   return <div ref={containerRef} className="relative w-full h-full select-none bg-transparent" aria-hidden="true" />;
 };
