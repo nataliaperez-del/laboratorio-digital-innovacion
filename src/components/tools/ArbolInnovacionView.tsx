@@ -288,6 +288,7 @@ export const ArbolInnovacionView: React.FC<Props> = ({ onNavigate }) => {
     <div className="w-full space-y-6">
       <ToolHeader
         title="Árbol de Innovación"
+        titleColor="#5EC2DD"
         description="De las tendencias globales a las de Colombia y el territorio, y de allí a oportunidades y frutos: proyectos, servicios y prototipos. La IA lo construye para cualquier tema; explóralo aquí y descarga el informe formal."
       >
         {treeGraph && <ReportActions disabled={busy} getReport={() => (treeGraph ? arbolReport(prompt0Data, innovationTreeMarkdown, treeGraph) : null)} />}
@@ -297,7 +298,7 @@ export const ArbolInnovacionView: React.FC<Props> = ({ onNavigate }) => {
 
       <section className="lab-panel space-y-4" aria-label="Tema del árbol">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-sm font-bold text-white sy flex items-center gap-2"><Trees className="w-4 h-4 text-[var(--brand-olive)]" aria-hidden="true" /> Tema central</h2>
+          <h2 className="text-sm font-bold text-[#5EC2DD] sy flex items-center gap-2"><Trees className="w-4 h-4 text-[#5EC2DD]" aria-hidden="true" /> Tema central</h2>
           <SegmentedControl<ThemeMode>
             label="Origen del tema"
             value={themeMode}

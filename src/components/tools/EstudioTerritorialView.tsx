@@ -396,6 +396,7 @@ export const EstudioTerritorialView: React.FC<Props> = ({ onNavigate }) => {
     <div className="w-full space-y-6">
       <ToolHeader
         title="Estudio Territorial"
+        titleColor="#A8C63C"
         description="Diagnóstico de un territorio en doce puntos de entrega con la metodología MDVT: caracterización productiva, lectura por pilares, matriz FODA y contraste con fuentes propias. Funciona solo y puede alimentar a Ideación y al Árbol."
       >
         {hasStudy && <ReportActions disabled={busy} getReport={() => estudioReport(prompt0Data, containerData)} />}

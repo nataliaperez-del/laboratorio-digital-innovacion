@@ -53,11 +53,11 @@ export const Header: React.FC<HeaderProps> = ({
   }, [isMenuOpen]);
 
   const navTools = [
-    { id: 'portal' as ToolId, name: 'Inicio', icon: Home, color: '#5EC2DD' },
+    { id: 'portal' as ToolId, name: 'Inicio', icon: Home, color: '#27DCFF' },
     { id: 'estudio' as ToolId, name: 'Estudio Territorial', icon: Layers, color: '#A8C63C' },
-    { id: 'ideacion' as ToolId, name: 'Ideación Estratégica', icon: BrainCircuit, color: '#F3C26B' },
-    { id: 'arbol' as ToolId, name: 'Árbol de Innovación', icon: Trees, color: '#A8C63C' },
-    { id: 'prototipado' as ToolId, name: 'Banco de Prototipado', icon: Rocket, color: '#A98FD6' },
+    { id: 'ideacion' as ToolId, name: 'Ideación Estratégica', icon: BrainCircuit, color: '#F29F05' },
+    { id: 'arbol' as ToolId, name: 'Árbol de Innovación', icon: Trees, color: '#5EC2DD' },
+    { id: 'prototipado' as ToolId, name: 'Banco de Prototipado', icon: Rocket, color: '#E024A5' },
   ];
 
   return (
@@ -122,23 +122,33 @@ export const Header: React.FC<HeaderProps> = ({
                     aria-label={tool.name}
                     className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all cursor-pointer ${
                       isActive
-                        ? 'bg-white/20 border border-[#27DCFF]/70 shadow-[0_0_12px_rgba(39,220,255,0.4)] scale-105'
+                        ? 'scale-105'
                         : 'text-brand-textSecondary hover:text-white hover:bg-white/10 border border-transparent'
                     }`}
+                    style={
+                      isActive
+                        ? {
+                            backgroundColor: `${tool.color}25`,
+                            border: `1.5px solid ${tool.color}`,
+                            boxShadow: `0 0 14px ${tool.color}65`,
+                          }
+                        : undefined
+                    }
                   >
                     <Icon
-                      className={`w-4 h-4 sm:w-4.5 sm:h-4.5 transition-transform group-hover:scale-110 ${
-                        isActive ? 'text-white' : ''
-                      }`}
-                      style={{ color: isActive ? '#FFFFFF' : tool.color }}
+                      className="w-4 h-4 sm:w-4.5 sm:h-4.5 transition-transform group-hover:scale-110"
+                      style={{ color: tool.color }}
                     />
                   </button>
 
-                  {/* Tooltip Flotante que aparece al señalar (hover) */}
-                  <div className="absolute top-full mt-2.5 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-xl bg-[#04222B]/95 text-white text-[11px] font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 border border-[#27DCFF]/40 shadow-[0_8px_20px_rgba(0,0,0,0.6)] backdrop-blur-md z-50 flex items-center gap-1.5 transform group-hover:translate-y-0 translate-y-1">
+                  {/* Tooltip Flotante que aparece al señalar (hover) con el color característico */}
+                  <div
+                    className="absolute top-full mt-2.5 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-xl bg-[#04222B]/95 text-white text-[11px] font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 shadow-[0_8px_20px_rgba(0,0,0,0.6)] backdrop-blur-md z-50 flex items-center gap-1.5 transform group-hover:translate-y-0 translate-y-1"
+                    style={{ border: `1px solid ${tool.color}60` }}
+                  >
                     <span
-                      className="w-1.5 h-1.5 rounded-full inline-block"
-                      style={{ backgroundColor: tool.color }}
+                      className="w-1.5 h-1.5 rounded-full inline-block shadow-[0_0_6px]"
+                      style={{ backgroundColor: tool.color, color: tool.color }}
                     />
                     <span>{tool.name}</span>
                   </div>

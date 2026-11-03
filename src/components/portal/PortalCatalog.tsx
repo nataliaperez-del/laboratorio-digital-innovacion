@@ -75,7 +75,7 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({
       name: 'Banco de Prototipado',
       desc: 'Planes de solución e hipótesis con IA',
       icon: Rocket,
-      color: '#A98FD6',
+      color: '#E024A5',
     },
   ];
 

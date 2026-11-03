@@ -180,6 +180,7 @@ export const IdeacionEstrategicaView: React.FC<Props> = ({ onNavigate }) => {
     <div className="w-full space-y-6">
       <ToolHeader
         title="Ideación"
+        titleColor="#F29F05"
         description="Construye la vocación y tres alternativas de tema con el mismo proceso de la vocación territorial: identifica dinámicas, cruza brechas y oportunidades, y deja la decisión al equipo. Parte de un tema, un archivo, una señal del Observatorio o el Estudio Territorial."
       >
         {hasResult && <ReportActions disabled={busy} getReport={() => ideacionReport(prompt0Data, themeProposalMarkdown, ideationSource?.label || 'Ideación')} />}
@@ -189,8 +190,8 @@ export const IdeacionEstrategicaView: React.FC<Props> = ({ onNavigate }) => {
 
       <section className="lab-panel space-y-4" aria-label="Insumo de la ideación">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-sm font-bold text-white sy flex items-center gap-2">
-            <BrainCircuit className="w-4 h-4 text-[var(--brand-teal-text)]" aria-hidden="true" /> ¿De qué partimos?
+          <h2 className="text-sm font-bold text-[#F29F05] sy flex items-center gap-2">
+            <BrainCircuit className="w-4 h-4 text-[#F29F05]" aria-hidden="true" /> ¿De qué partimos?
           </h2>
           <SegmentedControl<InputMode>
             label="Tipo de insumo"
