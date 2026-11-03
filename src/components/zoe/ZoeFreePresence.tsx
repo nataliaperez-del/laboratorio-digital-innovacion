@@ -1,7 +1,8 @@
 import React, { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
-import { Bot, Dog, Footprints, Globe, Heart, Mic, Moon, Volume2, VolumeX, X } from 'lucide-react';
+import { Dog, Footprints, Globe, Heart, House, Mic, Moon, Volume2, VolumeX, X } from 'lucide-react';
 import type { ZoeSoulState } from './ZoeCanvas3D';
 import { splitSentences, useZoeVoice, type ZoeListenFailure } from './useZoeVoice';
+import { doghouseDoor, ZoeDoghouse } from './ZoeDoghouse';
 import type { ToolId } from '../layout/Header';
 import { askZoe } from '@/services/zoeAi';
 import { isDoneReply, parseZoeCommand, seemsUnfinished, TOOL_HINTS, TOOL_NAMES, wantsMoreTime, type ZoeTurn } from '@/lib/zoeContext';
@@ -13,6 +14,11 @@ const ZoeCanvas3D = lazy(() => import('./ZoeCanvas3D'));
 const STAGE = typeof window !== 'undefined' && window.innerWidth < 768 ? { width: 170, height: 190 } : { width: 260, height: 290 };
 const POSITION_KEY = 'innovahub_zoe_pos_v2';
 const WALK_SPEED = 90; // píxeles por segundo; acorde al tamaño, para que las patas no parezcan patinar
+const TROT_SPEED = 230;
+/** Desde esta distancia va al trote: caminando, cruzar la pantalla tomaría demasiado. */
+const TROT_FROM = 320;
+/** Lo que dura entrar o salir de la casita (coincide con la animación en index.css). */
+const HOUSE_MS = 650;
 /** Si no responde la IA en este tiempo, ZOE dice algo: el silencio es lo que rompe la conversación. */
 const FILLER_AFTER_MS = 1500;
 const FILLERS = ['A ver…', 'Mmm, déjame olfatear eso.', 'Buena pregunta, dame un segundo.', 'Déjame pensarlo.', 'Interesante…'];
@@ -64,6 +70,12 @@ function initialPosition() {
   return clampPosition(window.innerWidth, window.innerHeight);
 }
 
+/** Posición del escenario con las patas de ZOE frente a la puerta de su casita. */
+function atTheDoor() {
+  const door = doghouseDoor();
+  return { x: door.x - STAGE.width / 2, y: door.y - STAGE.height * 0.97 };
+}
+
 /** Si el navegador no puede dibujar 3D, ZOE sigue presente con su imagen. */
 class CanvasBoundary extends React.Component<{ children: React.ReactNode }, { failed: boolean }> {
   state = { failed: false };
@@ -95,7 +107,14 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
   const voice = useZoeVoice();
   const [behavior, setBehavior] = useState<ZoeSoulState>('idle');
   const [isWalking, setIsWalking] = useState(false);
+  const [trotting, setTrotting] = useState(false);
   const [facing, setFacing] = useState<-1 | 0 | 1>(0);
+  /** El viaje a la casita: ir, entrar y, al llamarla, salir. */
+  const [homeTrip, setHomeTrip] = useState<'none' | 'going' | 'entering' | 'leaving'>('none');
+  const [modelReady, setModelReady] = useState(false);
+  /** Dónde estaba antes de irse a la casita: ahí vuelve al salir. */
+  const returnSpot = useRef<{ x: number; y: number } | null>(null);
+  const comingOut = useRef(false);
   const [posture, setPosture] = useState<'sitting' | 'standing' | 'lying'>('sitting');
   const [napping, setNapping] = useState(false);
   const [show360, setShow360] = useState(false);
@@ -120,18 +139,24 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
   const drag = useRef<{ dx: number; dy: number; startX: number; startY: number; moved: boolean } | null>(null);
   const seenTools = useRef(new Set<ToolId>());
   const walkTarget = useRef<{ x: number; y: number } | null>(null);
+  const speedRef = useRef(WALK_SPEED);
   const onArrive = useRef<(() => void) | null>(null);
   const routine = useRef(0);
   const levelRef = useRef<HTMLSpanElement>(null);
   const busyRef = useRef(false);
-  busyRef.current = talking || napping || behavior !== 'idle';
+  busyRef.current = talking || napping || behavior !== 'idle' || homeTrip !== 'none';
   const toolRef = useRef(currentTool);
   toolRef.current = currentTool;
 
   // ── Rutinas: secuencias de caminar y descansar que cualquier toque interrumpe ──
-  const walkTo = useCallback((x: number, y: number) => {
+  /** `free`: sin los márgenes de siempre, para llegar hasta la puerta de la casita. */
+  const walkTo = useCallback((x: number, y: number, free = false) => {
     return new Promise<void>((resolve) => {
-      walkTarget.current = clampPosition(x, y);
+      walkTarget.current = free ? { x, y } : clampPosition(x, y);
+      const { x: fromX, y: fromY } = positionRef.current;
+      const trot = Math.hypot(walkTarget.current.x - fromX, walkTarget.current.y - fromY) > TROT_FROM;
+      speedRef.current = trot ? TROT_SPEED : WALK_SPEED;
+      setTrotting(trot);
       onArrive.current = resolve;
       setIsWalking(true);
     });
@@ -142,6 +167,7 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
     walkTarget.current = null;
     setIsWalking(false);
     setNapping(false);
+    setHomeTrip('none');
     const arrived = onArrive.current;
     onArrive.current = null;
     arrived?.();
@@ -202,6 +228,34 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
     await walkTo(x + (x > window.innerWidth / 2 ? -span : span), y);
     if (id === routine.current) setPosture(Math.random() < 0.7 ? 'sitting' : 'standing');
   }, [stopRoutine, walkTo]);
+
+  /** Camina (o trota) hasta su casita y entra: en pantalla queda solo la casita. */
+  const goHome = useCallback(async () => {
+    stopRoutine();
+    const id = routine.current;
+    const alive = () => id === routine.current;
+    returnSpot.current = positionRef.current;
+    setBehavior('idle');
+    setPosture('standing');
+    setHomeTrip('going');
+    await pause(500);
+    if (!alive()) return;
+    const door = atTheDoor();
+    await walkTo(door.x, door.y, true);
+    if (!alive()) return;
+    setHomeTrip('entering');
+    await pause(HOUSE_MS);
+    if (!alive()) return;
+    setHomeTrip('none');
+    setPosture('sitting');
+    onToggleOpen();
+  }, [onToggleOpen, stopRoutine, walkTo]);
+
+  /** Tocar la casita: ZOE sale y vuelve a donde estaba. */
+  const comeOut = () => {
+    comingOut.current = true;
+    onToggleOpen();
+  };
 
   const showCaption = useCallback((text: string, ms?: number) => {
     window.clearTimeout(captionTimer.current);
@@ -277,6 +331,12 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
         void stroll();
         return;
       }
+      if (command?.type === 'home') {
+        endConversation();
+        say('Me voy a mi casita. Tócala cuando me necesites.', false);
+        void goHome();
+        return;
+      }
 
       setBehavior('thinking');
       setCaption(null);
@@ -298,7 +358,7 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
         say('Se me cayó la conexión con la IA y no quiero inventarte una respuesta. Revisa el botón I A de la cabecera y me vuelves a llamar.', false);
       }
     },
-    [endConversation, nap, onSelectTool, onToggleTheme, request, say, showCaption, stroll, theme, voice, wake],
+    [endConversation, goHome, nap, onSelectTool, onToggleTheme, request, say, showCaption, stroll, theme, voice, wake],
   );
 
   const onListenFail = useCallback(
@@ -456,6 +516,8 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
     if (walkTarget.current === null) {
       const { x, y } = positionRef.current;
       walkTarget.current = clampPosition(x + (x > window.innerWidth / 2 ? -320 : 320), y);
+      speedRef.current = WALK_SPEED;
+      setTrotting(false);
     }
     let raf = 0;
     let last = performance.now();
@@ -477,7 +539,7 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
         return;
       }
       if (Math.abs(dx) > 2) setFacing(dx > 0 ? 1 : -1);
-      const stride = (WALK_SPEED * dt) / distance;
+      const stride = Math.min(1, (speedRef.current * dt) / distance);
       setPosition((p) => ({ x: p.x + dx * stride, y: p.y + dy * stride }));
     };
     raf = requestAnimationFrame(step);
@@ -522,13 +584,45 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
-  if (!isOpen) {
-    return (
-      <button type="button" onClick={onToggleOpen} className="fixed bottom-4 right-4 z-50 lab-btn zoe-glow" title="Llamar a ZOE">
-        <Bot className="w-4 h-4 text-[#27DCFF]" aria-hidden="true" /> ZOE
-      </button>
-    );
-  }
+  // Al llamarla desde la casita aparece en la puerta; sale cuando el modelo ya cargó.
+  useEffect(() => {
+    if (!isOpen) {
+      setModelReady(false);
+      return;
+    }
+    if (!comingOut.current) return;
+    comingOut.current = false;
+    setPosition(atTheDoor());
+    setPosture('standing');
+    setHomeTrip('leaving');
+  }, [isOpen]);
+
+  // Si el navegador no puede dibujar 3D, el modelo nunca avisa: no se la deja esperando.
+  useEffect(() => {
+    if (homeTrip !== 'leaving' || modelReady) return;
+    const timer = window.setTimeout(() => setModelReady(true), 4000);
+    return () => window.clearTimeout(timer);
+  }, [homeTrip, modelReady]);
+
+  useEffect(() => {
+    if (homeTrip !== 'leaving' || !modelReady) return;
+    const id = routine.current;
+    const alive = () => id === routine.current;
+    void (async () => {
+      await pause(HOUSE_MS);
+      if (!alive()) return;
+      const back = returnSpot.current ?? initialPosition();
+      await walkTo(back.x, back.y);
+      if (!alive()) return;
+      setHomeTrip('none');
+      setPosture('sitting');
+      showCaption('¡Aquí estoy!', 2500);
+    })();
+  }, [homeTrip, modelReady, showCaption, walkTo]);
+
+  const onModelLoaded = useCallback(() => setModelReady(true), []);
+
+  if (!isOpen) return <ZoeDoghouse occupied onCall={comeOut} />;
 
   const status = voice.listening ? 'Te escucho…' : behavior === 'thinking' ? 'Pensando…' : null;
   const toolbar: Array<{ label: string; icon: React.ReactNode; onClick: () => void; pressed?: boolean; color: string }> = [
@@ -539,70 +633,89 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
     { label: napping ? 'Despertar a ZOE' : 'Que ZOE busque dónde dormir', icon: <Moon className="w-4 h-4" />, onClick: () => (napping ? wake() : void nap()), pressed: napping, color: '#B85EFF' },
     { label: show360 ? 'Quitar el entorno 360°' : 'Activar el entorno 360°', icon: <Globe className="w-4 h-4" />, onClick: () => setShow360((v) => !v), pressed: show360, color: '#27DCFF' },
     { label: 'Acariciar a ZOE', icon: <Heart className="w-4 h-4" />, onClick: pet, color: '#F29F05' },
+    { label: 'Mandar a ZOE a su casita', icon: <House className="w-4 h-4" />, onClick: () => void goHome(), color: '#F3C26B' },
   ];
+  const tripClass = homeTrip === 'entering' ? 'zoe-entering' : homeTrip === 'leaving' ? (modelReady ? 'zoe-leaving' : 'invisible') : '';
 
   return (
-    <div className="zoe-stage fixed z-40 group" style={{ left: position.x, top: position.y, width: STAGE.width + 44, height: STAGE.height }}>
-      {/* Subtítulos: lo que ZOE dice, también para quien no puede oírlo. No es un chat. */}
-      {(caption || status || heard) && (
-        <div className={`zoe-caption ${position.x < window.innerWidth / 2 ? 'zoe-caption-left' : ''}`} role="status" aria-live="polite">
-          {talking && (
-            <button type="button" className="zoe-caption-close" onClick={endConversation} aria-label="Terminar la conversación">
-              <X className="w-3.5 h-3.5" aria-hidden="true" />
-            </button>
-          )}
-          {heard && (status || behavior === 'speaking') && <p className="text-[11px] italic text-brand-textMuted mb-1">«{heard}»</p>}
-          {status ? <p className={voice.listening ? 'zoe-status zoe-status-on' : 'zoe-status'}>{status}</p> : <p>{caption}</p>}
-          {voice.listening && (
-            <span className="zoe-level-track" aria-hidden="true">
-              <span ref={levelRef} className="zoe-level" />
-            </span>
-          )}
+    <>
+      {homeTrip !== 'none' && <ZoeDoghouse occupied={false} />}
+      <div
+        className={`zoe-stage fixed z-40 group ${tripClass}`}
+        style={{ left: position.x, top: position.y, width: STAGE.width + 44, height: STAGE.height, transformOrigin: `${STAGE.width / 2}px ${STAGE.height * 0.97}px` }}
+      >
+        {/* Subtítulos: lo que ZOE dice, también para quien no puede oírlo. No es un chat. */}
+        {(caption || status || heard) && (
+          <div className={`zoe-caption ${position.x < window.innerWidth / 2 ? 'zoe-caption-left' : ''}`} role="status" aria-live="polite">
+            {talking && (
+              <button type="button" className="zoe-caption-close" onClick={endConversation} aria-label="Terminar la conversación">
+                <X className="w-3.5 h-3.5" aria-hidden="true" />
+              </button>
+            )}
+            {heard && (status || behavior === 'speaking') && <p className="text-[11px] italic text-brand-textMuted mb-1">«{heard}»</p>}
+            {status ? <p className={voice.listening ? 'zoe-status zoe-status-on' : 'zoe-status'}>{status}</p> : <p>{caption}</p>}
+            {voice.listening && (
+              <span className="zoe-level-track" aria-hidden="true">
+                <span ref={levelRef} className="zoe-level" />
+              </span>
+            )}
+          </div>
+        )}
+  
+        {behavior === 'sleeping' && (
+          <div className="zoe-zzz" aria-hidden="true">
+            <span>z</span>
+            <span>z</span>
+            <span>z</span>
+          </div>
+        )}
+  
+        <div className="absolute left-0 top-0 pointer-events-none" style={{ width: STAGE.width, height: STAGE.height }}>
+          <Suspense fallback={null}>
+            <CanvasBoundary>
+              <ZoeCanvas3D
+                behavior={behavior}
+                isWalking={isWalking}
+                trotting={trotting}
+                facing={facing}
+                posture={posture}
+                show360Environment={show360}
+                petTrigger={petCounter}
+                onModelInfo={onModelLoaded}
+              />
+            </CanvasBoundary>
+          </Suspense>
         </div>
-      )}
-
-      {behavior === 'sleeping' && (
-        <div className="zoe-zzz" aria-hidden="true">
-          <span>z</span>
-          <span>z</span>
-          <span>z</span>
-        </div>
-      )}
-
-      <div className="absolute left-0 top-0 pointer-events-none" style={{ width: STAGE.width, height: STAGE.height }}>
-        <Suspense fallback={null}>
-          <CanvasBoundary>
-            <ZoeCanvas3D behavior={behavior} isWalking={isWalking} facing={facing} posture={posture} show360Environment={show360} petTrigger={petCounter} />
-          </CanvasBoundary>
-        </Suspense>
+  
+        {/* Solo la silueta recibe el puntero: las esquinas vacías dejan pasar los clics al contenido. */}
+        <button
+          type="button"
+          className="zoe-hit"
+          style={{ left: STAGE.width * 0.22, top: STAGE.height * 0.1, width: STAGE.width * 0.56, height: STAGE.height * 0.82 }}
+          aria-label={talking ? 'ZOE te escucha: toca para terminar o interrumpir' : 'Conversar con ZOE por voz'}
+          title="Tócame para conversar · Arrástrame para moverme"
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              onTouchZoe();
+            }
+          }}
+        />
+  
+        {homeTrip === 'none' && (
+          <div className="zoe-toolbar" role="toolbar" aria-label="Controles de ZOE">
+            {toolbar.map((b) => (
+              <button key={b.label} type="button" className="zoe-tool" style={{ color: b.color }} title={b.label} aria-label={b.label} aria-pressed={b.pressed} onClick={b.onClick}>
+                {b.icon}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
-
-      {/* Solo la silueta recibe el puntero: las esquinas vacías dejan pasar los clics al contenido. */}
-      <button
-        type="button"
-        className="zoe-hit"
-        style={{ left: STAGE.width * 0.22, top: STAGE.height * 0.1, width: STAGE.width * 0.56, height: STAGE.height * 0.82 }}
-        aria-label={talking ? 'ZOE te escucha: toca para terminar o interrumpir' : 'Conversar con ZOE por voz'}
-        title="Tócame para conversar · Arrástrame para moverme"
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            onTouchZoe();
-          }
-        }}
-      />
-
-      <div className="zoe-toolbar" role="toolbar" aria-label="Controles de ZOE">
-        {toolbar.map((b) => (
-          <button key={b.label} type="button" className="zoe-tool" style={{ color: b.color }} title={b.label} aria-label={b.label} aria-pressed={b.pressed} onClick={b.onClick}>
-            {b.icon}
-          </button>
-        ))}
-      </div>
-    </div>
+    </>
   );
 };
 

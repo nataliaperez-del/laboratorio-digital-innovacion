@@ -8,7 +8,7 @@ import * as THREE from 'three';
  */
 
 /** Lo que el cuerpo debe estar haciendo. */
-export type ZoeBodyState = 'stand' | 'walk' | 'sit' | 'lie' | 'sleep';
+export type ZoeBodyState = 'stand' | 'walk' | 'trot' | 'sit' | 'lie' | 'sleep';
 
 /** Nombres con que cada origen llama a un mismo clip, ya normalizados (minúsculas, sin signos). */
 export const CLIP_ROLES = {
@@ -161,6 +161,8 @@ export class ZoeClipDirector {
     switch (state) {
       case 'walk':
         return loop(this.has('walk') ? 'walk' : 'rest', 0.3);
+      case 'trot':
+        return this.has('trot') ? loop('trot', 0.3) : this.loopOf('walk');
       case 'sit':
         return this.has('sitIdle') ? loop('sitIdle') : this.has('sit') ? hold('sit') : loop('rest');
       case 'lie':
@@ -175,7 +177,7 @@ export class ZoeClipDirector {
   /** Pasos para ir de un estado a otro, como lo haría un perro: se levanta antes de echarse, etc. */
   private route(from: ZoeBodyState, to: ZoeBodyState): Step[] {
     const steps: Step[] = [];
-    const settle = from === 'walk' ? 'stand' : from;
+    const settle = from === 'walk' || from === 'trot' ? 'stand' : from;
     // Primero, volver a estar de pie si hace falta.
     if ((settle === 'sit' && to !== 'sit') || ((settle === 'lie' || settle === 'sleep') && to !== 'lie' && to !== 'sleep')) {
       steps.push(...this.standUpFrom(settle));

@@ -63,7 +63,8 @@ export type ZoeCommand =
   | { type: 'sleep' }
   | { type: 'sit' }
   | { type: 'stand' }
-  | { type: 'walk' };
+  | { type: 'walk' }
+  | { type: 'home' };
 
 const NAVIGATION_VERB = /\b(abre|abrir|abreme|ll[eé]vame|ll[eé]vanos|lleva(?:r)?me|ve a|vete a|vamos a|vamos al|ir a|ir al|m[uú]estrame|mostrar|entra a|entrar a|p[aá]same a|cambia a|quiero ver|ens[eé][nñ]ame)\b/i;
 
@@ -89,6 +90,8 @@ export function parseZoeCommand(text: string): ZoeCommand | null {
   if (/^(si[eé]ntate|sentado|a\s+sentarse)\b/i.test(order)) return { type: 'sit' };
   if (/^(lev[aá]ntate|p[aá]rate|de\s+pie|arriba)\b/i.test(order)) return { type: 'stand' };
   if (/^(camina|caminemos|da\s+un\s+paseo|pas[eé]a|ponte\s+a\s+caminar)\b/i.test(order)) return { type: 'walk' };
+  // «Ve a tu casita» empieza como una orden de navegación: se reconoce antes.
+  if (/^(ve(te)?\s+(a|para)\s+|a\s+|m[eé]tete\s+en\s+|entra\s+a\s+)(tu|la)\s+cas(it)?a\b|^esc[oó]ndete\b/i.test(order)) return { type: 'home' };
   if (!NAVIGATION_VERB.test(t) || t.endsWith('?')) return null;
   const hit = TOOL_WORDS.find(([re]) => re.test(t));
   return hit ? { type: 'navigate', tool: hit[1] } : null;

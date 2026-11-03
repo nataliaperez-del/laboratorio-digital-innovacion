@@ -25,6 +25,11 @@ describe('órdenes de voz', () => {
     expect(parseZoeCommand('levántate')).toEqual({ type: 'stand' });
     expect(parseZoeCommand('zoe camina un poco')).toEqual({ type: 'walk' });
     expect(parseZoeCommand('¿Cómo camina un proyecto de innovación?')).toBeNull();
+    expect(parseZoeCommand('Zoe, ve a tu casita')).toEqual({ type: 'home' });
+    expect(parseZoeCommand('vete a tu casa')).toEqual({ type: 'home' });
+    expect(parseZoeCommand('a la casita')).toEqual({ type: 'home' });
+    expect(parseZoeCommand('escóndete')).toEqual({ type: 'home' });
+    expect(parseZoeCommand('¿Tienes una casita?')).toBeNull();
     expect(recognitionLang(['es-419', 'es'])).toBe('es-CO');
     expect(recognitionLang(['en-US', 'es-MX'])).toBe('es-MX');
   });

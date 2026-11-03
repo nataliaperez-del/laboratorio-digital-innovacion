@@ -8,6 +8,8 @@ export type ZoeSoulState = 'idle' | 'listening' | 'thinking' | 'speaking' | 'hap
 export interface ZoeCanvas3DProps {
   behavior?: ZoeSoulState;
   isWalking?: boolean;
+  /** Mientras camina, va al trote (para los trayectos largos, como volver a su casita). */
+  trotting?: boolean;
   posture?: 'sitting' | 'standing' | 'lying';
   show360Environment?: boolean;
   petTrigger?: number;
@@ -217,6 +219,7 @@ function furShellMaterial(base: THREE.MeshStandardMaterial, noise: THREE.Texture
 export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
   behavior = 'idle',
   isWalking = false,
+  trotting = false,
   posture = 'standing',
   show360Environment = false,
   petTrigger,
@@ -227,8 +230,8 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
   onModelInfo,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const liveRef = useRef({ behavior, isWalking, posture, show360Environment, facing, wire, framing });
-  liveRef.current = { behavior, isWalking, posture, show360Environment, facing, wire, framing };
+  const liveRef = useRef({ behavior, isWalking, trotting, posture, show360Environment, facing, wire, framing });
+  liveRef.current = { behavior, isWalking, trotting, posture, show360Environment, facing, wire, framing };
   const petRef = useRef<() => void>(() => undefined);
   const infoRef = useRef(onModelInfo);
   infoRef.current = onModelInfo;
@@ -506,7 +509,7 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
 
       // El cuerpo lo mueven los clips del modelo; el director elige cuál y cómo enlazarlos.
       const walking = state.isWalking && motion > 0;
-      const body: ZoeBodyState = walking ? 'walk' : mood === 'sleeping' ? 'sleep' : state.posture === 'lying' ? 'lie' : state.posture === 'sitting' ? 'sit' : 'stand';
+      const body: ZoeBodyState = walking ? (state.trotting ? 'trot' : 'walk') : mood === 'sleeping' ? 'sleep' : state.posture === 'lying' ? 'lie' : state.posture === 'sitting' ? 'sit' : 'stand';
       if (director) {
         director.setState(body, mood === 'listening');
         if (mood === 'happy' && lastMood !== 'happy') director.gesture('happy');

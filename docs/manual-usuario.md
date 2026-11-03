@@ -131,11 +131,13 @@ ZOE es un schnauzer holográfico que vive en la pantalla. No tiene chat de texto
 | «Siéntate» / «levántate» | Cambia de postura |
 | «Camina» | Da un paseo por la pantalla |
 | «A dormir», «acuéstate» | Busca un rincón tranquilo y se echa a dormir |
+| «Ve a tu casita», «escóndete» | Se va a su casita de la esquina |
 
 ### Su vida en la pantalla
 
 - Si nadie lo necesita, a veces pasea, se sienta o busca el rincón con menos botones y se echa a dormir un rato. Tocarlo lo despierta.
 - Se puede **arrastrar** a cualquier lugar; la posición se recuerda.
+- **Su casita:** cuando no lo necesites, toca la casita de su barra de controles (o dile «ve a tu casita»). Camina hasta la casita de la esquina inferior derecha y se mete; en pantalla queda solo la casita, con sus ojos brillando en la puerta. Tócala y ZOE sale y vuelve a donde estaba. Mientras está adentro no ocupa espacio ni gasta recursos del equipo.
 - Al pasar el puntero aparece su barra de controles:
   - conversar;
   - voz;
@@ -143,7 +145,8 @@ ZOE es un schnauzer holográfico que vive en la pantalla. No tiene chat de texto
   - caminar;
   - dormir;
   - entorno 360°;
-  - acariciar.
+  - acariciar;
+  - ir a su casita.
 
 ### Qué sabe y qué no
 

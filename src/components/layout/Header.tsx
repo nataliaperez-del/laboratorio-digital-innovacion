@@ -303,7 +303,7 @@ export const Header: React.FC<HeaderProps> = ({
                       <span className="text-xs font-bold sy tracking-wide">ZOE 3D</span>
                     </div>
                     <span className="text-[11px] font-semibold text-[#A8C63C]">
-                      {isZoeOpen ? 'Activo en pantalla' : 'Activar ZOE'}
+                      {isZoeOpen ? 'Activo en pantalla' : 'En su casita'}
                     </span>
                   </button>
                 </div>

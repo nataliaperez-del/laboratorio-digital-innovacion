@@ -438,6 +438,32 @@ button.lab-card:hover { border-color: var(--brand-teal-text); }
 @media (hover: none) { .zoe-toolbar { opacity: 1; transform: none; } }
 @media (max-width: 767px) { .zoe-toolbar { display: none; } }
 
+/* Casita de ZOE: ahí descansa cuando no se la necesita */
+.zoe-house { position: fixed; z-index: 39; padding: 0; border: 0; background: none; pointer-events: none; }
+.zoe-house-art { display: block; overflow: visible; filter: drop-shadow(0 0 10px rgba(39, 220, 255, .35)); }
+.zoe-house-glow { fill: #27DCFF; opacity: .3; animation: zoe-house-glow 3.2s ease-in-out infinite alternate; }
+@keyframes zoe-house-glow { to { opacity: .55; } }
+.zoe-house-occupied { z-index: 50; pointer-events: auto; cursor: pointer; border-radius: 14px; animation: zoe-house-in .4s ease-out; transition: transform .2s ease; }
+.zoe-house-occupied:hover { transform: translateY(-3px) scale(1.04); }
+.zoe-house-occupied:focus-visible { outline: 2px solid #27DCFF; outline-offset: 4px; }
+@keyframes zoe-house-in { from { opacity: 0; transform: scale(.85); } }
+.zoe-house-eyes { transform-box: fill-box; transform-origin: center; animation: zoe-house-blink 4.8s infinite; }
+.zoe-house-occupied:hover .zoe-house-eyes { animation: none; transform: scale(1.25); }
+@keyframes zoe-house-blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
+.zoe-house-zzz { position: absolute; right: 8%; top: 4%; color: #9FE8FF; font: 700 12px 'Space Grotesk', sans-serif; pointer-events: none; }
+.zoe-house-zzz span { position: absolute; opacity: 0; animation: zoe-house-zzz 4s ease-out infinite; }
+.zoe-house-zzz span:nth-child(2) { animation-delay: 2s; font-size: 10px; }
+.zoe-house-occupied:hover .zoe-house-zzz { display: none; }
+@keyframes zoe-house-zzz { 0% { opacity: 0; transform: translate(0, 6px); } 25% { opacity: .9; } 100% { opacity: 0; transform: translate(12px, -22px); } }
+/* Entrar y salir: se encoge hacia la puerta o crece desde ella (dura lo mismo que HOUSE_MS) */
+.zoe-entering { animation: zoe-enter-house .65s ease-in forwards; }
+.zoe-leaving { animation: zoe-leave-house .65s ease-out both; }
+@keyframes zoe-enter-house { to { opacity: 0; transform: scale(.22); } }
+@keyframes zoe-leave-house { from { opacity: 0; transform: scale(.22); } }
+@media (prefers-reduced-motion: reduce) {
+  .zoe-entering, .zoe-leaving, .zoe-house-occupied, .zoe-house-glow, .zoe-house-eyes, .zoe-house-zzz span { animation: none; }
+}
+
 /* ═══════════ Radar de barrido ═══════════ */
 .radar-scope-stage { position: relative; width: 100%; aspect-ratio: 1; max-width: 760px; margin: 0 auto; }
 .radar-scope-canvas, .radar-scope-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
