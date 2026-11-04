@@ -31,7 +31,7 @@ import { openCertificatePrintWindow } from '@/lib/certificatePdfExport';
 import type { PrototypePlan } from '@/services/prototyping';
 import type { ToolId } from '@/components/layout/Header';
 
-/** Pestañas del Banco: estudios, ideaciones, árboles, prototipos y logros. */
+/** Pestañas del Contenedor de resultados: estudios, ideaciones, árboles, prototipos y logros. */
 export type BancoTab = 'estudio' | 'ideacion' | 'arbol' | 'prototipado' | 'logros';
 
 interface Props {
@@ -39,7 +39,7 @@ interface Props {
   defaultTab?: BancoTab;
 }
 
-/** Banco Unificado: consulta, descarga y reutiliza los ejercicios guardados; insignias y certificados. */
+/** Contenedor de resultados: consulta, descarga y reutiliza los ejercicios guardados; insignias y certificados. */
 export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 'prototipado' }) => {
   const [activeTab, setActiveTab] = useState<BancoTab>(defaultTab);
 
@@ -127,9 +127,9 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
 
   return (
     <div className="w-full space-y-6">
-      {/* Encabezado Principal del Banco Unificado */}
+      {/* Encabezado Principal del Contenedor de resultados */}
       <ToolHeader
-        title="Banco Unificado de Innovación"
+        title="Contenedor de resultados de innovación en línea"
         titleColor="#A78BFA"
         description="Repositorio transversal del Laboratorio. Centraliza, consulta y descarga los ejercicios relevantes y completos desarrollados en las cuatro líneas estratégicas, sin interferir en los talleres de trabajo."
       />
@@ -181,7 +181,7 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
       {activeTab === 'estudio' && (
         <div className="space-y-4">
           {savedStudies.length === 0 && !containerData.trim() ? (
-            <EmptyState title="No hay estudios territoriales en el Banco">
+            <EmptyState title="No hay estudios territoriales en el Contenedor de resultados">
               Cuando generes un Estudio Territorial completo en el taller, guárdalo para consultarlo aquí en cualquier momento.
               <div className="pt-3">
                 <button type="button" onClick={() => onNavigate('estudio')} className="metal px-4 py-2 text-xs font-bold flex items-center gap-2 mx-auto">
@@ -231,12 +231,12 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (window.confirm(`¿Eliminar el estudio de «${st.territoryName}» del Banco?`)) {
+                          if (window.confirm(`¿Eliminar el estudio de «${st.territoryName}» del Contenedor de resultados?`)) {
                             removeSavedStudy(st.id);
                           }
                         }}
                         className="opacity-0 group-hover:opacity-100 text-white/40 hover:text-red-400 p-1 transition-all"
-                        title="Eliminar del Banco"
+                        title="Eliminar del Contenedor de resultados"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -317,7 +317,7 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
       {activeTab === 'ideacion' && (
         <div className="space-y-4">
           {savedIdeations.length === 0 && !themeProposalMarkdown.trim() ? (
-            <EmptyState title="No hay propuestas de ideación en el Banco">
+            <EmptyState title="No hay propuestas de ideación en el Contenedor de resultados">
               Formula alternativas estratégicas y selección de tema para archivarlas en esta sección.
               <div className="pt-3">
                 <button type="button" onClick={() => onNavigate('ideacion')} className="metal px-4 py-2 text-xs font-bold flex items-center gap-2 mx-auto">
@@ -363,12 +363,12 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (window.confirm(`¿Eliminar la ideación «${id.topicName}» del Banco?`)) {
+                          if (window.confirm(`¿Eliminar la ideación «${id.topicName}» del Contenedor de resultados?`)) {
                             removeSavedIdeation(id.id);
                           }
                         }}
                         className="opacity-0 group-hover:opacity-100 text-white/40 hover:text-red-400 p-1 transition-all"
-                        title="Eliminar del Banco"
+                        title="Eliminar del Contenedor de resultados"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -433,7 +433,7 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
       {activeTab === 'arbol' && (
         <div className="space-y-4">
           {savedTrees.length === 0 && !treeGraph ? (
-            <EmptyState title="No hay árboles de innovación en el Banco">
+            <EmptyState title="No hay árboles de innovación en el Contenedor de resultados">
               Genera árboles holográficos de tendencias y guárdalos para consulta y análisis de frutos.
               <div className="pt-3">
                 <button type="button" onClick={() => onNavigate('arbol')} className="metal px-4 py-2 text-xs font-bold flex items-center gap-2 mx-auto">
@@ -479,12 +479,12 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (window.confirm(`¿Eliminar el árbol «${tr.theme}» del Banco?`)) {
+                          if (window.confirm(`¿Eliminar el árbol «${tr.theme}» del Contenedor de resultados?`)) {
                             removeSavedTree(tr.id);
                           }
                         }}
                         className="opacity-0 group-hover:opacity-100 text-white/40 hover:text-red-400 p-1 transition-all"
-                        title="Eliminar del Banco"
+                        title="Eliminar del Contenedor de resultados"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -560,7 +560,7 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
       {activeTab === 'prototipado' && (
         <div className="space-y-4">
           {prototypes.length === 0 ? (
-            <EmptyState title="No hay planes de prototipado en el Banco">
+            <EmptyState title="No hay planes de prototipado en el Contenedor de resultados">
               Diseña soluciones e hipótesis en el Taller de Prototipado para guardarlas en este banco.
               <div className="pt-3">
                 <button type="button" onClick={() => onNavigate('prototipado')} className="metal px-4 py-2 text-xs font-bold flex items-center gap-2 mx-auto">
@@ -589,12 +589,12 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (window.confirm(`¿Eliminar «${p.name}» del Banco?`)) {
+                          if (window.confirm(`¿Eliminar «${p.name}» del Contenedor de resultados?`)) {
                             removePrototype(p.id);
                           }
                         }}
                         className="opacity-0 group-hover:opacity-100 text-white/40 hover:text-red-400 p-1 transition-all"
-                        title="Eliminar del Banco"
+                        title="Eliminar del Contenedor de resultados"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -634,12 +634,12 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
                           type="button"
                           className="lab-btn"
                           onClick={() => {
-                            if (window.confirm(`¿Eliminar «${activePlan.name}» del Banco?`)) {
+                            if (window.confirm(`¿Eliminar «${activePlan.name}» del Contenedor de resultados?`)) {
                               removePrototype(activePlan.id);
                             }
                           }}
                           aria-label={`Eliminar ${activePlan.name}`}
-                          title="Eliminar del Banco"
+                          title="Eliminar del Contenedor de resultados"
                         >
                           <Trash2 className="w-4 h-4" aria-hidden="true" />
                         </button>

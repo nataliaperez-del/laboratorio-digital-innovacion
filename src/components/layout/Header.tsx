@@ -57,7 +57,7 @@ export const Header: React.FC<HeaderProps> = ({ currentTool, onSelectTool, theme
     { id: 'ideacion' as ToolId, name: 'Ideación Estratégica', icon: BrainCircuit, color: '#F29F05' },
     { id: 'arbol' as ToolId, name: 'Árbol de Innovación', icon: Trees, color: '#5EC2DD' },
     { id: 'prototipado' as ToolId, name: 'Prototipado', icon: Rocket, color: '#E024A5' },
-    { id: 'banco' as ToolId, name: 'Banco Unificado', icon: FolderArchive, color: '#A78BFA' },
+    { id: 'banco' as ToolId, name: 'Contenedor de resultados', icon: FolderArchive, color: '#A78BFA' },
   ];
 
   return (

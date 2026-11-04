@@ -59,7 +59,7 @@ export const BADGE_CERTIFICATES: Record<string, BadgeCertificateMetadata> = {
     badgeAsset: 'custodio_conocimiento',
     competenceTitle: 'Gestión y Transferencia del Conocimiento Regional',
     accreditationText:
-      'Capacidad para consolidar y aportar ejercicios estructurados al Banco Unificado de Innovación, garantizando la trazabilidad y memoria del ecosistema territorial.',
+      'Capacidad para consolidar y aportar ejercicios estructurados al Contenedor de resultados de innovación en línea, garantizando la trazabilidad y memoria del ecosistema territorial.',
     hours: 20,
     badgeColor: '#00B4D8',
   },
@@ -119,7 +119,7 @@ export const BADGE_UNIT_COLORS: Record<string, { primary: string; glow: string; 
   custodio_conocimiento: {
     primary: '#A78BFA', // Púrpura / Violeta banco unificado
     glow: 'rgba(167, 139, 250, 0.50)',
-    label: 'Banco de Innovación',
+    label: 'Contenedor de resultados',
   },
   vinculo_cognitivo: {
     primary: '#00F5FF', // Cian digital ZOE

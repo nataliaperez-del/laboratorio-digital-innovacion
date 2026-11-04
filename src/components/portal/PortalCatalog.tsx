@@ -72,7 +72,7 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
     },
     {
       id: 'banco' as ToolId,
-      name: 'Banco Unificado',
+      name: 'Contenedor de resultados',
       desc: 'Repositorio transversal de ejercicios',
       icon: FolderArchive,
       color: '#A78BFA',

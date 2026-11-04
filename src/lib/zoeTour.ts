@@ -1,14 +1,14 @@
 /**
  * Recorrido guiado: ZOE muestra el Laboratorio herramienta por herramienta y en cada una hace un
  * ejercicio completo, de verdad, con la IA: explica para qué sirve y qué tan flexible es su punto de
- * partida, limpia la herramienta si tiene trabajo (lo terminado ya está en el Banco), llena los
+ * partida, limpia la herramienta si tiene trabajo (lo terminado ya está en el Contenedor de resultados), llena los
  * datos, genera, narra el proceso mientras espera (moviéndose y haciendo gestos) y explica el
  * resultado real que quedó en pantalla, con sus ventajas. Entre herramienta y herramienta pregunta
  * si seguir: el ritmo lo pone la persona.
  *
  * Es un solo ejercicio de punta a punta, para que se vea cómo cada herramienta alimenta a la
  * siguiente: residuos de cosecha en Sogamoso, Boyacá → su Estudio Territorial → la Ideación con ese
- * estudio → el Árbol del tema elegido → el plan de prototipo de un fruto → el Banco.
+ * estudio → el Árbol del tema elegido → el plan de prototipo de un fruto → el Contenedor de resultados.
  *
  * Los guiones solo usan el `TourContext` que les da `ZoeFreePresence`: así se prueban con un contexto
  * falso (tests/zoeOffline.test.ts) y nunca dicen un resultado que no esté en pantalla.
@@ -107,6 +107,8 @@ export function firstSentence(markdown: string, max = 220): string {
   const text = markdown
     .split('\n')
     .filter((l) => l.trim() && !/^\s*(#|>|\||---)/.test(l))
+    // Las viñetas y numeraciones no se dicen en voz alta.
+    .map((l) => l.replace(/^\s*([-*+•]|\d+[.)])\s+/, ''))
     .join(' ')
     .replace(/\*\*|__|[*_`]/g, '')
     .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
@@ -120,9 +122,20 @@ export function firstSentence(markdown: string, max = 220): string {
 
 /** «Bloque 3 de 12: Pilares de competitividad» → «el bloque 3 de 12, Pilares de competitividad». */
 export function describeProgress(statusText: string): string | null {
-  const m = statusText.match(/\b(Bloque|Parte|Paso)\s+(\d+)\s+de\s+(\d+)\s*:\s*([^\n]+?)(?:\s*Detener)?\s*$/i);
+  // El panel de avance sigue con el botón «Detener» y una nota («La IA redacta cada parte…»): no se leen.
+  const m = statusText.match(/\b(Bloque|Parte|Paso)\s+(\d+)\s+de\s+(\d+)\s*:\s*(.+?)(?=\s*Detener|\n|$)/i);
   if (!m) return null;
   return `${m[1].toLowerCase() === 'parte' ? 'la parte' : `el ${m[1].toLowerCase()}`} ${m[2]} de ${m[3]}, ${m[4].trim()}`;
+}
+
+/**
+ * La etiqueta de un punto del Radar dicha como frase: «Bioinsumos. Área Agro, impacto 80%,
+ * adopción 40%, prioridad alta» → «Se llama «Bioinsumos»: área Agro, impacto territorial del 80 por ciento…».
+ */
+export function describeSignal(label: string): string {
+  const m = label.match(/^(.+?)\.\s*Área\s+(.+?),\s*impacto\s+(\d+)%,\s*adopción\s+(\d+)%,\s*prioridad\s+(.+)$/i);
+  if (!m) return label ? `Se llama «${label.replace(/\.$/, '')}».` : '';
+  return `Se llama «${m[1]}»: área ${m[2]}, impacto territorial del ${m[3]} por ciento, adopción del ${m[4]} por ciento y prioridad ${m[5].replace(/\.$/, '')}.`;
 }
 
 /** Une nombres como se dicen: «A», «A y B», «A, B y C». */
@@ -136,7 +149,7 @@ function notGenerated(outcome: GenerationOutcome, what: string): string {
   if (outcome === 'offline')
     return `La IA se fue a dar un paseíto, así que esta vez no genero ${what}. No pasa nada: todo queda listo y, cuando vuelva la conexión, basta con presionar el botón.`;
   if (outcome === 'timeout')
-    return `La IA se está tomando su tiempo con ${what}. Lo dejo trabajando: cuando termine, el resultado queda guardado solito en el Banco. Sigamos.`;
+    return `La IA se está tomando su tiempo con ${what}. Lo dejo trabajando: cuando termine, el resultado queda guardado solito en el Contenedor de resultados. Sigamos.`;
   return `Esta vez la IA no alcanzó a terminar ${what}, y no pasa nada: el botón queda listo para intentarlo de nuevo cuando quieras. Sigamos con lo demás.`;
 }
 
@@ -225,7 +238,7 @@ const portal: TourStep = {
       'wag',
     );
     await ctx.say(
-      'Hoy no solo te las muestro: voy a hacer un ejercicio completo en cada una, con la IA de verdad, de punta a punta. Nuestro caso: aprovechar los residuos de cosecha en Sogamoso, Boyacá. Si alguna herramienta tiene trabajo, la limpio primero; lo que ya estaba terminado queda guardado en el Banco. Entre herramienta y herramienta te pregunto si seguimos, y puedes decirme «repite», «atrás» o «terminar recorrido», o usar los botones de mi globo.',
+      'Hoy no solo te las muestro: voy a hacer un ejercicio completo en cada una, con la IA de verdad, de punta a punta. Nuestro caso: aprovechar los residuos de cosecha en Sogamoso, Boyacá. Si alguna herramienta tiene trabajo, la limpio primero; lo que ya estaba terminado queda guardado en el Contenedor de resultados. Entre herramienta y herramienta te pregunto si seguimos, y puedes decirme «repite», «atrás» o «terminar recorrido», o usar los botones de mi globo.',
       'spin',
     );
   },
@@ -259,7 +272,7 @@ const radar: TourStep = {
     const name = ctx.label(blip);
     if (await ctx.press(blip)) {
       await ctx.say(
-        `Toco una señal para ver su ficha. ${name ? `${name.replace(/\.\s*Área/, '. Su área es')}.` : ''} En la ficha están el impacto, la adopción, el horizonte, la madurez, la evidencia, casos reales y señales relacionadas.`,
+        `Toco una señal para ver su ficha. ${describeSignal(name)} En la ficha están además el horizonte, la madurez, la evidencia, casos reales y señales relacionadas.`,
         'shake',
       );
     }
@@ -286,7 +299,10 @@ const estudio: TourStep = {
       'wag',
     );
     if (ctx.snapshot().study.blocks && ctx.exists(CLEAR)) {
-      await ctx.say('Aquí ya hay un estudio. Lo limpio para hacer el ejercicio desde cero; tranquilidad, ya quedó guardado en el Banco.', 'shake');
+      await ctx.say(
+        'Aquí ya hay un estudio. Lo limpio para hacer el ejercicio desde cero; tranquilidad, ya quedó guardado en el Contenedor de resultados.',
+        'shake',
+      );
       await ctx.press(CLEAR);
       await ctx.wait(600);
     } else if (!ctx.exists({ selector: '#ficha-nombre' }) && ctx.exists({ selector: 'button', text: /^Editar$/ })) {
@@ -334,7 +350,7 @@ const estudio: TourStep = {
     );
     await ctx.show(
       { selector: 'button[aria-label="Descargar informe en Word"]' },
-      'Y con un toque lo descargas como informe formal, en Word editable o en PDF, con portada, índice y referencias. Además ya quedó guardado en el Banco, sin que lo pidieras.',
+      'Y con un toque lo descargas como informe formal, en Word editable o en PDF, con portada, índice y referencias. Además ya quedó guardado en el Contenedor de resultados, sin que lo pidieras.',
       'bow',
     );
   },
@@ -342,7 +358,7 @@ const estudio: TourStep = {
     const { study } = ctx.snapshot();
     await ctx.say(
       study.blocks
-        ? `El Estudio Territorial de ${study.municipality} tiene ${study.blocks} bloques: caracterización, pilares con evidencia, matriz FODA y alertas. Se descarga en Word o PDF y ya está en el Banco.`
+        ? `El Estudio Territorial de ${study.municipality} tiene ${study.blocks} bloques: caracterización, pilares con evidencia, matriz FODA y alertas. Se descarga en Word o PDF y ya está en el Contenedor de resultados.`
         : 'El Estudio Territorial diagnostica un municipio en doce bloques con la metodología MDVT. Basta la Ficha Base para empezar, y puedes sumar tus propias fuentes.',
       'wag',
     );
@@ -358,7 +374,7 @@ const ideacion: TourStep = {
       'wag',
     );
     if (ctx.snapshot().ideation.has && ctx.exists(CLEAR)) {
-      await ctx.say('Aquí había una ideación anterior; la limpio para empezar. Ya está guardada en el Banco.', 'shake');
+      await ctx.say('Aquí había una ideación anterior; la limpio para empezar. Ya está guardada en el Contenedor de resultados.', 'shake');
       await ctx.press(CLEAR);
       await ctx.wait(500);
     }
@@ -420,7 +436,7 @@ const arbol: TourStep = {
       'wag',
     );
     if (ctx.snapshot().tree.has && ctx.exists(CLEAR)) {
-      await ctx.say('Aquí había un árbol; lo limpio para construir el nuestro. El anterior ya vive en el Banco.', 'shake');
+      await ctx.say('Aquí había un árbol; lo limpio para construir el nuestro. El anterior ya vive en el Contenedor de resultados.', 'shake');
       await ctx.press(CLEAR);
       await ctx.wait(500);
     }
@@ -482,7 +498,7 @@ const prototipado: TourStep = {
       'wag',
     );
     if (ctx.snapshot().prototype.has && ctx.exists(CLEAR)) {
-      await ctx.say('Aquí estaba abierto un plan anterior; lo limpio. Sigue guardado en el Banco.', 'shake');
+      await ctx.say('Aquí estaba abierto un plan anterior; lo limpio. Sigue guardado en el Contenedor de resultados.', 'shake');
       await ctx.press(CLEAR);
       await ctx.wait(500);
     }
@@ -548,11 +564,11 @@ const prototipado: TourStep = {
 
 const banco: TourStep = {
   tool: 'banco',
-  title: 'el Banco Unificado',
+  title: 'el Contenedor de resultados',
   async run(ctx) {
     const { bank } = ctx.snapshot();
     await ctx.say(
-      `Y la última parada: el Banco Unificado de Innovación. Aquí se guardó solito todo lo que hicimos. Hoy tienes ${bank.studies} ${bank.studies === 1 ? 'estudio' : 'estudios'}, ${bank.ideations} ${bank.ideations === 1 ? 'ideación' : 'ideaciones'}, ${bank.trees} ${bank.trees === 1 ? 'árbol' : 'árboles'} y ${bank.prototypes} ${bank.prototypes === 1 ? 'plan' : 'planes'} de prototipo, listos para consultar o descargar cuando quieras.`,
+      `Y la última parada: el Contenedor de resultados de innovación en línea. Aquí se guardó solito todo lo que hicimos. Hoy tienes ${bank.studies} ${bank.studies === 1 ? 'estudio' : 'estudios'}, ${bank.ideations} ${bank.ideations === 1 ? 'ideación' : 'ideaciones'}, ${bank.trees} ${bank.trees === 1 ? 'árbol' : 'árboles'} y ${bank.prototypes} ${bank.prototypes === 1 ? 'plan' : 'planes'} de prototipo, listos para consultar o descargar cuando quieras.`,
       'wag',
     );
     await ctx.show(
@@ -568,7 +584,10 @@ const banco: TourStep = {
     }
   },
   async recap(ctx) {
-    await ctx.say('El Banco guarda solo todos los ejercicios terminados, y en la pestaña de logros están tus insignias, niveles y certificados.', 'wag');
+    await ctx.say(
+      'El Contenedor de resultados guarda solo todos los ejercicios terminados, y en la pestaña de logros están tus insignias, niveles y certificados.',
+      'wag',
+    );
   },
 };
 

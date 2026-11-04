@@ -205,7 +205,7 @@ const FEELINGS: Feeling[] = [
       feeling(String.raw`cansad[oa]|agotad[oa]|exhaust[oa]|rendid[oa]|sin\s+energ[ií]a|muert[oa]\s+del\s+cansancio|con\s+sue[nñ]o|trasnochad[oa]`),
     ),
     replies: [
-      'Se nota que has trabajado duro, y eso vale mucho. Descansar también es parte de innovar: las ideas maduran mientras uno respira. Si quieres, estira el cuerpo, toma agua y date unos minutos; lo que ya terminaste queda guardado en el Banco. Aquí te espero.',
+      'Se nota que has trabajado duro, y eso vale mucho. Descansar también es parte de innovar: las ideas maduran mientras uno respira. Si quieres, estira el cuerpo, toma agua y date unos minutos; lo que ya terminaste queda guardado en el Contenedor de resultados. Aquí te espero.',
       'Gracias por decírmelo. El cansancio también se escucha. ¿Qué te parece si hoy dejamos solo un paso pequeño y el resto lo seguimos con energía nueva? Yo no me muevo de aquí.',
     ],
   },
@@ -250,7 +250,7 @@ const FEELINGS: Feeling[] = [
     ),
     replies: [
       '¡Guau, qué alegría! Eso merece una vuelta en círculo. Me encanta verte avanzar. ¿Lo celebramos con el siguiente paso o prefieres disfrutarlo un ratico?',
-      '¡Mueve la cola conmigo! Ese logro es tuyo. Cuando quieras seguimos; y si quieres, miramos tus insignias en el Banco.',
+      '¡Mueve la cola conmigo! Ese logro es tuyo. Cuando quieras seguimos; y si quieres, miramos tus insignias en el Contenedor de resultados.',
     ],
   },
 ];
@@ -274,7 +274,7 @@ export function feelingReply(text: string, random: () => number = Math.random): 
 
 /** Las rutas para recorrer el Laboratorio, según con qué cuenta la persona. */
 export const ROUTES_TEXT =
-  'Hay cuatro caminos, según lo que tengas. Si tienes un territorio, la ruta completa: Estudio Territorial, luego Ideación con ese estudio, el Árbol con el estudio como evidencia, Prototipado desde un fruto, y todo queda en el Banco. Si tienes un tema o un documento, empieza por Ideación y sigue al Árbol y a Prototipado. Si quieres mirar tendencias, empieza por el Radar y lleva una señal al Árbol o a Ideación. Y si ya tienes una idea concreta, ve directo a Prototipado.';
+  'Hay cuatro caminos, según lo que tengas. Si tienes un territorio, la ruta completa: Estudio Territorial, luego Ideación con ese estudio, el Árbol con el estudio como evidencia, Prototipado desde un fruto, y todo queda en el Contenedor de resultados. Si tienes un tema o un documento, empieza por Ideación y sigue al Árbol y a Prototipado. Si quieres mirar tendencias, empieza por el Radar y lleva una señal al Árbol o a Ideación. Y si ya tienes una idea concreta, ve directo a Prototipado.';
 
 /** El siguiente paso natural según el trabajo real de la persona (nunca inventa resultados). */
 export function nextStepAdvice(work?: ZoeWorkState): string {
@@ -282,7 +282,7 @@ export function nextStepAdvice(work?: ZoeWorkState): string {
     return 'Todavía no tienes ejercicios, así que el camino está abierto. Si tienes un territorio, empieza por el Estudio Territorial; si tienes un tema, por Ideación. Y si quieres, te hago el recorrido guiado: solo dime «muéstrame el laboratorio».';
   }
   if (work.prototypes.length) {
-    return `¡Ya tienes ${work.prototypes.length === 1 ? 'un plan de prototipo' : `${work.prototypes.length} planes de prototipo`}! Revisa el plan con calma, descarga el informe y pasa por el Banco a ver tus insignias.`;
+    return `¡Ya tienes ${work.prototypes.length === 1 ? 'un plan de prototipo' : `${work.prototypes.length} planes de prototipo`}! Revisa el plan con calma, descarga el informe y pasa por el Contenedor de resultados a ver tus insignias.`;
   }
   if (work.treeTheme) {
     const frutos = work.treeCounts?.frutos ?? 0;
@@ -303,7 +303,7 @@ const SCREEN_TITLES: Record<ToolId, string> = {
   ideacion: 'Ideación Estratégica',
   arbol: 'Árbol de Innovación',
   prototipado: 'Prototipado',
-  banco: 'Banco Unificado de Innovación',
+  banco: 'Contenedor de resultados de innovación en línea',
 };
 
 const pick = (list: readonly string[], random: () => number) => list[Math.floor(random() * list.length)] ?? '';

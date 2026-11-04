@@ -241,7 +241,8 @@ function buildTourSnapshot(): TourSnapshot {
       trl: plan?.trlTarget,
       weeks: plan?.durationWeeks,
       phases: plan?.phases.length ?? 0,
-      metrics: plan?.validationMetrics ?? [],
+      // «Tiempo de biotransformación: alcanzar la maduración en ≤ 21 días…» se dice solo por su nombre.
+      metrics: (plan?.validationMetrics ?? []).map((m) => (m.includes(':') ? m.split(':')[0] : firstSentence(m, 90)).trim()),
     },
     bank: { studies: s.savedStudies.length, ideations: s.savedIdeations.length, trees: s.savedTrees.length, prototypes: s.prototypes.length },
   };

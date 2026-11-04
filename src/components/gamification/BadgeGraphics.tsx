@@ -37,7 +37,7 @@ export const BADGE_UNIT_THEMES: Record<string, { primary: string; glow: string; 
   custodio_conocimiento: {
     primary: '#A78BFA', // Púrpura / Violeta banco unificado
     glow: 'rgba(167, 139, 250, 0.50)',
-    label: 'Banco de Innovación',
+    label: 'Contenedor de resultados',
   },
   vinculo_cognitivo: {
     primary: '#00F5FF', // Cian digital ZOE

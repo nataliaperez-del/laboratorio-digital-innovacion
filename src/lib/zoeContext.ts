@@ -13,7 +13,7 @@ export const TOOL_NAMES: Record<ToolId, string> = {
   ideacion: 'Ideación',
   arbol: 'Árbol de Innovación',
   prototipado: 'Prototipado',
-  banco: 'Banco Unificado de Innovación',
+  banco: 'Contenedor de resultados de innovación en línea',
 };
 
 /** Pista breve que ZOE da la primera vez que se visita cada pantalla. */

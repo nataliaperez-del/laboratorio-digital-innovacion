@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 import { bestEntry, crisisReply, feelingReply, nextStepAdvice, OFFLINE_FALLBACK, offlineAnswer, parseBank, sectionLines } from '@/lib/zoeOffline';
 import {
   describeProgress,
+  describeSignal,
   firstSentence,
   joinNames,
   parseTourReply,
@@ -196,6 +197,14 @@ describe('recorrido guiado', () => {
     expect(describeProgress('Bloque 3 de 12: Pilares de competitividadDetener')).toBe('el bloque 3 de 12, Pilares de competitividad');
     expect(describeProgress('Parte 2 de 4: Vocación')).toBe('la parte 2 de 4, Vocación');
     expect(describeProgress('Cargando…')).toBeNull();
+    // El panel sigue con «Detener» y una nota que no se lee en voz alta.
+    expect(describeProgress('Parte 5 de 6: Fuentes y alertas DetenerLa IA redacta cada parte por separado. No cierres la página.')).toBe(
+      'la parte 5 de 6, Fuentes y alertas',
+    );
+    expect(firstSentence('- Brechas que atiende: la primarización agrícola. Otra.')).toBe('Brechas que atiende: la primarización agrícola.');
+    expect(describeSignal('Bioinsumos. Área Agro, impacto 80%, adopción 40%, prioridad alta')).toBe(
+      'Se llama «Bioinsumos»: área Agro, impacto territorial del 80 por ciento, adopción del 40 por ciento y prioridad alta.',
+    );
     expect(firstSentence('## Vocación\n\n**Fortalecer** la economía circular del agro. Segunda frase.')).toBe('Fortalecer la economía circular del agro.');
     expect(joinNames(['A', 'B', 'C'])).toBe('«A», «B» y «C»');
   });

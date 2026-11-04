@@ -63,9 +63,9 @@ export const INNOVATION_BADGES: BadgeDefinition[] = [
   {
     id: 'custodio_conocimiento',
     title: 'Custodio del Conocimiento',
-    subtitle: 'Aporte al Banco Unificado',
-    description: 'Depositó ejercicios relevantes en el Banco Unificado, fortaleciendo la memoria institucional.',
-    howToUnlock: 'Deposita cualquier ejercicio en el Banco Unificado de Innovación.',
+    subtitle: 'Aporte al Contenedor de resultados',
+    description: 'Depositó ejercicios relevantes en el Contenedor de resultados, fortaleciendo la memoria institucional.',
+    howToUnlock: 'Deposita cualquier ejercicio en el Contenedor de resultados de innovación en línea.',
     category: 'Banco',
     color: '#A78BFA',
     icon: FolderArchive,

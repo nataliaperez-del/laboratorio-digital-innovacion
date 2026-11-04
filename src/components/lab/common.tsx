@@ -201,27 +201,27 @@ export const ReportActions: React.FC<{ getReport: () => LabReport | null; disabl
   );
 };
 
-/** Aviso de que el resultado ya está en el Banco (se guarda solo); abre el Banco al tocarlo. */
+/** Aviso de que el resultado ya está en el Contenedor de resultados (se guarda solo); abre el Contenedor de resultados al tocarlo. */
 export const BancoStatus: React.FC<{ color: string; onOpen: () => void }> = ({ color, onOpen }) => (
   <button
     type="button"
     className="lab-chip lab-chip-btn flex items-center gap-1.5"
     style={{ color, borderColor: `${color}66` }}
     onClick={onOpen}
-    title="Se guardó automáticamente en el Banco Unificado. Toca para verlo."
+    title="Se guardó automáticamente en el Contenedor de resultados. Toca para verlo."
   >
-    <FolderArchive className="w-3.5 h-3.5" aria-hidden="true" /> Guardado en el Banco
+    <FolderArchive className="w-3.5 h-3.5" aria-hidden="true" /> Guardado en el Contenedor
   </button>
 );
 
-/** Limpia el módulo: el trabajo ya está en el Banco y el espacio queda listo para empezar de nuevo. */
+/** Limpia el módulo: el trabajo ya está en el Contenedor de resultados y el espacio queda listo para empezar de nuevo. */
 export const ClearButton: React.FC<{ onClear: () => void; disabled?: boolean }> = ({ onClear, disabled }) => (
   <button
     type="button"
     className="lab-btn lab-btn-sm"
     disabled={disabled}
     onClick={onClear}
-    title="Limpiar el módulo. El trabajo ya está guardado en el Banco Unificado."
+    title="Limpiar el módulo. El trabajo ya está guardado en el Contenedor de resultados."
   >
     <Eraser className="w-3.5 h-3.5" aria-hidden="true" /> Limpiar
   </button>
