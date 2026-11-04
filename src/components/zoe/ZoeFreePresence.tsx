@@ -17,9 +17,37 @@ import {
   type ZoeMove,
   type ZoeTurn,
 } from '@/lib/zoeContext';
-import { fillExample, findOnScreen, labelOfControl, needsConfirmation, performActions, pointAt, type ZoeAction, type ZoeHands } from '@/lib/zoeScreen';
+import {
+  checkBox,
+  findOnScreen,
+  isUsable,
+  labelOfControl,
+  needsConfirmation,
+  performActions,
+  pointAt,
+  pressElement,
+  setValue,
+  type ZoeAction,
+  type ZoeHands,
+} from '@/lib/zoeScreen';
 import { crisisReply, offlineAnswer } from '@/lib/zoeOffline';
-import { parseTourReply, READY_QUESTIONS, TOUR_END, TOUR_STEPS, TOUR_STOP, TOUR_WAIT, type TourReply } from '@/lib/zoeTour';
+import {
+  describeProgress,
+  firstSentence,
+  parseTourReply,
+  readyQuestion,
+  TOUR_END,
+  TOUR_STEPS,
+  TOUR_STOP,
+  TOUR_WAIT,
+  type TourContext,
+  type TourGesture,
+  type TourReply,
+  type TourSnapshot,
+} from '@/lib/zoeTour';
+import { useStore } from '@/store/useStore';
+import { parseThemeProposal } from '@/lib/themeProposal';
+import type { TreeLevel } from '@/lib/innovationTreeGraph';
 // El mismo documento que lee la IA es la memoria de ZOE cuando no hay conexión.
 import MASTER_DOCUMENT from '@/content/zoe/documento-maestro.md?raw';
 
@@ -175,8 +203,59 @@ async function settledRect(el: HTMLElement): Promise<DOMRect> {
   return rect;
 }
 
-/** ¿El campo está vacío y se puede escribir en él? (Para no anunciar un ejemplo que no se va a dejar.) */
-const isFillable = (el: HTMLElement | null) => Boolean(el && !(el as HTMLInputElement).disabled && !String((el as HTMLInputElement).value ?? '').trim());
+/** El trabajo real, para que el recorrido narre el resultado que quedó en pantalla y nada más. */
+function buildTourSnapshot(): TourSnapshot {
+  const s = useStore.getState();
+  const proposal = parseThemeProposal(s.themeProposalMarkdown);
+  const chosen = proposal && s.selectedLabThemeIndex !== null ? proposal.themes[s.selectedLabThemeIndex] : undefined;
+  const nodes = s.treeGraph?.nodos ?? [];
+  const level = (l: TreeLevel) => nodes.filter((n) => n.nivel === l);
+  const plan = s.prototypes.find((p) => p.id === s.activePrototypeId);
+  return {
+    study: {
+      blocks: s.contenedor2Sections.length,
+      issues: s.contenedor2Sections.filter((x) => x.status !== 'ok').length,
+      municipality: s.prompt0Data.municipality || undefined,
+    },
+    ideation: {
+      has: Boolean(s.themeProposalMarkdown.trim()),
+      vocation: proposal ? firstSentence(proposal.vocationMarkdown) : undefined,
+      themes: proposal?.themes.map((t) => t.title) ?? [],
+      chosen: chosen?.title,
+      chosenBody: chosen?.body,
+    },
+    tree: {
+      has: Boolean(s.treeGraph),
+      tema: s.treeGraph?.tema,
+      global: level('global').length,
+      nacional: level('nacional').length,
+      territorial: level('territorial').length,
+      hojas: level('hoja').length,
+      frutos: level('fruto').map((n) => n.nombre),
+    },
+    prototype: {
+      has: Boolean(plan),
+      name: plan?.name,
+      tagline: plan?.tagline,
+      hypothesis: plan?.hypothesis,
+      trl: plan?.trlTarget,
+      weeks: plan?.durationWeeks,
+      phases: plan?.phases.length ?? 0,
+      metrics: plan?.validationMetrics ?? [],
+    },
+    bank: { studies: s.savedStudies.length, ideations: s.savedIdeations.length, trees: s.savedTrees.length, prototypes: s.prototypes.length },
+  };
+}
+
+/** Lo que dice la barra de avance de la herramienta («el bloque 3 de 12, …»), o null si no está generando. */
+function progressNow(): string | null {
+  for (const el of Array.from(document.querySelectorAll('main [role="status"]'))) {
+    if (el.closest('.zoe-stage')) continue;
+    const progress = describeProgress(el.textContent ?? '');
+    if (progress) return progress;
+  }
+  return null;
+}
 
 /** Si el navegador no puede dibujar 3D, ZOE sigue presente con su imagen. */
 class CanvasBoundary extends React.Component<{ children: React.ReactNode }, { failed: boolean }> {
@@ -513,9 +592,104 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
     releaseFacing();
   }, [releaseFacing]);
 
-  /** Una parada: va a la pantalla, explica, deja el ejemplo, señala el botón y pregunta si sigue. */
+  /** Lo que hace con el cuerpo mientras explica: un truco, una postura o unos pasos por la pantalla. */
+  const tourGesture = useCallback(
+    (gesture?: TourGesture) => {
+      if (!gesture) return;
+      if (gesture === 'stroll') void stroll();
+      else if (gesture === 'come') void comeHere();
+      else if (gesture === 'sit' || gesture === 'stand') setPosture(gesture === 'sit' ? 'sitting' : 'standing');
+      else {
+        setPosture('standing');
+        playTrick(gesture);
+      }
+    },
+    [comeHere, playTrick, stroll],
+  );
+
+  /**
+   * Lo que el guion del recorrido puede hacer (ver `TourContext`). Todo se corta en cuanto la parada
+   * deja de estar viva (la persona terminó el recorrido o pasó a otra parada).
+   */
+  const tourContext = useCallback(
+    (alive: () => boolean): TourContext => {
+      const speak = async (text: string, gesture?: TourGesture) => {
+        if (!alive()) return;
+        tourGesture(gesture);
+        await sayAndWait(text);
+      };
+      const show: TourContext['show'] = async (target, text, gesture) => {
+        if (!alive()) return false;
+        const el = findOnScreen(target);
+        if (!el) {
+          await speak(text, gesture);
+          return false;
+        }
+        // Caminar hasta el elemento ya es moverse: el paseo se omite y los demás gestos se hacen al llegar.
+        await Promise.all([pointAt(el, approach).then(() => tourGesture(gesture === 'stroll' ? undefined : gesture)), sayAndWait(text)]);
+        return true;
+      };
+      const press: TourContext['press'] = async (target) => {
+        if (!alive()) return false;
+        const ok = await pressElement(findOnScreen(target), approach);
+        if (ok) await pause(450); // Que la pantalla reaccione antes del paso siguiente.
+        return ok;
+      };
+      return {
+        alive,
+        wait: (ms) => (alive() ? pause(ms) : Promise.resolve()),
+        say: speak,
+        show,
+        set: async (target, value) => alive() && setValue(findOnScreen(target), value, approach),
+        check: async (target) => alive() && checkBox(findOnScreen(target), approach),
+        press,
+        exists: (target) => isUsable(findOnScreen(target)),
+        label: (target) => {
+          const el = findOnScreen(target);
+          return (el?.getAttribute('aria-label') ?? el?.textContent ?? '').trim();
+        },
+        snapshot: buildTourSnapshot,
+        // Genera de verdad y acompaña la espera: narra el proceso, se mueve y cuenta el avance real.
+        generate: async (button, done, narration, timeoutMs) => {
+          if (!alive()) return 'error';
+          if (!navigator.onLine || Date.now() < aiDownUntil.current) return 'offline';
+          if (!(await press(button))) return 'error';
+          const started = Date.now();
+          let next = 0;
+          let lastUpdate = Date.now();
+          await pause(1500);
+          while (alive()) {
+            if (done()) return 'ok';
+            const progress = progressNow();
+            if (!progress && Date.now() - started > 5000) return done() ? 'ok' : 'error';
+            if (Date.now() - started > timeoutMs) return 'timeout';
+            const beat = narration[next];
+            if (beat) {
+              next += 1;
+              if (beat.show) await show(beat.show, beat.say, beat.gesture);
+              else await speak(beat.say, beat.gesture);
+              await pause(2500);
+            } else if (progress && Date.now() - lastUpdate > 25_000) {
+              lastUpdate = Date.now();
+              await speak(`Vamos en ${progress}.`, pickOne(['wag', 'stroll', 'shake']) as TourGesture);
+              await pause(3000);
+            } else {
+              await pause(1500);
+            }
+          }
+          return 'error';
+        },
+      };
+    },
+    [approach, sayAndWait, tourGesture],
+  );
+
+  /**
+   * Una parada: va a la pantalla y ejecuta su guion completo (o solo el repaso, sin volver a
+   * generar). Al final pregunta si siguen, sin presionar.
+   */
   const runTourStep = useCallback(
-    async (index: number) => {
+    async (index: number, mode: 'run' | 'recap' = 'run') => {
       const step = TOUR_STEPS[index];
       if (!step) return;
       const run = ++tourRun.current;
@@ -532,36 +706,19 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
         await pause(900); // Que la pantalla nueva alcance a dibujarse.
         if (!alive()) return;
       }
-      await sayAndWait(step.explain);
+      window.scrollTo({ top: 0, behavior: reduceMotion() ? 'auto' : 'smooth' });
+      try {
+        await step[mode](tourContext(alive));
+      } catch (e) {
+        // Un tropiezo de la pantalla no detiene el recorrido: se sigue con la pregunta de siempre.
+        console.warn(`[ZOE] El recorrido tropezó en ${step.tool}:`, e);
+      }
       if (!alive()) return;
-
-      if (step.example) {
-        const { fields, say: line, whenKept } = step.example;
-        if (fields.some((f) => isFillable(findOnScreen(f.target)))) {
-          const filling = (async () => {
-            for (const field of fields) {
-              if (!alive()) return;
-              await fillExample(findOnScreen(field.target), field.value, approach);
-              await pause(field.waitMs ?? 250);
-            }
-          })();
-          await Promise.all([filling, sayAndWait(line)]);
-        } else {
-          await sayAndWait(whenKept);
-        }
-        if (!alive()) return;
-      }
-
-      if (step.point) {
-        const el = findOnScreen(step.point.target);
-        await Promise.all([el ? pointAt(el, approach) : Promise.resolve(), sayAndWait(step.point.say)]);
-        if (!alive()) return;
-      }
       releaseFacing();
-      await sayAndWait(READY_QUESTIONS[index % READY_QUESTIONS.length]);
+      await sayAndWait(readyQuestion(index));
       if (alive()) afterSpeech(voice.canListen);
     },
-    [afterSpeech, approach, onSelectTool, releaseFacing, sayAndWait, startTalking, voice, wake],
+    [afterSpeech, onSelectTool, releaseFacing, sayAndWait, startTalking, tourContext, voice, wake],
   );
 
   const startTour = useCallback(() => {
@@ -584,15 +741,19 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
         say(pickOne(TOUR_WAIT));
         return;
       }
-      const next = reply === 'next' ? current.step + 1 : reply === 'back' ? Math.max(0, current.step - 1) : current.step;
-      if (next >= TOUR_STEPS.length) {
+      // Repetir o volver atrás repasa la explicación y el resultado sin volver a generar.
+      if (reply === 'repeat' || reply === 'back') {
+        void runTourStep(reply === 'back' ? Math.max(0, current.step - 1) : current.step, 'recap');
+        return;
+      }
+      if (current.step + 1 >= TOUR_STEPS.length) {
         endTour();
         awaitingRoute.current = true;
         remember(null, TOUR_END);
         say(TOUR_END);
         return;
       }
-      void runTourStep(next);
+      void runTourStep(current.step + 1);
     },
     [endTour, remember, runTourStep, say, startTalking],
   );

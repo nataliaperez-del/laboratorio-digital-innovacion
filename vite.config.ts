@@ -8,6 +8,7 @@ import { unadGeminiProxyPlugin } from './vite-plugin-unad-gemini-proxy';
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
   return {
+    base: './',
     plugins: [react(), tailwindcss(), unadGeminiProxyPlugin(env)],
     resolve: {
       alias: {

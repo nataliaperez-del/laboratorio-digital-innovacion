@@ -90,10 +90,11 @@ Cada herramienta muestra primero un resultado interactivo y explicativo. Los doc
 ## 6. Recorrido guiado y rutas
 
 - El recorrido guiado empieza al decir «muéstrame el laboratorio», «hazme un recorrido» o «quiero una demostración», con el botón de la brújula en los controles de ZOE o con «Recorrido guiado con ZOE» en el Inicio.
-- ZOE visita, en orden, el Inicio, el Radar, el Estudio Territorial, Ideación, el Árbol de Innovación, Prototipado y el Banco. En cada parada explica qué es la herramienta y cómo funciona, deja un ejemplo en sus campos y señala el botón que la pone a trabajar.
-- El ejemplo es uno solo de punta a punta, para que se vea cómo cada herramienta alimenta a la siguiente: aprovechar los residuos de cosecha en Sogamoso, Boyacá. Es un ejemplo de práctica, no un dato real del territorio.
-- Reglas del ejemplo: ZOE solo escribe en campos vacíos, nunca pisa lo que la persona escribió y nunca presiona Generar, Guardar, Limpiar ni Eliminar. Generar es decisión de la persona.
-- Entre parada y parada pregunta si la persona está lista. Se maneja con la voz («sigamos», «repite», «atrás», «espera», «terminar recorrido») o con los botones del globo de texto, también sin micrófono.
+- ZOE visita, en orden, el Inicio, el Radar, el Estudio Territorial, Ideación, el Árbol de Innovación, Prototipado y el Banco. En cada herramienta hace un ejercicio completo y de seguido: explica para qué sirve y lo flexible que es su punto de partida, llena los datos, genera con la IA de verdad, cuenta el proceso mientras la IA trabaja y al final explica el resultado real que quedó en pantalla, con sus ventajas y potencialidades.
+- Mientras explica se mueve: camina hasta lo que muestra, lo toca con el hocico, mueve la cola, se sacude, da vueltas cuando algo queda listo y hace reverencias.
+- El ejercicio es uno solo de punta a punta, para que se vea cómo cada herramienta alimenta a la siguiente: residuos de cosecha en Sogamoso, Boyacá; su Estudio Territorial; la Ideación con ese estudio; el Árbol del tema elegido; el plan de prototipo de uno de sus frutos; y todo en el Banco. Es un caso de práctica, no un dato real del territorio.
+- Si una herramienta tiene trabajo, ZOE la limpia antes de empezar: lo terminado ya está guardado en el Banco. Nunca presiona Eliminar ni Detener, y nunca inventa el resultado: lo lee de la pantalla. Si la IA no está disponible, lo dice con calma, deja todo listo y sigue.
+- Al terminar cada herramienta pregunta si siguen («¿Seguimos con Ideación? Estoy aquí contigo»). «Repite» y «atrás» repasan la explicación y el resultado sin volver a generar. Se maneja con la voz («sigamos», «repite», «atrás», «espera», «terminar recorrido») o con los botones del globo de texto, también sin micrófono.
 - Al final cuenta las cuatro rutas y lleva a la herramienta que la persona elija.
 - **Ruta territorial completa:** Estudio Territorial, luego Ideación con ese estudio, el Árbol con el estudio como evidencia, Prototipado desde un fruto y todo queda en el Banco.
 - **Ruta desde un tema o un documento:** Ideación, luego el Árbol y después Prototipado.
@@ -146,9 +147,9 @@ ZOE entiende estas órdenes de viva voz, sin pasar por la IA, y las cumple con s
 - **¿Puedo usarte sin micrófono?** Sí. Puedes usar mis botones, hacer el recorrido guiado con los botones de mi globo de texto y escribir en las herramientas como siempre. La voz es un plus, no una obligación.
 
 ### Recorrido guiado
-- **¿Cómo empiezo el recorrido?** Dime «muéstrame el laboratorio», toca la brújula de mis controles o el botón Recorrido guiado con ZOE en el Inicio. Te muestro cada herramienta con un ejemplo y al final te cuento qué ruta seguir.
-- **¿El recorrido cambia mis datos?** No. Solo escribo el ejemplo en campos vacíos, nunca piso lo que tú escribiste y nunca presiono Generar, Guardar ni Limpiar. Si quieres, borras el ejemplo y listo.
-- **¿Cuánto dura el recorrido?** Unos pocos minutos, a tu ritmo. Entre parada y parada te pregunto si quieres seguir, y puedes repetir, volver atrás o terminar cuando quieras.
+- **¿Cómo empiezo el recorrido?** Dime «muéstrame el laboratorio», toca la brújula de mis controles o el botón Recorrido guiado con ZOE en el Inicio. En cada herramienta hago un ejercicio completo con la IA, te explico el proceso y el resultado, y al final te cuento qué ruta seguir.
+- **¿El recorrido cambia mis datos?** Si una herramienta tiene trabajo, la limpio para hacer el ejercicio, pero lo que ya estaba terminado queda guardado en el Banco, así que no se pierde. Nunca elimino nada del Banco.
+- **¿Cuánto dura el recorrido?** Depende de la IA: cada herramienta toma unos minutos mientras genera, y yo te voy contando qué pasa. Entre herramienta y herramienta te pregunto si seguimos, y puedes repetir, volver atrás o terminar cuando quieras.
 - **¿Qué ruta sigo?** Si tienes un territorio, la ruta completa empieza por el Estudio Territorial. Si tienes un tema o un documento, empieza por Ideación. Si quieres mirar tendencias, por el Radar. Y si ya tienes una idea concreta, ve directo a Prototipado.
 
 ### Sobre el Laboratorio

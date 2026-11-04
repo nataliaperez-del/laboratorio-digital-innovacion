@@ -163,11 +163,11 @@ Mientras conversan, ZOE puede hacer en la pantalla lo que le pidas: cambiar de h
 Para conocer el Laboratorio de punta a punta, toca **«Recorrido guiado con ZOE»** en el Inicio, la **brújula** de la barra de controles de ZOE o dile **«muéstrame el laboratorio»**.
 
 1. ZOE visita el Inicio, el Radar, el Estudio Territorial, Ideación, el Árbol, Prototipado y el Banco.
-2. En cada parada explica qué es la herramienta y cómo funciona, deja un ejemplo en sus campos (residuos de cosecha en Sogamoso, Boyacá) y señala el botón que la pone a trabajar.
-3. Al terminar cada parada pregunta si quieres seguir. Responde con la voz («sigamos», «repite», «atrás», «espera», «terminar recorrido») o con los botones **Atrás · Repetir · Seguir · Terminar** del globo de subtítulos, que funcionan también sin micrófono.
+2. En cada herramienta hace un ejercicio completo y de seguido, con la IA de verdad: explica para qué sirve y lo flexible que es su punto de partida, llena los datos, genera, te cuenta el proceso mientras la IA trabaja (caminando y haciendo gestos) y explica el resultado real con sus ventajas. Es un solo caso de punta a punta (residuos de cosecha en Sogamoso, Boyacá): la Ideación parte del estudio, el Árbol del tema elegido y el plan de prototipo de uno de sus frutos.
+3. Al terminar cada herramienta pregunta si quieres seguir. Responde con la voz («sigamos», «repite», «atrás», «espera», «terminar recorrido») o con los botones **Atrás · Repetir · Seguir · Terminar** del globo de subtítulos, que funcionan también sin micrófono.
 4. Al final te cuenta las cuatro rutas posibles y te lleva a la herramienta por la que quieras empezar (por ejemplo, «por el estudio»).
 
-El ejemplo solo se escribe en campos vacíos: ZOE nunca borra lo que escribiste ni presiona Generar, Guardar o Limpiar.
+Si una herramienta tiene trabajo, ZOE la limpia antes del ejercicio; lo que ya estaba terminado queda guardado en el Banco. «Repite» y «atrás» repasan la explicación sin volver a generar. Cada herramienta toma unos minutos mientras la IA genera; si la IA no está disponible, ZOE lo dice con calma y sigue con la siguiente.
 
 ### Acompañamiento y apoyo
 

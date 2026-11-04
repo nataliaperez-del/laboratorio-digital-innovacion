@@ -385,54 +385,81 @@ export async function performActions(actions: readonly ZoeAction[], hands: ZoeHa
   return results;
 }
 
-// ── Para el recorrido guiado: señalar y dejar ejemplos sin pisar el trabajo de la persona ──
+// ── Para el recorrido guiado: señalar, escribir y presionar como lo haría la persona ──
 
-/** Busca en la pantalla lo que ZOE va a señalar: un selector CSS o el texto visible de un botón. */
-export function findOnScreen(target: { selector?: string; text?: RegExp }): HTMLElement | null {
+/** Lo que ZOE busca en pantalla: un selector CSS, un texto visible, o ambos (el selector que tenga ese texto). */
+export interface ScreenTarget {
+  selector?: string;
+  text?: RegExp;
+}
+
+const POINTABLE = 'button, [role="tab"], [role="button"], h1, h2, h3, label, [aria-label]';
+
+/**
+ * Busca en la pantalla lo que ZOE va a señalar o presionar. Con selector y texto, el primer elemento
+ * del selector que tenga ese texto; con uno solo, el primero visible que lo cumpla. Nunca devuelve
+ * algo de la cabecera ni del propio ZOE.
+ */
+export function findOnScreen(target: ScreenTarget): HTMLElement | null {
   const main = document.querySelector('main') ?? document.body;
-  if (target.selector) {
-    const el = main.querySelector<HTMLElement>(target.selector);
-    if (el && isVisible(el)) return el;
-  }
-  if (target.text) {
-    const re = target.text;
-    const hit = Array.from(main.querySelectorAll<HTMLElement>('button, [role="tab"], [role="button"], h1, h2, h3, label')).find(
-      (el) => isVisible(el) && !el.closest(OFF_LIMITS) && re.test(squash(el.textContent, 200)),
-    );
-    if (hit) return hit;
-  }
-  return null;
+  const usable = (el: Element): el is HTMLElement => !el.closest(OFF_LIMITS) && isVisible(el as HTMLElement);
+  const candidates = Array.from(main.querySelectorAll(target.selector ?? POINTABLE)).filter(usable);
+  if (!target.text) return candidates[0] ?? null;
+  const re = target.text;
+  return candidates.find((el) => re.test(squash(el.textContent, 200)) || re.test(el.getAttribute('aria-label') ?? '')) ?? null;
 }
 
 /** Señala un elemento: lo trae a la vista, lo ilumina y ZOE se acerca. No lo toca. */
-export async function pointAt(el: HTMLElement, approach?: ZoeHands['approach']): Promise<void> {
-  await spotlight(el);
-  await approach?.(el);
+export async function pointAt(el: Element, approach?: ZoeHands['approach']): Promise<void> {
+  await spotlight(el as HTMLElement);
+  await approach?.(el as HTMLElement);
+}
+
+/** ¿Se puede usar? Existe, está a la vista y no está desactivado. */
+export function isUsable(el: Element | null): el is Element {
+  return Boolean(el && el.isConnected && !(el as HTMLButtonElement).disabled && el.getAttribute('aria-disabled') !== 'true');
 }
 
 /**
- * Deja un valor de ejemplo en un campo o una lista, solo si está vacío: nunca pisa lo que la
- * persona escribió. Devuelve si lo llenó, si lo dejó como estaba o si el campo no está.
+ * Escribe (reemplazando lo que haya) o elige una opción, caminando hasta el campo. Solo lo usa el
+ * recorrido, que antes limpió la herramienta. Devuelve false si el campo no está o no admite el valor.
  */
-export async function fillExample(el: HTMLElement | null, value: string, approach?: ZoeHands['approach']): Promise<'filled' | 'kept' | 'missing'> {
-  if (!el || !el.isConnected || (el as HTMLInputElement).disabled) return 'missing';
+export async function setValue(el: Element | null, value: string, approach?: ZoeHands['approach']): Promise<boolean> {
+  if (!isUsable(el)) return false;
   if (el instanceof HTMLSelectElement) {
-    if (el.value) return 'kept';
     const options = Array.from(el.options);
     const index = bestOption(
       options.map((o) => o.textContent ?? ''),
       value,
     );
-    if (index < 0) return 'missing';
+    if (index < 0) return false;
     await pointAt(el, approach);
     setNativeValue(el, options[index].value, 'change');
-    return 'filled';
+    return true;
   }
   if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
-    if (el.value.trim()) return 'kept';
     await pointAt(el, approach);
+    setNativeValue(el, '', 'input');
     await typeInto(el, value);
-    return 'filled';
+    return true;
   }
-  return 'missing';
+  return false;
+}
+
+/** Presiona un elemento. Los puntos del Radar son SVG, que no tienen `click()`: se les envía el evento. */
+export async function pressElement(el: Element | null, approach?: ZoeHands['approach']): Promise<boolean> {
+  if (!isUsable(el)) return false;
+  await pointAt(el, approach);
+  if (el instanceof HTMLElement) el.click();
+  else el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+  return true;
+}
+
+/** Marca una casilla: la del propio elemento o la que está dentro de su etiqueta. */
+export async function checkBox(el: Element | null, approach?: ZoeHands['approach']): Promise<boolean> {
+  const box = el instanceof HTMLInputElement ? el : el?.querySelector('input[type="checkbox"]');
+  if (!(box instanceof HTMLInputElement) || !isUsable(box)) return false;
+  await pointAt(el!, approach);
+  if (!box.checked) box.click();
+  return true;
 }
