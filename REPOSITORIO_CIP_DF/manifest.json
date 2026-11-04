@@ -1,0 +1,110 @@
+{
+  "generadoEn": "2026-11-04T04:08:54.239Z",
+  "version": "1.1.1",
+  "hash": "sha256-5c92e71261d17877319ca2a3450db8cf6b1e8ce07990509879b0e345ca32522e",
+  "repoDir": "REPOSITORIO_CIP_DF",
+  "totales": {
+    "recursos": 6,
+    "caracteres": 1014000,
+    "tokensEstimados": 253503
+  },
+  "grupos": {
+    "CONTENEDOR_1": [
+      {
+        "id": "contenedor_1.contenedor_1",
+        "ruta": "CONTENEDOR_1/CONTENEDOR_1.md",
+        "grupo": "CONTENEDOR_1",
+        "familia": "contenedor_1",
+        "tipo": "documento",
+        "orden": 0,
+        "version": 1,
+        "vigente": true,
+        "aceptaFuentesPropias": false,
+        "bytes": 565152,
+        "caracteres": 546281,
+        "tokensEstimados": 136571,
+        "hash": "sha256-21ebf39020402bb7dc212a43f4d742efb56df952122a7b5c3e8b1f3b0349336b"
+      },
+      {
+        "id": "contenedor_1.iv.2. investigaciones_513_sig",
+        "ruta": "CONTENEDOR_1/IV.2. INVESTIGACIONES_513_SIG.txt",
+        "grupo": "CONTENEDOR_1",
+        "familia": "iv.2. investigaciones_513_sig",
+        "tipo": "documento",
+        "orden": 10,
+        "version": 1,
+        "vigente": true,
+        "aceptaFuentesPropias": false,
+        "bytes": 395530,
+        "caracteres": 390085,
+        "tokensEstimados": 97522,
+        "hash": "sha256-c2949a15356eb380159494c5acc1b1b4b892632fdee752308ae87e7b50f026a0"
+      }
+    ],
+    "CONTENEDOR_2": [
+      {
+        "id": "contenedor_2.contenedor2_contexto_territorial",
+        "ruta": "CONTENEDOR_2/prompt_contenedor2_contexto_territorial.txt",
+        "grupo": "CONTENEDOR_2",
+        "familia": "contenedor2_contexto_territorial",
+        "tipo": "prompt",
+        "orden": 20,
+        "version": 1,
+        "vigente": true,
+        "aceptaFuentesPropias": true,
+        "bytes": 19840,
+        "caracteres": 19447,
+        "tokensEstimados": 4862,
+        "hash": "sha256-f3707d82f582aec44c93eace7ffbb503934c0ba9118fe460de6fee0199413b3d"
+      },
+      {
+        "id": "contenedor_2.prompts_fuentes_consulta_contenedor2_territorial 1",
+        "ruta": "CONTENEDOR_2/PROMPTS_FUENTES_CONSULTA_CONTENEDOR2_TERRITORIAL 1.txt",
+        "grupo": "CONTENEDOR_2",
+        "familia": "prompts_fuentes_consulta_contenedor2_territorial 1",
+        "tipo": "documento",
+        "orden": 30,
+        "version": 1,
+        "vigente": true,
+        "aceptaFuentesPropias": true,
+        "bytes": 41196,
+        "caracteres": 40995,
+        "tokensEstimados": 10249,
+        "hash": "sha256-cae7fa3bb45b390d76f4a9e971d856c7fb0adce51c77ea3e752eab0603db4474"
+      }
+    ],
+    "GENERALES": [
+      {
+        "id": "generales.arbol_innovacion",
+        "ruta": "GENERALES/prompt_arbol_innovacion_v2.txt",
+        "grupo": "GENERALES",
+        "familia": "arbol_innovacion",
+        "tipo": "prompt",
+        "orden": 40,
+        "version": 2,
+        "vigente": true,
+        "aceptaFuentesPropias": false,
+        "bytes": 9014,
+        "caracteres": 8854,
+        "tokensEstimados": 2214,
+        "hash": "sha256-ac24e1b59b86c067b8d6f67f9488f8fd6b8f6df0425faf052824538ae83f9b0f"
+      },
+      {
+        "id": "generales.vocacion_cip",
+        "ruta": "GENERALES/prompt_vocacion_cip_v2.txt",
+        "grupo": "GENERALES",
+        "familia": "vocacion_cip",
+        "tipo": "prompt",
+        "orden": 50,
+        "version": 2,
+        "vigente": true,
+        "aceptaFuentesPropias": false,
+        "bytes": 8526,
+        "caracteres": 8338,
+        "tokensEstimados": 2085,
+        "hash": "sha256-8d658b0db9407a2504997cc4d6b3106892e825a29c922647eb817f39c92b8c38"
+      }
+    ]
+  },
+  "avisos": []
+}
