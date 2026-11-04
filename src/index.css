@@ -435,6 +435,14 @@ button.lab-card:hover { border-color: var(--brand-teal-text); }
 @keyframes zoe-breathe { 50% { opacity: .55; } }
 .zoe-level-track { display: block; height: 4px; margin-top: 6px; overflow: hidden; border-radius: 4px; background: rgba(39, 220, 255, .16); }
 .zoe-level { display: block; height: 100%; background: #27DCFF; transform: scaleX(0); transform-origin: left; transition: transform .08s linear; }
+/* Recorrido guiado: se maneja también tocando, sin micrófono. */
+.zoe-tour-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(39, 220, 255, .22); }
+.zoe-tour-step { margin-right: auto; font-size: 11px; font-weight: 600; color: var(--text-muted); }
+.zoe-tour-controls button { padding: 3px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 600; color: var(--brand-teal-text); border: 1px solid rgba(39, 220, 255, .4); background: transparent; cursor: pointer; }
+.zoe-tour-controls button:hover:not(:disabled) { background: rgba(39, 220, 255, .12); }
+.zoe-tour-controls button:disabled { opacity: .4; cursor: default; }
+.zoe-tour-controls .zoe-tour-next { color: #06222b; background: #27DCFF; border-color: #27DCFF; }
+.zoe-tour-controls .zoe-tour-next:hover { background: #5ee6ff; }
 .zoe-zzz { position: absolute; left: 62%; top: 26%; color: #9FE8FF; font: 700 18px 'Space Grotesk', sans-serif; pointer-events: none; }
 .zoe-zzz span { position: absolute; opacity: 0; animation: zoe-zzz 3.6s ease-out infinite; }
 .zoe-zzz span:nth-child(2) { animation-delay: 1.2s; font-size: 14px; }

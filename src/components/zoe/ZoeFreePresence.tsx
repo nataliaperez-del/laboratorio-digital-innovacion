@@ -1,12 +1,27 @@
-import React, { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
-import { Dog, Footprints, Globe, Heart, House, Mic, Moon, Volume2, VolumeX, X } from 'lucide-react';
-import type { ZoeSoulState } from './ZoeCanvas3D';
+import React, { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Compass, Dog, Footprints, Globe, Heart, House, Mic, Moon, Volume2, VolumeX, X } from 'lucide-react';
+import type { ZoeSoulState, ZoeTrick } from './ZoeCanvas3D';
 import { splitSentences, useZoeVoice, type ZoeListenFailure } from './useZoeVoice';
 import { doghouseDoor, ZoeDoghouse } from './ZoeDoghouse';
 import type { ToolId } from '../layout/Header';
-import { askZoe } from '@/services/zoeAi';
-import { isConfirmation, isDoneReply, parseZoeCommand, seemsUnfinished, TOOL_HINTS, TOOL_NAMES, wantsMoreTime, type ZoeTurn } from '@/lib/zoeContext';
-import { labelOfControl, needsConfirmation, performActions, type ZoeAction } from '@/lib/zoeScreen';
+import { askZoe, currentWork } from '@/services/zoeAi';
+import {
+  isConfirmation,
+  isDoneReply,
+  parseZoeCommand,
+  seemsUnfinished,
+  toolMentioned,
+  TOOL_HINTS,
+  TOOL_NAMES,
+  wantsMoreTime,
+  type ZoeMove,
+  type ZoeTurn,
+} from '@/lib/zoeContext';
+import { fillExample, findOnScreen, labelOfControl, needsConfirmation, performActions, pointAt, type ZoeAction, type ZoeHands } from '@/lib/zoeScreen';
+import { crisisReply, offlineAnswer } from '@/lib/zoeOffline';
+import { parseTourReply, READY_QUESTIONS, TOUR_END, TOUR_STEPS, TOUR_STOP, TOUR_WAIT, type TourReply } from '@/lib/zoeTour';
+// El mismo documento que lee la IA es la memoria de ZOE cuando no hay conexión.
+import MASTER_DOCUMENT from '@/content/zoe/documento-maestro.md?raw';
 
 // El modelo 3D y Three.js pesan: se descargan aparte, sin demorar la herramienta que se abrió.
 const ZoeCanvas3D = lazy(() => import('./ZoeCanvas3D'));
@@ -18,15 +33,23 @@ const POSITION_KEY = 'innovahub_zoe_pos_v2';
 const CORNER_HEIGHT = 64;
 /** Las patas de ZOE quedan casi al pie de su escenario. */
 const FEET = 0.97;
+/** Dónde queda el hocico cuando ZOE mira de lado: fracción del ancho y del alto del escenario. */
+const SNOUT_X = 0.8;
+const SNOUT_Y = 0.4;
 const WALK_SPEED = 90; // píxeles por segundo; acorde al tamaño, para que las patas no parezcan patinar
 const TROT_SPEED = 230;
 /** Desde esta distancia va al trote: caminando, cruzar la pantalla tomaría demasiado. */
 const TROT_FROM = 320;
+/** Lo más que una acción espera a que ZOE llegue junto al control. */
+const APPROACH_MAX_MS = 2500;
 /** Lo que dura entrar o salir de la casita (coincide con la animación en index.css). */
 const HOUSE_MS = 650;
 /** Si no responde la IA en este tiempo, ZOE dice algo: el silencio es lo que rompe la conversación. */
 const FILLER_AFTER_MS = 1500;
-const FILLERS = ['A ver…', 'Mmm, déjame olfatear eso.', 'Buena pregunta, dame un segundo.', 'Déjame pensarlo.', 'Interesante…'];
+/** Cuando ZOE piensa dice «¡Woa, woa!»; nunca empieza con «mmm». */
+const FILLERS = ['¡Woa, woa! Déjame pensarlo.', 'Woa, woa… a ver, a ver.', '¡Woa, woa! Buena pregunta.', 'Woa, woa, déjame olfatear eso.'];
+/** Tras un fallo de la IA, durante este tiempo ZOE contesta de memoria sin hacer esperar a nadie. */
+const AI_RETRY_MS = 60_000;
 const AFTER_SPEECH_MS = 250;
 /** Vueltas máximas de un mismo pedido (cambiar de pantalla y terminar allá cuenta como dos). */
 const MAX_AGENT_ROUNDS = 3;
@@ -40,7 +63,35 @@ const MIC_PROBLEMS: Partial<Record<ZoeListenFailure, string>> = {
   error: 'No alcancé a escucharte: el reconocimiento de voz falló. Intentemos otra vez en un momento.',
 };
 
+/** Saludo de la primera conversación: sin afán, pregunta antes de avanzar. */
+const GREETING = '¡Hola! Qué alegría verte. Estoy aquí contigo, sin prisa. ¿Todo listo para continuar?';
+const READY_YES =
+  '¡Qué bien! Cuéntame qué tienes en mente: puedo explicarte una herramienta, llevarte a una pantalla, hacer contigo el recorrido guiado o simplemente conversar un rato.';
+const READY_NO = 'Sin ningún afán. Aquí me quedo contigo; cuando quieras me dices «listo» y seguimos.';
+/** Se dice una vez cuando la IA no responde: sin alarma, con una alternativa. */
+const OFFLINE_NOTICE = 'La IA se fue a dar un paseíto, pero no te preocupes: yo sigo aquí contigo con lo que sé de memoria.';
+
+/** Lo que ZOE dice al hacer cada movimiento cuando se lo piden de viva voz. */
+const MOVE_LINES: Record<ZoeMove, string[]> = {
+  sit: ['Sentado, como todo un profesional.', 'Me siento y te pongo toda la atención.'],
+  stand: ['¡Arriba! Listo para lo que venga.', 'De pie y con las orejas atentas.'],
+  lie: ['Me echo un ratico, pero sigo escuchándote.', 'Echadito y cómodo. Aquí sigo contigo.'],
+  sleep: ['Busco un rinconcito y me echo un rato. Tócame cuando quieras.'],
+  walk: ['¡Vamos a estirar las patas!', 'Un paseíto para despejar la cabeza.'],
+  come: ['¡Voy para allá!', '¡Aquí voy, a tu lado!'],
+  move: ['Perdón, me hago a un lado.', 'Te dejo el espacio libre.'],
+  home: ['Me voy a mi casita. Tócala cuando me necesites.'],
+  shake: ['¡Sacudida holográfica!', 'Me sacudo las ideas viejas para que entren las nuevas.'],
+  spin: ['¡A perseguir mi cola!', '¡Vueltas de pura alegría!'],
+  jump: ['¡Hop!', '¡Un salto de emoción!'],
+  wag: ['¡Mira cómo muevo la cola!', 'La cola no me deja mentir: estoy feliz.'],
+  bow: ['Te hago una reverencia, como buen anfitrión.', '¡A tus órdenes, con reverencia y todo!'],
+  still: ['Quieto como estatua.', 'Me quedo quieto aquí.'],
+};
+
 const pause = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms));
+const pickOne = (list: readonly string[]) => list[Math.floor(Math.random() * list.length)] ?? '';
+const reduceMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /** Busca dónde echarse: el tramo del piso de la página con menos botones y enlaces debajo. */
 function findQuietSpot(currentX: number) {
@@ -108,6 +159,25 @@ function atTheDoor() {
   return { x: door.x - STAGE.width / 2, y: door.y - STAGE.height * FEET };
 }
 
+/**
+ * Espera a que el control deje de moverse (el desplazamiento suave tarda) y devuelve dónde quedó.
+ * Se mide el tiempo real: en segundo plano el navegador estira cada espera a un segundo.
+ */
+async function settledRect(el: HTMLElement): Promise<DOMRect> {
+  let rect = el.getBoundingClientRect();
+  const until = performance.now() + 900;
+  while (performance.now() < until) {
+    await pause(70);
+    const next = el.getBoundingClientRect();
+    if (Math.abs(next.top - rect.top) < 1 && Math.abs(next.left - rect.left) < 1) return next;
+    rect = next;
+  }
+  return rect;
+}
+
+/** ¿El campo está vacío y se puede escribir en él? (Para no anunciar un ejemplo que no se va a dejar.) */
+const isFillable = (el: HTMLElement | null) => Boolean(el && !(el as HTMLInputElement).disabled && !String((el as HTMLInputElement).value ?? '').trim());
+
 /** Si el navegador no puede dibujar 3D, ZOE sigue presente con su imagen. */
 class CanvasBoundary extends React.Component<{ children: React.ReactNode }, { failed: boolean }> {
   state = { failed: false };
@@ -135,13 +205,15 @@ interface Props {
   request: ZoeRequest | null;
 }
 
-/** ZOE en la pantalla: vida propia, conversación por voz, órdenes, manos sobre la interfaz y casita. */
+/** ZOE en la pantalla: vida propia, conversación por voz, órdenes, manos sobre la interfaz, recorrido guiado y casita. */
 export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, theme, onToggleTheme, isOpen, onToggleOpen, request }) => {
   const voice = useZoeVoice();
   const [behavior, setBehavior] = useState<ZoeSoulState>('idle');
   const [isWalking, setIsWalking] = useState(false);
   const [trotting, setTrotting] = useState(false);
   const [facing, setFacing] = useState<-1 | 0 | 1>(0);
+  /** Hacia dónde sigue mirando al detenerse: junto a un botón mira al botón; si no, de frente. */
+  const holdFacing = useRef<-1 | 0 | 1>(0);
   /** El viaje a la casita: ir, entrar y, al llamarla, salir. */
   const [homeTrip, setHomeTrip] = useState<'none' | 'going' | 'entering' | 'leaving'>('none');
   const [modelReady, setModelReady] = useState(false);
@@ -149,9 +221,12 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
   const returnSpot = useRef<{ x: number; y: number } | null>(null);
   const comingOut = useRef(false);
   const [posture, setPosture] = useState<'sitting' | 'standing' | 'lying'>('sitting');
+  const postureRef = useRef(posture);
+  postureRef.current = posture;
   const [napping, setNapping] = useState(false);
   const [show360, setShow360] = useState(false);
   const [petCounter, setPetCounter] = useState(0);
+  const [trick, setTrick] = useState<{ name: ZoeTrick; id: number } | null>(null);
 
   /** Modo conversación: al terminar de hablar, ZOE vuelve a escuchar solo. */
   const [talking, setTalking] = useState(false);
@@ -161,10 +236,22 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
   /** Lo que la persona va diciendo mientras ZOE le confirma si ya terminó. */
   const pendingRef = useRef('');
   const askedDoneRef = useRef(false);
+  /** ZOE preguntó «¿Todo listo para continuar?» y espera un sí o un no. */
+  const readyAsked = useRef(false);
+  /** Al terminar el recorrido, ZOE espera saber por qué herramienta empezar. */
+  const awaitingRoute = useRef(false);
+  /** Hasta cuándo se contesta de memoria tras un fallo de la IA. */
+  const aiDownUntil = useRef(0);
+  const offlineNoticed = useRef(false);
   const [caption, setCaption] = useState<string | null>(null);
   const [heard, setHeard] = useState<string | null>(null);
   const silentTries = useRef(0);
   const captionTimer = useRef<number | undefined>(undefined);
+
+  /** Recorrido guiado: en qué parada va y un contador para cancelar la parada en curso. */
+  const tourRef = useRef<{ step: number } | null>(null);
+  const tourRun = useRef(0);
+  const [touring, setTouring] = useState(false);
 
   const [position, setPosition] = useState(initialPosition);
   const positionRef = useRef(position);
@@ -182,13 +269,16 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
   toolRef.current = currentTool;
 
   // ── Rutinas: secuencias de caminar y descansar que cualquier toque interrumpe ──
-  /** `free`: sin los márgenes de siempre, para llegar hasta la puerta de la casita. */
-  const walkTo = useCallback((x: number, y: number, free = false) => {
+  /**
+   * Camina hasta un punto. `free`: sin los márgenes de siempre, para llegar hasta la puerta de la
+   * casita. `speed`: para llegar rápido a un botón sin que la conversación espere.
+   */
+  const walkTo = useCallback((x: number, y: number, free = false, speed?: number) => {
     return new Promise<void>((resolve) => {
       walkTarget.current = free ? { x, y } : clampPosition(x, y);
       const { x: fromX, y: fromY } = positionRef.current;
-      const trot = Math.hypot(walkTarget.current.x - fromX, walkTarget.current.y - fromY) > TROT_FROM;
-      speedRef.current = trot ? TROT_SPEED : WALK_SPEED;
+      const trot = speed ? speed > WALK_SPEED * 1.5 : Math.hypot(walkTarget.current.x - fromX, walkTarget.current.y - fromY) > TROT_FROM;
+      speedRef.current = speed ?? (trot ? TROT_SPEED : WALK_SPEED);
       setTrotting(trot);
       onArrive.current = resolve;
       setIsWalking(true);
@@ -212,6 +302,14 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
     setBehavior((b) => (b === 'sleeping' ? 'idle' : b));
     setPosture((p) => (p === 'lying' ? 'sitting' : p));
   }, [stopRoutine]);
+
+  const playTrick = useCallback((name: ZoeTrick) => setTrick((prev) => ({ name, id: (prev?.id ?? 0) + 1 })), []);
+
+  /** Deja de mirar al botón y vuelve a mirar de frente. */
+  const releaseFacing = useCallback(() => {
+    holdFacing.current = 0;
+    setFacing(0);
+  }, []);
 
   /** Se levanta, busca un sitio olfateando, da unas vueltas, se echa y duerme un momento. */
   const nap = useCallback(async () => {
@@ -262,12 +360,36 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
     if (id === routine.current) setPosture(Math.random() < 0.7 ? 'sitting' : 'standing');
   }, [stopRoutine, walkTo]);
 
+  /** «Ven»: llega al frente y al centro de la pantalla, se sienta y mueve la cola. */
+  const comeHere = useCallback(async () => {
+    wake();
+    const id = routine.current;
+    releaseFacing();
+    setPosture('standing');
+    await walkTo((window.innerWidth - STAGE.width) / 2, clampPosition(0, window.innerHeight).y);
+    if (id !== routine.current) return;
+    setPosture('sitting');
+    playTrick('wag');
+  }, [playTrick, releaseFacing, wake, walkTo]);
+
+  /** «Muévete»: se va al tramo del piso donde menos estorba. */
+  const stepAside = useCallback(async () => {
+    wake();
+    const id = routine.current;
+    releaseFacing();
+    setPosture('standing');
+    const spot = findQuietSpot(positionRef.current.x);
+    await walkTo(spot.x, spot.y);
+    if (id === routine.current) setPosture('sitting');
+  }, [releaseFacing, wake, walkTo]);
+
   /** Camina (o trota) hasta su casita y entra: en pantalla queda solo la casita. */
   const goHome = useCallback(async () => {
     stopRoutine();
     const id = routine.current;
     const alive = () => id === routine.current;
     returnSpot.current = positionRef.current;
+    releaseFacing();
     setBehavior('idle');
     setPosture('standing');
     setHomeTrip('going');
@@ -282,13 +404,40 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
     setHomeTrip('none');
     setPosture('sitting');
     onToggleOpen();
-  }, [onToggleOpen, stopRoutine, walkTo]);
+  }, [onToggleOpen, releaseFacing, stopRoutine, walkTo]);
 
   /** Tocar la casita: ZOE sale y vuelve a donde estaba. */
   const comeOut = () => {
     comingOut.current = true;
     onToggleOpen();
   };
+
+  /**
+   * Antes de tocar un control, ZOE camina hasta él, lo mira y le da un toque con el hocico.
+   * En celulares o con movimiento reducido solo se ilumina el control: ZOE no cruza la pantalla.
+   */
+  const approach = useCallback(
+    async (el: HTMLElement) => {
+      if (window.innerWidth < 768 || reduceMotion() || homeTrip !== 'none') return;
+      const rect = await settledRect(el);
+      if (rect.bottom < 0 || rect.top > window.innerHeight) return;
+      // Control a la derecha: ZOE llega por su izquierda mirando a la derecha, y al revés.
+      const dir: -1 | 1 = rect.left + rect.width / 2 > window.innerWidth / 2 ? 1 : -1;
+      const x = dir === 1 ? rect.left - STAGE.width * SNOUT_X + 8 : rect.right - STAGE.width * (1 - SNOUT_X) - 8;
+      const target = clampPosition(x, rect.top + rect.height / 2 - STAGE.height * SNOUT_Y);
+      wake();
+      setPosture('standing');
+      holdFacing.current = dir;
+      const { x: fromX, y: fromY } = positionRef.current;
+      const distance = Math.hypot(target.x - fromX, target.y - fromY);
+      // Nunca se hace esperar a la acción: si el paso se demora (pestaña en segundo plano), ZOE termina de llegar mientras actúa.
+      if (distance > 24) await Promise.race([walkTo(target.x, target.y, false, Math.max(TROT_SPEED, distance / 1.4)), pause(APPROACH_MAX_MS)]);
+      setFacing(dir);
+      playTrick('boop');
+      await pause(420);
+    },
+    [homeTrip, playTrick, wake, walkTo],
+  );
 
   const showCaption = useCallback((text: string, ms?: number) => {
     window.clearTimeout(captionTimer.current);
@@ -325,13 +474,25 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
   /** Dice algo y, si la conversación sigue abierta, vuelve a escuchar. */
   const say = useCallback(
     (text: string, keepListening = true) => {
-      void sayAndWait(text).then(() => afterSpeech(keepListening));
+      void sayAndWait(text).then(() => afterSpeech(keepListening && voice.canListen));
     },
-    [afterSpeech, sayAndWait],
+    [afterSpeech, sayAndWait, voice.canListen],
   );
+
+  /** Guarda un intercambio para que la IA tenga el hilo cuando vuelva. */
+  const remember = useCallback((user: string | null, zoe: string) => {
+    const turns: ZoeTurn[] = user ? [{ role: 'user', text: user }] : [];
+    historyRef.current = [...historyRef.current, ...turns, { role: 'zoe' as const, text: zoe }].slice(-12);
+  }, []);
 
   /** Lo que ZOE preguntó si podía presionar (limpiar, eliminar…): espera un sí o un no. */
   const pendingActions = useRef<ZoeAction[] | null>(null);
+
+  const startTalking = useCallback(() => {
+    setTalking(true);
+    talkingRef.current = true;
+    silentTries.current = 0;
+  }, []);
 
   const endConversation = useCallback(() => {
     setTalking(false);
@@ -343,6 +504,164 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
     setBehavior('idle');
     setHeard(null);
   }, [voice]);
+
+  // ── Recorrido guiado ──
+  const endTour = useCallback(() => {
+    tourRun.current += 1;
+    tourRef.current = null;
+    setTouring(false);
+    releaseFacing();
+  }, [releaseFacing]);
+
+  /** Una parada: va a la pantalla, explica, deja el ejemplo, señala el botón y pregunta si sigue. */
+  const runTourStep = useCallback(
+    async (index: number) => {
+      const step = TOUR_STEPS[index];
+      if (!step) return;
+      const run = ++tourRun.current;
+      const alive = () => run === tourRun.current && tourRef.current !== null;
+      tourRef.current = { step: index };
+      setTouring(true);
+      startTalking();
+      voice.stopListening();
+      readyAsked.current = false;
+      wake();
+      setPosture('standing');
+      if (toolRef.current !== step.tool) {
+        onSelectTool(step.tool);
+        await pause(900); // Que la pantalla nueva alcance a dibujarse.
+        if (!alive()) return;
+      }
+      await sayAndWait(step.explain);
+      if (!alive()) return;
+
+      if (step.example) {
+        const { fields, say: line, whenKept } = step.example;
+        if (fields.some((f) => isFillable(findOnScreen(f.target)))) {
+          const filling = (async () => {
+            for (const field of fields) {
+              if (!alive()) return;
+              await fillExample(findOnScreen(field.target), field.value, approach);
+              await pause(field.waitMs ?? 250);
+            }
+          })();
+          await Promise.all([filling, sayAndWait(line)]);
+        } else {
+          await sayAndWait(whenKept);
+        }
+        if (!alive()) return;
+      }
+
+      if (step.point) {
+        const el = findOnScreen(step.point.target);
+        await Promise.all([el ? pointAt(el, approach) : Promise.resolve(), sayAndWait(step.point.say)]);
+        if (!alive()) return;
+      }
+      releaseFacing();
+      await sayAndWait(READY_QUESTIONS[index % READY_QUESTIONS.length]);
+      if (alive()) afterSpeech(voice.canListen);
+    },
+    [afterSpeech, approach, onSelectTool, releaseFacing, sayAndWait, startTalking, voice, wake],
+  );
+
+  const startTour = useCallback(() => {
+    awaitingRoute.current = false;
+    void runTourStep(0);
+  }, [runTourStep]);
+
+  /** «Sigamos», «repite», «atrás», «espera» o «terminar», dichos o tocados en el globo. */
+  const tourControl = useCallback(
+    (reply: TourReply) => {
+      const current = tourRef.current;
+      if (!current) return;
+      if (reply === 'stop') {
+        endTour();
+        say(TOUR_STOP);
+        return;
+      }
+      startTalking();
+      if (reply === 'wait') {
+        say(pickOne(TOUR_WAIT));
+        return;
+      }
+      const next = reply === 'next' ? current.step + 1 : reply === 'back' ? Math.max(0, current.step - 1) : current.step;
+      if (next >= TOUR_STEPS.length) {
+        endTour();
+        awaitingRoute.current = true;
+        remember(null, TOUR_END);
+        say(TOUR_END);
+        return;
+      }
+      void runTourStep(next);
+    },
+    [endTour, remember, runTourStep, say, startTalking],
+  );
+
+  /** Un movimiento pedido de viva voz (`speak`) o por la IA con la acción «animar» (sin frase propia). */
+  const doMove = useCallback(
+    async (move: ZoeMove, speak: boolean) => {
+      const line = speak ? pickOne(MOVE_LINES[move]) : '';
+      switch (move) {
+        case 'sleep':
+          endTour();
+          endConversation();
+          if (line) showCaption(line, 5000);
+          void nap();
+          return;
+        case 'home':
+          endTour();
+          endConversation();
+          if (line) say(line, false);
+          void goHome();
+          return;
+        case 'walk':
+          if (line) say(line);
+          void stroll();
+          return;
+        case 'come':
+          if (line) say(line);
+          await comeHere();
+          return;
+        case 'move':
+          if (line) say(line);
+          await stepAside();
+          return;
+        case 'sit':
+        case 'stand':
+        case 'lie':
+        case 'still':
+          wake();
+          if (move !== 'still') setPosture(move === 'sit' ? 'sitting' : move === 'stand' ? 'standing' : 'lying');
+          if (line) say(line);
+          return;
+        default: {
+          // Los trucos parten de estar de pie: si estaba sentado, primero se levanta.
+          wake();
+          if (line) say(line);
+          if (postureRef.current !== 'standing') {
+            setPosture('standing');
+            await pause(900);
+          }
+          playTrick(move);
+        }
+      }
+    },
+    [comeHere, endConversation, endTour, goHome, nap, playTrick, say, showCaption, stepAside, stroll, wake],
+  );
+
+  const hands = useMemo<ZoeHands>(() => ({ navigate: onSelectTool, approach, animate: (move) => doMove(move, false) }), [approach, doMove, onSelectTool]);
+
+  /** Sin IA: contesta con el banco del documento maestro, sin alarmas y sin cortar la charla. */
+  const answerOffline = useCallback(
+    (text: string) => {
+      const reply = offlineAnswer(text, MASTER_DOCUMENT, { tool: toolRef.current, work: currentWork() });
+      const notice = offlineNoticed.current ? '' : `${OFFLINE_NOTICE} `;
+      offlineNoticed.current = true;
+      remember(text, reply);
+      say(`${notice}${reply}`);
+    },
+    [remember, say],
+  );
 
   const answer = useCallback(
     async (text: string) => {
@@ -357,11 +676,58 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
           return;
         }
         say('Listo, ya lo hago.');
-        await performActions(pending, onSelectTool);
+        await performActions(pending, hands);
+        releaseFacing();
         return;
       }
 
+      // Primero la persona: ante una señal de riesgo, el mensaje de cuidado, con o sin IA.
+      const care = crisisReply(text);
+      if (care) {
+        readyAsked.current = false;
+        remember(text, care);
+        say(care);
+        return;
+      }
+
+      // En el recorrido: «sigamos», «repite», «atrás», «espera», «terminar».
+      if (tourRef.current) {
+        const reply = parseTourReply(text);
+        if (reply) {
+          tourControl(reply);
+          return;
+        }
+      }
+
+      // Al terminar el recorrido: «por el estudio» lleva a esa herramienta.
+      if (awaitingRoute.current) {
+        awaitingRoute.current = false;
+        const tool = toolMentioned(text);
+        if (tool) {
+          onSelectTool(tool);
+          say(`¡Buena elección! Vamos a ${TOOL_NAMES[tool]}. ${TOOL_HINTS[tool]}`);
+          return;
+        }
+      }
+
+      // «¿Todo listo para continuar?»: el sí y el no se contestan aquí, sin hacer esperar.
+      if (readyAsked.current) {
+        const ready = isConfirmation(text);
+        if (ready !== null) {
+          readyAsked.current = !ready;
+          const line = ready ? READY_YES : READY_NO;
+          remember(text, line);
+          say(line);
+          return;
+        }
+        readyAsked.current = false;
+      }
+
       const command = parseZoeCommand(text);
+      if (command?.type === 'tour') {
+        startTour();
+        return;
+      }
       if (command?.type === 'navigate') {
         onSelectTool(command.tool);
         say(`¡Vamos! Esto es ${TOOL_NAMES[command.tool]}. ${TOOL_HINTS[command.tool]}`);
@@ -372,40 +738,28 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
         say(command.value === 'light' ? 'Listo, prendí las luces.' : 'Listo, así brillo mejor.');
         return;
       }
-      if (command?.type === 'sleep') {
-        endConversation();
-        showCaption('Busco un rinconcito y me echo un rato. Tócame cuando quieras.', 5000);
-        void nap();
+      if (command) {
+        void doMove(command.type, true);
         return;
       }
-      if (command?.type === 'sit' || command?.type === 'stand') {
-        wake();
-        setPosture(command.type === 'sit' ? 'sitting' : 'standing');
-        say(command.type === 'sit' ? 'Sentado, como todo un profesional.' : '¡Arriba! Listo para lo que venga.');
-        return;
-      }
-      if (command?.type === 'walk') {
-        say('¡Vamos a estirar las patas!');
-        void stroll();
-        return;
-      }
-      if (command?.type === 'home') {
-        endConversation();
-        say('Me voy a mi casita. Tócala cuando me necesites.', false);
-        void goHome();
+
+      // Sin internet, o si la IA acaba de fallar, contesta de memoria en vez de hacer esperar.
+      if (!navigator.onLine || Date.now() < aiDownUntil.current) {
+        answerOffline(text);
         return;
       }
 
       setBehavior('thinking');
       setCaption(null);
       const filler = window.setTimeout(() => {
-        const line = FILLERS[Math.floor(Math.random() * FILLERS.length)];
+        const line = pickOne(FILLERS);
         setCaption(line);
         voice.speak(line);
       }, FILLER_AFTER_MS);
       try {
         let reply = await askZoe(text, historyRef.current, toolRef.current);
         window.clearTimeout(filler);
+        offlineNoticed.current = false;
         const done: string[] = [];
         for (let round = 1; ; round++) {
           if (!talkingRef.current && !request) return; // La persona cerró mientras pensaba.
@@ -415,7 +769,7 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
           const last = !reply.seguir || round >= MAX_AGENT_ROUNDS || risky.length > 0;
           const question = risky.length ? ` ¿Me confirmas que presione ${risky.map((a) => `«${'id' in a ? labelOfControl(a.id) : ''}»`).join(' y ')}?` : '';
           const spoken = `${reply.decir}${question}`.trim() || 'Listo.';
-          const [results] = await Promise.all([performActions(safe, onSelectTool), sayAndWait(spoken)]);
+          const [results] = await Promise.all([performActions(safe, hands), sayAndWait(spoken)]);
           done.push(...results.filter((r) => r.ok).map((r) => r.note));
           if (!last) {
             // La tarea sigue en la pantalla nueva: la mira y continúa con el mismo pedido.
@@ -423,17 +777,14 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
             reply = await askZoe(text, historyRef.current, toolRef.current, done);
             continue;
           }
+          releaseFacing();
           const failed = results.filter((r) => !r.ok);
           if (failed.length)
             console.warn(
               '[ZOE] Acciones que no se pudieron hacer:',
               failed.map((r) => r.note),
             );
-          historyRef.current = [
-            ...historyRef.current,
-            { role: 'user' as const, text },
-            { role: 'zoe' as const, text: `${spoken}${failed.length ? ` (No pude: ${failed.map((r) => r.note).join('; ')}.)` : ''}` },
-          ].slice(-12);
+          remember(text, `${spoken}${failed.length ? ` (No pude: ${failed.map((r) => r.note).join('; ')}.)` : ''}`);
           if (risky.length) pendingActions.current = risky;
           if (failed.length) say('Hubo algo que no pude hacer en la pantalla. ¿Me lo repites o lo hacemos de otra forma?');
           else afterSpeech(true);
@@ -441,12 +792,29 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
         }
       } catch (e) {
         window.clearTimeout(filler);
-        console.warn('[ZOE] La IA no respondió:', e);
-        endConversation();
-        say('Se me cayó la conexión con la IA y no quiero inventarte una respuesta. Revisa el botón I A de la cabecera y me vuelves a llamar.', false);
+        // Sin estrés: ZOE no corta la charla ni culpa a nadie; responde con lo que sabe y sigue escuchando.
+        console.warn('[ZOE] La IA no respondió; contesto con lo que sé de memoria.', e);
+        aiDownUntil.current = Date.now() + AI_RETRY_MS;
+        answerOffline(text);
       }
     },
-    [afterSpeech, endConversation, goHome, nap, onSelectTool, onToggleTheme, request, say, sayAndWait, showCaption, stroll, theme, voice, wake],
+    [
+      afterSpeech,
+      answerOffline,
+      doMove,
+      hands,
+      onSelectTool,
+      onToggleTheme,
+      releaseFacing,
+      remember,
+      request,
+      say,
+      sayAndWait,
+      startTour,
+      theme,
+      tourControl,
+      voice,
+    ],
   );
 
   const onListenFail = useCallback(
@@ -465,7 +833,12 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
         silentTries.current += 1;
         if (silentTries.current >= 2) {
           endConversation();
-          say('Te dejo trabajar. Tócame cuando quieras seguir.', false);
+          say(
+            tourRef.current
+              ? 'Te dejo pensar con calma. Cuando quieras seguir el recorrido, toca «Seguir».'
+              : 'Te dejo trabajar. Tócame cuando quieras seguir.',
+            false,
+          );
         } else if (talkingRef.current) {
           say('¿Sigues ahí? Te escucho.');
         }
@@ -491,7 +864,7 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
       return;
     }
     if (wantsMoreTime(text)) {
-      say('Tranquilo, tómate tu tiempo. Te escucho.');
+      say('Sin afán, tómate tu tiempo. Te escucho.');
       return;
     }
     const full = `${pendingRef.current} ${text}`.trim();
@@ -523,16 +896,19 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
     wake();
     setFacing(0);
     setPetCounter((n) => n + 1);
-    silentTries.current = 0;
-    setTalking(true);
-    talkingRef.current = true;
+    startTalking();
     // El permiso se pide aquí, dentro del toque, y no cuando ya terminó el saludo.
     const problem = await voice.checkMic();
     if (!talkingRef.current) return;
     if (problem) onListenFail(problem);
+    else if (tourRef.current) say(`¿Seguimos con el recorrido? Íbamos en ${TOUR_STEPS[tourRef.current.step].title}. Dime «sigamos» cuando quieras.`);
     else if (historyRef.current.length) listenRef.current();
-    else say('¡Hola, hola! Cuéntame, ¿qué tenemos entre manos?');
-  }, [onListenFail, say, voice, wake]);
+    else {
+      readyAsked.current = true;
+      remember(null, GREETING);
+      say(GREETING);
+    }
+  }, [onListenFail, remember, say, startTalking, voice, wake]);
 
   /** Tocarlo: empieza a conversar; si escucha, termina. Si está hablando no se le corta: termina la idea y luego escucha. */
   const onTouchZoe = useCallback(() => {
@@ -555,14 +931,26 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
     if (!request || request.id === lastRequest.current) return;
     lastRequest.current = request.id;
     if (request.text) {
-      setTalking(true);
-      talkingRef.current = true;
+      startTalking();
       void answer(request.text);
     } else {
       void startConversation();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [request]);
+
+  // Solo en desarrollo: `window.__zoeDecir('sacúdete')` prueba lo que se le dice, sin micrófono.
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    const w = window as unknown as { __zoeDecir?: (text: string) => void };
+    w.__zoeDecir = (text) => {
+      startTalking();
+      void answer(text);
+    };
+    return () => {
+      delete w.__zoeDecir;
+    };
+  }, [answer, startTalking]);
 
   // Una pista breve la primera vez que se visita cada herramienta; después, silencio.
   useEffect(() => {
@@ -573,7 +961,7 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
 
   // ── Vida propia: de vez en cuando pasea, cambia de postura o busca dónde dormir ──
   useEffect(() => {
-    if (!isOpen || window.matchMedia('(prefers-reduced-motion: reduce)').matches || window.innerWidth < 768) return;
+    if (!isOpen || reduceMotion() || window.innerWidth < 768) return;
     let timer: number;
     const schedule = () => {
       timer = window.setTimeout(
@@ -596,7 +984,8 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
   // Desplazamiento mientras camina (también al pedírselo con el botón).
   useEffect(() => {
     if (!isWalking) {
-      setFacing(0);
+      // Junto a un botón sigue mirándolo; si no, mira de frente.
+      setFacing(holdFacing.current);
       return;
     }
     if (walkTarget.current === null) {
@@ -712,7 +1101,8 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
 
   if (!isOpen) return <ZoeDoghouse occupied onCall={comeOut} />;
 
-  const status = voice.listening ? 'Te escucho…' : behavior === 'thinking' ? 'Pensando…' : null;
+  // Al pensar, el globo muestra su «¡Woa, woa!» si ya lo dijo; si no, «Pensando…».
+  const status = voice.listening ? 'Te escucho…' : behavior === 'thinking' && !caption ? 'Pensando…' : null;
   const toolbar: Array<{ label: string; icon: React.ReactNode; onClick: () => void; pressed?: boolean; color: string }> = [
     {
       label: talking ? 'Terminar la conversación' : 'Conversar con ZOE',
@@ -720,6 +1110,13 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
       onClick: () => (talking ? endConversation() : void startConversation()),
       pressed: talking,
       color: '#27DCFF',
+    },
+    {
+      label: touring ? 'Terminar el recorrido guiado' : 'Recorrido guiado por el Laboratorio',
+      icon: <Compass className="w-4 h-4" />,
+      onClick: () => (touring ? tourControl('stop') : startTour()),
+      pressed: touring,
+      color: '#A8C63C',
     },
     {
       label: voice.muted ? 'Activar la voz de ZOE' : 'Silenciar la voz de ZOE',
@@ -777,7 +1174,7 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
         }}
       >
         {/* Subtítulos: lo que ZOE dice, también para quien no puede oírlo. No es un chat. */}
-        {(caption || status || heard) && (
+        {(caption || status || heard || touring) && (
           <div
             className={`zoe-caption ${position.x < window.innerWidth / 2 ? 'zoe-caption-left' : ''}`}
             // Frente a la casita el escenario sale un poco de la pantalla: el globo no se corta.
@@ -791,11 +1188,31 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
               </button>
             )}
             {heard && (status || behavior === 'speaking') && <p className="text-[11px] italic text-brand-textMuted mb-1">«{heard}»</p>}
-            {status ? <p className={voice.listening ? 'zoe-status zoe-status-on' : 'zoe-status'}>{status}</p> : <p>{caption}</p>}
+            {status ? <p className={voice.listening ? 'zoe-status zoe-status-on' : 'zoe-status'}>{status}</p> : caption && <p>{caption}</p>}
             {voice.listening && (
               <span className="zoe-level-track" aria-hidden="true">
                 <span ref={levelRef} className="zoe-level" />
               </span>
+            )}
+            {touring && (
+              // También con botones: sin micrófono, o con ruido, el recorrido se maneja tocando.
+              <div className="zoe-tour-controls" role="group" aria-label="Recorrido guiado">
+                <span className="zoe-tour-step">
+                  Recorrido {(tourRef.current?.step ?? 0) + 1}/{TOUR_STEPS.length}
+                </span>
+                <button type="button" onClick={() => tourControl('back')} disabled={!tourRef.current?.step}>
+                  Atrás
+                </button>
+                <button type="button" onClick={() => tourControl('repeat')}>
+                  Repetir
+                </button>
+                <button type="button" className="zoe-tour-next" onClick={() => tourControl('next')}>
+                  Seguir
+                </button>
+                <button type="button" onClick={() => tourControl('stop')}>
+                  Terminar
+                </button>
+              </div>
             )}
           </div>
         )}
@@ -819,6 +1236,7 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
                 posture={posture}
                 show360Environment={show360}
                 petTrigger={petCounter}
+                trick={trick}
                 onModelInfo={onModelLoaded}
               />
             </CanvasBoundary>

@@ -8,7 +8,7 @@
  * eliminar…) no se ejecuta sin una confirmación de viva voz: ver `isRisky`.
  */
 import type { ToolId } from '@/components/layout/Header';
-import { cleanZoeReply } from '@/lib/zoeContext';
+import { AI_MOVES, cleanZoeReply, type ZoeMove } from '@/lib/zoeContext';
 
 /** Tipo de control de la pantalla que ZOE puede manejar. */
 export type ZoeControlKind = 'texto' | 'lista' | 'casilla' | 'opcion' | 'boton';
@@ -24,13 +24,28 @@ export interface ZoeControl {
   disabled?: boolean;
 }
 
-/** Una acción que la IA pide sobre la pantalla: ir, escribir, elegir, marcar o presionar. */
+/** Una acción que la IA pide: ir, escribir, elegir, marcar, presionar o hacer un movimiento de ZOE. */
 export type ZoeAction =
   | { hacer: 'ir'; herramienta: ToolId }
   | { hacer: 'escribir'; id: string; texto: string }
   | { hacer: 'elegir'; id: string; opcion: string }
   | { hacer: 'marcar'; id: string; valor: boolean }
-  | { hacer: 'presionar'; id: string };
+  | { hacer: 'presionar'; id: string }
+  | { hacer: 'animar'; movimiento: ZoeMove };
+
+/**
+ * Lo que ZOE pone de su parte al actuar: cambiar de pantalla y, si se puede, caminar hasta el
+ * control (`approach`) y moverse (`animate`). Sin cuerpo en pantalla basta con `navigate`.
+ */
+export interface ZoeHands {
+  navigate: (tool: ToolId) => void;
+  /** ZOE camina hasta el control y hace el gesto de presionarlo; resuelve cuando llegó. */
+  approach?: (el: HTMLElement) => Promise<void>;
+  /** Un movimiento pedido por la IA (sacudirse, sentarse, dar vueltas…). */
+  animate?: (move: ZoeMove) => Promise<void> | void;
+}
+
+const handsOf = (hands: ZoeHands | ((tool: ToolId) => void)): ZoeHands => (typeof hands === 'function' ? { navigate: hands } : hands);
 
 /** Respuesta de la IA: lo que dice, lo que hace y si le falta terminar en otra pantalla. */
 export interface ZoeAgentReply {
@@ -102,6 +117,10 @@ function validAction(raw: unknown): ZoeAction | null {
       return id ? { hacer: 'marcar', id, valor: a.valor !== false } : null;
     case 'presionar':
       return id ? { hacer: 'presionar', id } : null;
+    case 'animar': {
+      const move = AI_MOVES[normalizeLabel(String(a.movimiento ?? ''))];
+      return move ? { hacer: 'animar', movimiento: move } : null;
+    }
     default:
       return null;
   }
@@ -150,6 +169,8 @@ export function describeAction(action: ZoeAction, label?: string): string {
       return `${action.valor ? 'marcaste' : 'desmarcaste'} «${label ?? action.id}»`;
     case 'presionar':
       return `presionaste «${label ?? action.id}»`;
+    case 'animar':
+      return `hiciste el movimiento «${Object.keys(AI_MOVES).find((k) => AI_MOVES[k] === action.movimiento) ?? action.movimiento}»`;
   }
 }
 
@@ -309,11 +330,19 @@ export interface ActionResult {
   note: string;
 }
 
-/** Ejecuta una acción sobre la página. Las que necesitan confirmación deben filtrarse antes. */
-export async function performAction(action: ZoeAction, navigate: (tool: ToolId) => void): Promise<ActionResult> {
+/**
+ * Ejecuta una acción sobre la página. Las que necesitan confirmación deben filtrarse antes.
+ * `hands` puede ser solo la función de navegar o, con ZOE en pantalla, también sus pasos.
+ */
+export async function performAction(action: ZoeAction, hands: ZoeHands | ((tool: ToolId) => void)): Promise<ActionResult> {
+  const { navigate, approach, animate } = handsOf(hands);
   if (action.hacer === 'ir') {
     navigate(action.herramienta);
     await pause(700); // Que la nueva pantalla alcance a dibujarse.
+    return { action, ok: true, note: describeAction(action) };
+  }
+  if (action.hacer === 'animar') {
+    await animate?.(action.movimiento);
     return { action, ok: true, note: describeAction(action) };
   }
   const entry = registry.get(action.id);
@@ -323,6 +352,8 @@ export async function performAction(action: ZoeAction, navigate: (tool: ToolId) 
   if ((el as HTMLInputElement).disabled) return { action, ok: false, note: `«${label}» está desactivado` };
 
   await spotlight(el);
+  // ZOE camina hasta el control y lo «toca» con el hocico antes de que pase algo.
+  await approach?.(el);
   if (action.hacer === 'escribir') {
     if (!(el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) return { action, ok: false, note: `«${label}» no es un campo de texto` };
     await typeInto(el, action.texto);
@@ -345,11 +376,63 @@ export async function performAction(action: ZoeAction, navigate: (tool: ToolId) 
 }
 
 /** Ejecuta varias acciones en orden, con un respiro entre una y otra para que se vean. */
-export async function performActions(actions: readonly ZoeAction[], navigate: (tool: ToolId) => void): Promise<ActionResult[]> {
+export async function performActions(actions: readonly ZoeAction[], hands: ZoeHands | ((tool: ToolId) => void)): Promise<ActionResult[]> {
   const results: ActionResult[] = [];
   for (const action of actions) {
-    results.push(await performAction(action, navigate));
+    results.push(await performAction(action, hands));
     await pause(reduceMotion() ? 60 : 260);
   }
   return results;
+}
+
+// ── Para el recorrido guiado: señalar y dejar ejemplos sin pisar el trabajo de la persona ──
+
+/** Busca en la pantalla lo que ZOE va a señalar: un selector CSS o el texto visible de un botón. */
+export function findOnScreen(target: { selector?: string; text?: RegExp }): HTMLElement | null {
+  const main = document.querySelector('main') ?? document.body;
+  if (target.selector) {
+    const el = main.querySelector<HTMLElement>(target.selector);
+    if (el && isVisible(el)) return el;
+  }
+  if (target.text) {
+    const re = target.text;
+    const hit = Array.from(main.querySelectorAll<HTMLElement>('button, [role="tab"], [role="button"], h1, h2, h3, label')).find(
+      (el) => isVisible(el) && !el.closest(OFF_LIMITS) && re.test(squash(el.textContent, 200)),
+    );
+    if (hit) return hit;
+  }
+  return null;
+}
+
+/** Señala un elemento: lo trae a la vista, lo ilumina y ZOE se acerca. No lo toca. */
+export async function pointAt(el: HTMLElement, approach?: ZoeHands['approach']): Promise<void> {
+  await spotlight(el);
+  await approach?.(el);
+}
+
+/**
+ * Deja un valor de ejemplo en un campo o una lista, solo si está vacío: nunca pisa lo que la
+ * persona escribió. Devuelve si lo llenó, si lo dejó como estaba o si el campo no está.
+ */
+export async function fillExample(el: HTMLElement | null, value: string, approach?: ZoeHands['approach']): Promise<'filled' | 'kept' | 'missing'> {
+  if (!el || !el.isConnected || (el as HTMLInputElement).disabled) return 'missing';
+  if (el instanceof HTMLSelectElement) {
+    if (el.value) return 'kept';
+    const options = Array.from(el.options);
+    const index = bestOption(
+      options.map((o) => o.textContent ?? ''),
+      value,
+    );
+    if (index < 0) return 'missing';
+    await pointAt(el, approach);
+    setNativeValue(el, options[index].value, 'change');
+    return 'filled';
+  }
+  if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
+    if (el.value.trim()) return 'kept';
+    await pointAt(el, approach);
+    await typeInto(el, value);
+    return 'filled';
+  }
+  return 'missing';
 }

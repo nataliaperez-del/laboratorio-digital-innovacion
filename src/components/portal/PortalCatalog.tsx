@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowRight, Layers, BrainCircuit, Trees, Rocket, Sparkles, FolderArchive, Trophy } from 'lucide-react';
+import { ArrowRight, Layers, BrainCircuit, Trees, Rocket, Sparkles, FolderArchive, Trophy, Compass } from 'lucide-react';
 import { ToolId } from '../layout/Header';
 
 interface PortalCatalogProps {
@@ -178,14 +178,25 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
               <span>Insignias de Innovación</span>
             </button>
 
-            <button
-              type="button"
-              onClick={() => onOpenZoe()}
-              className="px-4 py-2.5 rounded-full bg-white/5 backdrop-blur-md text-xs font-semibold text-[#27DCFF] border border-[#27DCFF]/40 hover:bg-[#27DCFF]/15 flex items-center gap-2 cursor-pointer transition-all shadow-sm"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-[#27DCFF]" />
-              <span>Hablar con ZOE</span>
-            </button>
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              {/* El recorrido guiado: ZOE muestra cada herramienta con un ejemplo y cuenta qué ruta seguir. */}
+              <button
+                type="button"
+                onClick={() => onOpenZoe('Muéstrame el laboratorio')}
+                className="px-4 py-2.5 rounded-full bg-white/5 backdrop-blur-md text-xs font-semibold text-[#A8C63C] border border-[#A8C63C]/40 hover:bg-[#A8C63C]/15 flex items-center gap-2 cursor-pointer transition-all shadow-sm"
+              >
+                <Compass className="w-3.5 h-3.5 text-[#A8C63C]" aria-hidden="true" />
+                <span>Recorrido guiado con ZOE</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => onOpenZoe()}
+                className="px-4 py-2.5 rounded-full bg-white/5 backdrop-blur-md text-xs font-semibold text-[#27DCFF] border border-[#27DCFF]/40 hover:bg-[#27DCFF]/15 flex items-center gap-2 cursor-pointer transition-all shadow-sm"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-[#27DCFF]" />
+                <span>Hablar con ZOE</span>
+              </button>
+            </div>
           </div>
         </section>
       </div>

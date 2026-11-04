@@ -6,6 +6,13 @@ import { restClip, ZoeClipDirector, type ClipRole, type ZoeBodyState, type ZoeGe
 /** Ánimo de ZOE: tranquilo, escucha, piensa, habla, feliz o duerme. */
 export type ZoeSoulState = 'idle' | 'listening' | 'thinking' | 'speaking' | 'happy' | 'sleeping';
 
+/**
+ * Trucos de una sola vez: sacudirse, dar vueltas, saltar, mover la cola, hacer una reverencia y
+ * «boop», el toque con el hocico con que presiona un botón. Los que el modelo trae como clip
+ * (Shake, Tail_Wag, play_bow) se reproducen; los demás los pone la capa procedimental.
+ */
+export type ZoeTrick = 'shake' | 'spin' | 'jump' | 'wag' | 'bow' | 'boop';
+
 /** Lo que se le pide al ZOE 3D: ánimo, postura, caminar o trotar, hacia dónde mira, entorno y modelo. */
 export interface ZoeCanvas3DProps {
   behavior?: ZoeSoulState;
@@ -15,6 +22,8 @@ export interface ZoeCanvas3DProps {
   posture?: 'sitting' | 'standing' | 'lying';
   show360Environment?: boolean;
   petTrigger?: number;
+  /** Un truco pedido; cada `id` nuevo lo dispara una vez. */
+  trick?: { name: ZoeTrick; id: number } | null;
   /** Hacia dónde mira el cuerpo al caminar: -1 izquierda, 1 derecha, 0 de frente. */
   facing?: -1 | 0 | 1;
   /** 0 = cuerpo sólido; 1 = malla de alambre, para la materialización de la presentación. */
@@ -226,6 +235,7 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
   posture = 'standing',
   show360Environment = false,
   petTrigger,
+  trick,
   facing = 0,
   wire = 0,
   framing = 'full',
@@ -236,12 +246,19 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
   const liveRef = useRef({ behavior, isWalking, trotting, posture, show360Environment, facing, wire, framing });
   liveRef.current = { behavior, isWalking, trotting, posture, show360Environment, facing, wire, framing };
   const petRef = useRef<() => void>(() => undefined);
+  const trickRef = useRef<(name: ZoeTrick) => void>(() => undefined);
   const infoRef = useRef(onModelInfo);
   infoRef.current = onModelInfo;
 
   useEffect(() => {
     if (petTrigger) petRef.current();
   }, [petTrigger]);
+
+  useEffect(() => {
+    if (trick) trickRef.current(trick.name);
+    // Solo un id nuevo dispara el truco; el mismo objeto no lo repite.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trick?.id]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -558,6 +575,27 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
       camY: 0.02,
     };
 
+    // Trucos: el clip se pide hasta que el cuerpo esté de pie y libre (puede venir levantándose).
+    let pendingGesture: { role: ZoeGesture; until: number } | null = null;
+    const SPIN_TURN_S = 0.95;
+    const SPIN_TURNS = 2;
+    const JUMP_S = 0.62;
+    const BOOP_S = 0.55;
+    let spinStart = -99;
+    let jumpStart = -99;
+    let boopStart = -99;
+    trickRef.current = (name) => {
+      const t = clock.getElapsedTime();
+      // La cola acompaña cualquier truco, aunque el modelo no traiga el clip.
+      tailBurstUntil = t + (name === 'boop' ? 0.9 : 2.2);
+      if (name === 'spin') spinStart = t;
+      else if (name === 'jump') jumpStart = t;
+      else if (name === 'boop') boopStart = t;
+      else pendingGesture = { role: name === 'shake' ? 'shake' : name === 'bow' ? 'play' : 'happy', until: t + 4 };
+    };
+    /** Arranca y frena suave: así la vuelta no se ve mecánica. */
+    const easeInOut = (p: number) => (p < 0.5 ? 2 * p * p : 1 - (-2 * p + 2) ** 2 / 2);
+
     let animId = 0;
     let lastFrame = 0;
     const FRAME_MS = 1000 / 30;
@@ -579,10 +617,13 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
       const motion = reduceMotion ? 0 : 1;
       const mood = state.behavior;
 
+      // Dar vueltas es trotar en el sitio mientras el cuerpo gira: persigue su cola.
+      const spinP = (t - spinStart) / (SPIN_TURN_S * SPIN_TURNS);
+      const spinning = spinP >= 0 && spinP < 1 && motion > 0;
       // El cuerpo lo mueven los clips del modelo; el director elige cuál y cómo enlazarlos.
-      const walking = state.isWalking && motion > 0;
+      const walking = (state.isWalking || spinning) && motion > 0;
       const body: ZoeBodyState = walking
-        ? state.trotting
+        ? state.trotting || spinning
           ? 'trot'
           : 'walk'
         : mood === 'sleeping'
@@ -595,6 +636,10 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
       if (director) {
         director.setState(body, mood === 'listening');
         if (mood === 'happy' && lastMood !== 'happy') director.gesture('happy');
+        if (pendingGesture) {
+          if (t > pendingGesture.until || !director.has(pendingGesture.role)) pendingGesture = null;
+          else if (body === 'stand' && director.gesture(pendingGesture.role)) pendingGesture = null;
+        }
         director.update(motion ? dt : 0);
       }
       lastMood = mood;
@@ -669,6 +714,14 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
         glow = 0.08;
       }
 
+      // «Boop»: baja la cabeza y toca con el hocico, con un saltito; así presiona un botón.
+      const boopP = (t - boopStart) / BOOP_S;
+      if (boopP >= 0 && boopP < 1) {
+        targetPitch += Math.sin(boopP * Math.PI) * 0.42;
+        hop += Math.sin(boopP * Math.PI) * 0.035 * motion;
+        glow += Math.sin(boopP * Math.PI) * 0.3;
+      }
+
       const sniff = t - sniffStart;
       let sniffTwitch = 0;
       if (sniff >= 0 && sniff < 1.5) {
@@ -716,8 +769,12 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
       } else {
         pose.bodyYaw = damp(pose.bodyYaw, state.facing !== 0 ? state.facing * 1.1 : -0.35, 4, dt);
       }
-      zoeContainer.rotation.y = pose.bodyYaw;
-      zoeContainer.position.y = pose.hop;
+      const spinYaw = spinning ? easeInOut(spinP) * Math.PI * 2 * SPIN_TURNS : 0;
+      zoeContainer.rotation.y = pose.bodyYaw + spinYaw;
+      // El salto va sin amortiguar: un salto suavizado se vería como flotar.
+      const jumpP = (t - jumpStart) / JUMP_S;
+      const jump = jumpP >= 0 && jumpP < 1 ? Math.sin(jumpP * Math.PI) * 0.2 * motion : 0;
+      zoeContainer.position.y = pose.hop + jump;
       contactMat.opacity = pose.glow;
       pawLight.intensity = 0.4 + pose.glow * 1.8;
 

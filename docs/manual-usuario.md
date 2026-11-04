@@ -109,11 +109,11 @@ ZOE es un schnauzer holográfico que vive en la pantalla. No tiene chat de texto
 ### Cómo conversar
 
 1. **Toca a ZOE.** La primera vez el navegador pide el micrófono: acepta.
-2. ZOE saluda y muestra **«Te escucho»** con una barrita que se mueve con tu voz.
+2. ZOE saluda sin afán y pregunta **«¿Todo listo para continuar? Estoy aquí contigo»**; después muestra **«Te escucho»** con una barrita que se mueve con tu voz.
 3. Habla con naturalidad. Mientras hablas verás lo que va entendiendo.
 4. Cuando haces una pausa, responde. Si la frase quedó a medias, te pregunta **«¿Ya terminaste?»**: sigue hablando o di «sí» o «listo».
 5. Si necesitas pensar, di **«espera»** o **«un momento»** y ZOE te espera.
-6. Al terminar de responder vuelve a escucharte. Tras dos silencios seguidos se despide.
+6. Si necesita pensar, dice **«¡Woa, woa!»** (nunca empieza con «mmm»). Al terminar de responder vuelve a escucharte. Tras dos silencios seguidos se despide.
 
 ### Para tener en cuenta
 
@@ -128,14 +128,24 @@ ZOE es un schnauzer holográfico que vive en la pantalla. No tiene chat de texto
 |---|---|
 | «Llévame al árbol», «abre el estudio», «vamos a prototipado» | Cambia de pantalla |
 | «Pon el modo claro» / «pon el modo oscuro» | Cambia el tema visual |
-| «Siéntate» / «levántate» | Cambia de postura |
-| «Camina» | Da un paseo por la pantalla |
-| «A dormir», «acuéstate» | Busca un rincón tranquilo y se echa a dormir |
+| «Siéntate» / «párate», «levántate» | Cambia de postura |
+| «Échate», «acuéstate» | Se echa y sigue escuchando |
+| «Da un paseo», «camina» | Da un paseo por la pantalla |
+| «Ven», «acércate» | Viene al centro de la pantalla, se sienta y mueve la cola |
+| «Muévete», «hazte a un lado», «me estás tapando» | Se va al tramo del piso donde menos estorba |
+| «Sacúdete» | Se sacude |
+| «Da vueltas», «gira», «persigue tu cola» | Da dos vueltas persiguiendo su cola |
+| «Salta» · «mueve la cola» · «haz una reverencia», «saluda» | Salta · mueve la cola · hace una reverencia |
+| «Quieto» | Deja lo que estaba haciendo y se queda quieto |
+| «A dormir» | Busca un rincón tranquilo y se echa a dormir |
 | «Vete a tu casa», «ve a tu casita», «regresa a tu casita», «escóndete» | Se va a su casita de la esquina |
+| «Muéstrame el laboratorio», «hazme un recorrido» | Empieza el recorrido guiado |
+
+Las órdenes valen también dichas con cortesía («Zoe, ¿puedes sacudirte?», «quiero que te sientes») y funcionan sin conexión a internet.
 
 ### ZOE maneja la pantalla por ti
 
-Mientras conversan, ZOE puede hacer en la pantalla lo que le pidas: cambiar de herramienta, escribir en los campos, elegir en las listas, marcar casillas y presionar botones. Mientras te cuenta lo que hace, el campo o el botón en que trabaja se ilumina.
+Mientras conversan, ZOE puede hacer en la pantalla lo que le pidas: cambiar de herramienta, escribir en los campos, elegir en las listas, marcar casillas y presionar botones. Antes de actuar camina hasta el campo o el botón, lo mira y le da un toque con el hocico; mientras te cuenta lo que hace, el control se ilumina. (En celulares o con «reducir movimiento» activo, ZOE no cruza la pantalla: solo se ilumina el control.)
 
 | Le dices | ZOE hace |
 |---|---|
@@ -148,6 +158,25 @@ Mientras conversan, ZOE puede hacer en la pantalla lo que le pidas: cambiar de h
 - Nunca sube archivos ni escribe claves: eso lo haces tú.
 - Antes de limpiar, borrar o eliminar algo, siempre pide tu confirmación.
 
+### Recorrido guiado
+
+Para conocer el Laboratorio de punta a punta, toca **«Recorrido guiado con ZOE»** en el Inicio, la **brújula** de la barra de controles de ZOE o dile **«muéstrame el laboratorio»**.
+
+1. ZOE visita el Inicio, el Radar, el Estudio Territorial, Ideación, el Árbol, Prototipado y el Banco.
+2. En cada parada explica qué es la herramienta y cómo funciona, deja un ejemplo en sus campos (residuos de cosecha en Sogamoso, Boyacá) y señala el botón que la pone a trabajar.
+3. Al terminar cada parada pregunta si quieres seguir. Responde con la voz («sigamos», «repite», «atrás», «espera», «terminar recorrido») o con los botones **Atrás · Repetir · Seguir · Terminar** del globo de subtítulos, que funcionan también sin micrófono.
+4. Al final te cuenta las cuatro rutas posibles y te lleva a la herramienta por la que quieras empezar (por ejemplo, «por el estudio»).
+
+El ejemplo solo se escribe en campos vacíos: ZOE nunca borra lo que escribiste ni presiona Generar, Guardar o Limpiar.
+
+### Acompañamiento y apoyo
+
+ZOE acompaña con calidez y sin presión: antes de avanzar pregunta si estás listo o lista, celebra tus avances y, si le cuentas que estás con estrés, cansancio, frustración, tristeza o dudas, primero te escucha y te propone una pausa o una respiración. No es un servicio psicológico. Si mencionas algo que ponga en riesgo tu vida, te da la ruta de ayuda: en Colombia, la **Línea 106** (gratuita, 24 horas) y el **123** para emergencias, además del acompañamiento psicosocial de Bienestar Institucional de la UNAD.
+
+### Sin conexión
+
+Si la IA no responde, ZOE no se detiene: te lo dice una sola vez y sigue contestando con lo que sabe de memoria (preguntas frecuentes, herramientas, rutas, siguiente paso según tu trabajo, chistes y frases de ánimo). Las órdenes, los movimientos, el recorrido guiado, el Banco y los informes ya hechos siguen funcionando. Unos minutos después vuelve a intentar con la IA.
+
 ### Su vida en la pantalla
 
 - Si nadie lo necesita, a veces pasea, se sienta o busca el rincón con menos botones y se echa a dormir un rato. Tocarlo lo despierta.
@@ -155,6 +184,7 @@ Mientras conversan, ZOE puede hacer en la pantalla lo que le pidas: cambiar de h
 - **Su casita:** cuando no lo necesites, toca la casita de su barra de controles (o dile «ve a tu casita»). Camina hasta la casita de la esquina inferior derecha y se mete; en pantalla queda solo la casita, con sus ojos brillando en la puerta. Tócala y ZOE sale y vuelve a donde estaba. Mientras está adentro no ocupa espacio ni gasta recursos del equipo.
 - Al pasar el puntero aparece su barra de controles:
   - conversar;
+  - recorrido guiado (brújula);
   - voz;
   - sentarse o pararse;
   - caminar;
@@ -165,7 +195,7 @@ Mientras conversan, ZOE puede hacer en la pantalla lo que le pidas: cambiar de h
 
 ### Qué sabe y qué no
 
-ZOE conoce el Laboratorio, sus herramientas, los conceptos de innovación y lo que tienes en pantalla. Bromea, motiva y agradece, pero no inventa datos: los informes los generan las herramientas, aunque ZOE puede presionar el botón por ti. Si la IA falla, lo dice en lugar de improvisar.
+ZOE conoce el Laboratorio, sus herramientas, los conceptos de innovación y lo que tienes en pantalla. Bromea, motiva y agradece, pero no inventa datos: los informes los generan las herramientas, aunque ZOE puede presionar el botón por ti. Su conocimiento está en `src/content/zoe/documento-maestro.md`: lo usa la IA y, sin conexión, su banco de preguntas y respuestas.
 
 ## 6. Solución de problemas
 
@@ -177,7 +207,7 @@ ZOE conoce el Laboratorio, sus herramientas, los conceptos de innovación y lo q
 | ZOE pide una dirección segura | Abre el Laboratorio con `https://` |
 | ZOE suena distinto de lo habitual | Su voz aún se está descargando o la conexión está en ahorro de datos: mientras tanto usa la del equipo. Al recargar con buena conexión vuelve su voz |
 | ZOE no se ve en 3D | El navegador no puede dibujar 3D: se muestra su imagen fija. Actualiza el navegador o activa la aceleración por hardware |
-| La IA no responde | Abre el botón **IA** del menú: se verifica solo y muestra «IA conectada» o el motivo del fallo. Vuelve a intentar en un momento |
+| La IA no responde | ZOE sigue contigo respondiendo de memoria. Abre el botón **IA** del menú: se verifica solo y muestra «IA conectada» o el motivo del fallo. Mientras tanto puedes preparar la ficha, el tema o la idea, y generar cuando vuelva |
 | Perdí mi trabajo | El trabajo vive en el navegador: si borraste datos o cambiaste de equipo, recupéralo desde el Banco o desde el informe descargado |
 | El informe tiene datos dudosos | Es un resultado asistido por IA: verifica con las fuentes y edítalo en Word |
 

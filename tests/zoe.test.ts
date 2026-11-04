@@ -20,7 +20,8 @@ describe('órdenes de voz', () => {
   it('entiende el tema visual y el descanso', () => {
     expect(parseZoeCommand('pon el modo oscuro')).toEqual({ type: 'theme', value: 'dark' });
     expect(parseZoeCommand('Zoe, a dormir')).toEqual({ type: 'sleep' });
-    expect(parseZoeCommand('acuéstate')).toEqual({ type: 'sleep' });
+    // Acostarse ya no es dormir: se echa y sigue escuchando.
+    expect(parseZoeCommand('acuéstate')).toEqual({ type: 'lie' });
     expect(parseZoeCommand('Zoe, por favor siéntate')).toEqual({ type: 'sit' });
     expect(parseZoeCommand('levántate')).toEqual({ type: 'stand' });
     expect(parseZoeCommand('zoe camina un poco')).toEqual({ type: 'walk' });
@@ -33,6 +34,57 @@ describe('órdenes de voz', () => {
     expect(recognitionLang(['es-419', 'es'])).toBe('es-CO');
     expect(recognitionLang(['en-US', 'es-MX'])).toBe('es-MX');
   });
+
+  it('entiende los movimientos, dichos como se digan', () => {
+    const cases: Array<[string, string]> = [
+      ['sacúdete', 'shake'],
+      ['Zoe, sacúdete', 'shake'],
+      ['¿puedes sacudirte?', 'shake'],
+      ['quiero que te sacudas', 'shake'],
+      ['da vueltas', 'spin'],
+      ['Zoe, da una vuelta', 'spin'],
+      ['gira', 'spin'],
+      ['persigue tu cola', 'spin'],
+      ['siéntate', 'sit'],
+      ['quiero que te sientes', 'sit'],
+      ['párate', 'stand'],
+      ['ponte de pie', 'stand'],
+      ['échate', 'lie'],
+      ['da un paseo', 'walk'],
+      ['Zoe, ven', 'come'],
+      ['ven aquí', 'come'],
+      ['acércate', 'come'],
+      ['muévete', 'move'],
+      ['hazte a un lado', 'move'],
+      ['me estás tapando', 'move'],
+      ['mueve la cola', 'wag'],
+      ['salta', 'jump'],
+      ['haz una reverencia', 'bow'],
+      ['saluda', 'bow'],
+      ['quieto', 'still'],
+      ['vete a tu casa', 'home'],
+    ];
+    for (const [said, type] of cases) expect(parseZoeCommand(said), said).toEqual({ type });
+  });
+
+  it('una conversación sobre esos temas no mueve a ZOE', () => {
+    expect(parseZoeCommand('¿Por qué te sacudes tanto?')).toBeNull();
+    expect(parseZoeCommand('el mercado gira alrededor del café')).toBeNull();
+    expect(parseZoeCommand('las ventajas del prototipo')).toBeNull();
+    expect(parseZoeCommand('vengo de Pitalito')).toBeNull();
+  });
+
+  it('pide el recorrido guiado', () => {
+    for (const said of [
+      'Muéstrame el laboratorio',
+      'hazme un recorrido',
+      'quiero una demostración guiada',
+      '¿me muestras el laboratorio?',
+      'Zoe, guíame por el laboratorio',
+    ]) {
+      expect(parseZoeCommand(said), said).toEqual({ type: 'tour' });
+    }
+  });
 });
 
 describe('voz', () => {
@@ -44,6 +96,14 @@ describe('voz', () => {
 
   it('limpia la respuesta para leerla en voz alta', () => {
     expect(cleanZoeReply('ZOE: **¡Hola!** Mira:\n- esto')).toBe('¡Hola! Mira:\nesto');
+  });
+
+  it('nunca empieza con «mmm» ni otro titubeo, sin comerse palabras', () => {
+    expect(cleanZoeReply('Mmm, buena pregunta.')).toBe('Buena pregunta.');
+    expect(cleanZoeReply('Hmm… mmm. El árbol tiene tres niveles.')).toBe('El árbol tiene tres niveles.');
+    expect(cleanZoeReply('Ehh, claro que sí.')).toBe('Claro que sí.');
+    expect(cleanZoeReply('Empecemos por la ficha.')).toBe('Empecemos por la ficha.');
+    expect(cleanZoeReply('¡Woa, woa! Déjame pensarlo.')).toBe('¡Woa, woa! Déjame pensarlo.');
   });
 });
 

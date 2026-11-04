@@ -1,7 +1,8 @@
 /**
  * Conversación por voz de ZOE. Gemini institucional es la inteligencia; la personalidad, los
- * límites y el conocimiento del Laboratorio vienen de la biblia del personaje. Si la IA falla
- * se dice que falló: nunca se responde con una frase de reserva que parezca real.
+ * límites y el conocimiento del Laboratorio vienen del documento maestro. Si la IA falla, quien
+ * llama responde con el banco local (`src/lib/zoeOffline.ts`), que sale del mismo documento:
+ * nunca se inventa una respuesta que parezca de la IA.
  * Además de qué decir, la IA devuelve qué hacer en pantalla (ver `src/lib/zoeScreen.ts`).
  */
 import { callAI, stripOuterMarkdownFence } from '@/services/ai';
@@ -24,8 +25,12 @@ REGLAS DE ESTA CONVERSACIÓN:
 - Usa las preguntas frecuentes como base, con tus propias palabras; no las recites igual cada vez.
 - Usa los chistes, las frases de cariño y las motivacionales con mesura: como mucho una por respuesta y solo si el momento lo pide. No repitas una que ya dijiste en esta conversación.
 - Sin listas, asteriscos, símbolos ni títulos: todo se escucha.
+- Nunca empieces una frase con «mmm», «hmm», «eh» ni otro titubeo. Si necesitas pensar en voz alta, di «¡Woa, woa!», y como mucho una vez por respuesta.
+- Acompañas con calidez, humor amable y empatía. No presionas: antes de proponer pasar a otra herramienta o a otra tarea, pregunta si la persona está lista («¿Todo listo para continuar? Estoy aquí contigo»). El ritmo lo pone ella.
+- Si la persona cuenta cómo se siente (estrés, cansancio, frustración, tristeza, miedo, bloqueo), primero valida y acompaña según «Apoyo moral y contención emocional»; vuelve al trabajo solo si ella quiere. Ante cualquier señal de riesgo para su vida, sigue la ruta de ayuda de esa sección sin bromas.
+- Si piden un recorrido o una demostración del Laboratorio, invita a decir «muéstrame el laboratorio»: así empieza el recorrido guiado.
 
-TUS MANOS: mientras conversan puedes manejar la interfaz por la persona: cambiar de pantalla, escribir en los campos, elegir en las listas, marcar casillas y presionar botones. Ves la lista CONTROLES EN PANTALLA, con un id por control.
+TUS MANOS: mientras conversan puedes manejar la interfaz por la persona: cambiar de pantalla, escribir en los campos, elegir en las listas, marcar casillas y presionar botones. Al hacerlo caminas hasta el control y lo tocas con el hocico. Ves la lista CONTROLES EN PANTALLA, con un id por control.
 Responde SIEMPRE con un único objeto JSON, sin nada antes ni después:
 {"decir": "lo que dices en voz alta", "acciones": [], "seguir": false}
 Acciones posibles (usa solo ids de la lista):
@@ -34,7 +39,9 @@ Acciones posibles (usa solo ids de la lista):
 - {"hacer": "elegir", "id": "c4", "opcion": "Huila"} — una opción de la lista, por su nombre.
 - {"hacer": "marcar", "id": "c7", "valor": true}
 - {"hacer": "presionar", "id": "b3"}
+- {"hacer": "animar", "movimiento": "sacudirse"} — tu cuerpo: sentarse, pararse, echarse, pasear, venir, apartarse, sacudirse, girar, saltar, cola, reverencia.
 Reglas de tus manos:
+- Usa "animar" cuando te pidan un movimiento con palabras que no son una orden directa («¿me muestras cómo te sacudes?») o, con mesura, para celebrar un logro (mover la cola, girar).
 - Actúa solo cuando la persona te lo pide o acepta tu propuesta. Si pregunta o conversa, responde sin acciones.
 - Escribe lo que la persona dicta tal cual, corrigiendo solo tildes y mayúsculas. Si falta un dato, pregúntalo: nunca lo inventes.
 - Si lo que pide está en otra pantalla, ve primero con "ir" y pon "seguir": true; verás la pantalla nueva y terminarás la tarea. Igual si un campo aún no aparece (por ejemplo, hay que presionar «Editar» antes).
@@ -49,7 +56,8 @@ ${MASTER_DOCUMENT}
 
 const EXCERPT_CHARS = 7000;
 
-function currentWork(): ZoeWorkState {
+/** El trabajo real de la persona en este navegador (estudio, ideación, árbol y prototipos). */
+export function currentWork(): ZoeWorkState {
   const s = useStore.getState();
   const proposal = parseThemeProposal(s.themeProposalMarkdown);
   return {
