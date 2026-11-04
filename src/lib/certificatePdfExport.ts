@@ -21,7 +21,7 @@ export const BADGE_CERTIFICATES: Record<string, BadgeCertificateMetadata> = {
     accreditationText:
       'Capacidad para realizar el diagnóstico territorial integral, caracterizar vocaciones productivas, pilares estratégicos y estructurar oportunidades de innovación en el entorno regional.',
     hours: 24,
-    badgeColor: '#00F5FF',
+    badgeColor: '#10B981',
   },
   visionario_estrategico: {
     id: 'visionario_estrategico',
@@ -31,7 +31,7 @@ export const BADGE_CERTIFICATES: Record<string, BadgeCertificateMetadata> = {
     accreditationText:
       'Capacidad para formular hipótesis de reto territorial, estructurar vocaciones productivas y seleccionar alternativas estratégicas de alto impacto y factibilidad.',
     hours: 24,
-    badgeColor: '#B4FF2B',
+    badgeColor: '#F29F05',
   },
   arquitecto_tendencias: {
     id: 'arquitecto_tendencias',
@@ -41,7 +41,7 @@ export const BADGE_CERTIFICATES: Record<string, BadgeCertificateMetadata> = {
     accreditationText:
       'Capacidad para estructurar árboles holográficos de innovación prospectiva, articulando tendencias globales, dinámicas nacionales y frutos de aplicación territorial.',
     hours: 30,
-    badgeColor: '#00E5FF',
+    badgeColor: '#00C8FF',
   },
   ingeniero_prototipos: {
     id: 'ingeniero_prototipos',
@@ -51,7 +51,7 @@ export const BADGE_CERTIFICATES: Record<string, BadgeCertificateMetadata> = {
     accreditationText:
       'Capacidad para formular planes de prototipado formal con niveles de madurez tecnológica TRL, arquitectura de solución técnica, fases de validación y métricas de desempeño.',
     hours: 36,
-    badgeColor: '#76DD00',
+    badgeColor: '#E024A5',
   },
   custodio_conocimiento: {
     id: 'custodio_conocimiento',
@@ -59,9 +59,9 @@ export const BADGE_CERTIFICATES: Record<string, BadgeCertificateMetadata> = {
     badgeAsset: 'custodio_conocimiento',
     competenceTitle: 'Gestión y Transferencia del Conocimiento Regional',
     accreditationText:
-      'Capacidad para consolidar y aportar ejercicios estructurados al Contenedor de resultados de innovación en línea, garantizando la trazabilidad y memoria del ecosistema territorial.',
+      'Capacidad para consolidar y aportar ejercicios estructurados al Banco Unificado de Innovación en línea, garantizando la trazabilidad y memoria del ecosistema territorial.',
     hours: 20,
-    badgeColor: '#00B4D8',
+    badgeColor: '#A78BFA',
   },
   vinculo_cognitivo: {
     id: 'vinculo_cognitivo',
@@ -71,7 +71,7 @@ export const BADGE_CERTIFICATES: Record<string, BadgeCertificateMetadata> = {
     accreditationText:
       'Capacidad para interactuar con sistemas de inteligencia aumentada, co-creando estrategias de innovación territorial asistidas por la agente holográfica ZOE 3D.',
     hours: 18,
-    badgeColor: '#00FFFF',
+    badgeColor: '#00F5FF',
   },
   maestro_innovador_360: {
     id: 'maestro_innovador_360',
@@ -119,7 +119,7 @@ export const BADGE_UNIT_COLORS: Record<string, { primary: string; glow: string; 
   custodio_conocimiento: {
     primary: '#A78BFA', // Púrpura / Violeta banco unificado
     glow: 'rgba(167, 139, 250, 0.50)',
-    label: 'Contenedor de resultados',
+    label: 'Banco Unificado de Innovación',
   },
   vinculo_cognitivo: {
     primary: '#00F5FF', // Cian digital ZOE

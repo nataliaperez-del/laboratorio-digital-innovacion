@@ -21,7 +21,7 @@ ZOE es el schnauzer holográfico que vive en la interfaz; la referencia es `zoe_
 - **Órdenes directas:** «llévame al árbol», «pon el modo oscuro», «siéntate», «levántate», «camina» y «a dormir» se cumplen sin consultar a la IA.
 - **Sus manos (`src/lib/zoeScreen.ts`):** mientras conversan, ZOE maneja la interfaz por la persona. En cada turno la IA recibe la lista de campos y botones visibles (un id, su etiqueta y su valor; nunca claves ni archivos) y responde un JSON con lo que dice y lo que hace: ir a otra pantalla, escribir, elegir en una lista, marcar o presionar. Las acciones se ejecutan mientras habla, con el control iluminado, usando el setter nativo y el evento que escucha React. Si la tarea sigue en otra pantalla, vuelve a mirar y continúa (hasta tres vueltas). Lo que limpia, borra o elimina espera un «sí» de viva voz (`isRisky`, `isConfirmation`). Antes de actuar, ZOE camina hasta el control, lo mira y le da un toque con el hocico (`approach` en `ZoeFreePresence.tsx`, truco `boop`); la acción nunca espera más de 2,5 s a que llegue. La IA también puede pedir movimientos con `{"hacer": "animar", "movimiento": "sacudirse"}` (`AI_MOVES`).
 - **Órdenes y movimientos:** «siéntate», «párate», «échate», «da un paseo», «ven», «muévete», «sacúdete», «da vueltas», «salta», «mueve la cola», «haz una reverencia», «quieto», «a dormir» y «vete a tu casa» se cumplen sin IA, también dichas con cortesía («¿puedes sacudirte?», «quiero que te sientes»; `MOVE_ORDERS` en `zoeContext.ts`). Sacudirse, mover la cola y la reverencia usan los clips `Shake`, `Tail_Wag` y `play_bow`; dar vueltas (trote en el sitio mientras gira dos vueltas), saltar y el «boop» los pone la capa procedimental de `ZoeCanvas3D` (prop `trick`).
-- **Recorrido guiado (`src/lib/zoeTour.ts`):** con «muéstrame el laboratorio», la brújula de sus controles o el botón del Inicio, ZOE recorre las siete pantallas y en cada herramienta hace un ejercicio completo con la IA: limpia si hay trabajo (lo terminado ya está en el Contenedor de resultados), llena los datos, genera, narra el proceso con gestos mientras espera (leyendo el avance real de la barra) y explica el resultado que quedó en el estado, con sus ventajas. Es un solo caso encadenado (Sogamoso, Boyacá → estudio → ideación con el estudio → árbol del tema elegido → prototipo de un fruto → Contenedor de resultados). Cada parada es un guion sobre un `TourContext` (decir, señalar, escribir, presionar, generar, leer el resultado), probado con un contexto falso; nunca presiona «Regenerar», «Eliminar» ni «Detener». Entre herramientas pregunta si seguir. Se maneja con la voz («sigamos», «repite», «atrás», «espera», «terminar») o con los botones del globo, también sin micrófono. Al final cuenta las cuatro rutas y lleva a la herramienta elegida. En desarrollo, `window.__zoeDecir('sacúdete')` prueba lo que se le dice sin micrófono.
+- **Recorrido guiado (`src/lib/zoeTour.ts`):** con «muéstrame el laboratorio», la brújula de sus controles o el botón del Inicio, ZOE recorre las siete pantallas y en cada herramienta hace un ejercicio completo con la IA: limpia si hay trabajo (lo terminado ya está en el Banco Unificado de Innovación), llena los datos, genera, narra el proceso con gestos mientras espera (leyendo el avance real de la barra) y explica el resultado que quedó en el estado, con sus ventajas. Es un solo caso encadenado (Sogamoso, Boyacá → estudio → ideación con el estudio → árbol del tema elegido → prototipo de un fruto → Banco Unificado de Innovación). Cada parada es un guion sobre un `TourContext` (decir, señalar, escribir, presionar, generar, leer el resultado), probado con un contexto falso; nunca presiona «Regenerar», «Eliminar» ni «Detener». Entre herramientas pregunta si seguir. Se maneja con la voz («sigamos», «repite», «atrás», «espera», «terminar») o con los botones del globo, también sin micrófono. Al final cuenta las cuatro rutas y lleva a la herramienta elegida. En desarrollo, `window.__zoeDecir('sacúdete')` prueba lo que se le dice sin micrófono.
 - **Vida propia:** pasea, cambia de postura y, de vez en cuando, busca el rincón de la pantalla con menos botones, da unas vueltas, se echa y duerme un rato (`ZoeFreePresence.tsx`).
 - **Casita (`ZoeDoghouse.tsx`):** con el botón de la casita o la orden de voz, dicha como se diga («vete a tu casa», «ya puedes irte a tu casita», «regresa a la casa», «a tu casita, Zoe», «escóndete»; `HOME_ORDER` en `zoeContext.ts`, probado en `tests/casita.test.ts`), ZOE camina (o trota, si está lejos, con el clip `Trot` del modelo) hasta la casita de la esquina inferior derecha y entra; el interruptor de ZOE del menú la guarda sin la caminata. Queda solo la casita, con los ojos de ZOE en la puerta; el 3D se desmonta, así que no gasta GPU. Al tocarla, ZOE aparece en la puerta cuando el modelo terminó de cargar y vuelve a su sitio.
 - **Modelo 3D:** `public/assets/zoe/zoe.glb` es el modelo rigueado en Meshy (esqueleto de cuadrúpedo de 49 huesos, con mentón para la boca) más sus animaciones Shake, Trot y Tail_Wag. Se prepara en dos pasos con Blender 4.5:
@@ -97,8 +97,50 @@ vite-plugin-unad-gemini-proxy.ts, hostinger_deploy/includes/   Proxies de desarr
 - **Sin mención a CIP.** `labGuardrails.ts` lo pide en cada prompt y la autoevaluación lo comprueba después; si aparece, se reintenta una vez y, si persiste, la parte queda marcada para revisión.
 - **Pantalla interactiva, documento formal.** Los resultados no llegan a pantalla como Markdown crudo; el documento académico sale de las descargas.
 - **Credenciales solo en el servidor.** Las variables sin prefijo `VITE_` nunca llegan al navegador.
-- **Scroll fluido.** Los paneles de los módulos (`.lab-panel`) no usan `backdrop-filter`: con una veintena por pantalla, el navegador recalculaba cada desenfoque en cada cuadro del desplazamiento. Los halos y la malla del fondo van fijos a la ventana (`App.tsx`), ZOE deja de dibujar mientras la página se desplaza y el Contenedor de resultados no anida zonas con scroll propio. Antes de volver a poner vidrio desenfocado en algo que se repite, mídelo.
+- **Scroll fluido.** Los paneles de los módulos (`.lab-panel`) no usan `backdrop-filter`: con una veintena por pantalla, el navegador recalculaba cada desenfoque en cada cuadro del desplazamiento. Los halos y la malla del fondo van fijos a la ventana (`App.tsx`), ZOE deja de dibujar mientras la página se desplaza y el Banco Unificado de Innovación no anida zonas con scroll propio. Antes de volver a poner vidrio desenfocado en algo que se repite, mídelo.
 - **Créditos siempre visibles.** La firma de los desarrolladores y los logos de la UNAD y la VIEM flotan abajo a la derecha, sin recuadro (`.lab-credits`), a la izquierda de la casita de ZOE: su esquina (`--zoe-house-room`) queda libre aunque ZOE esté afuera. En el piso, ZOE tampoco se para encima de la firma (`clampPosition`): se queda a su lado o, en celulares, un poco más arriba.
+
+
+## Banco Unificado de Innovación
+
+El **Banco Unificado de Innovación** es un módulo transversal e independiente que centraliza, clasifica y resguarda los ejercicios de innovación generados en el laboratorio:
+
+- **Estructura por Líneas:**
+  - **Línea 1 · Diagnósticos Territoriales:** Almacenamiento íntegro de estudios territoriales bajo metodología MDVT (12 puntos, matriz FODA, pilares y brechas).
+  - **Línea 2 · Propuestas de Ideación:** Registro de vocaciones productivas identificadas y ternas de retos estratégicos.
+  - **Línea 3 · Árboles de Innovación:** Memoria de árboles holográficos 10-5-3 con sus ramas globales, dinámicas nacionales y frutos de aplicación.
+  - **Línea 4 · Planes de Prototipado:** Repositorio de planes técnicos con niveles TRL, fases de desarrollo, métricas de validación y gestión de riesgos.
+- **Trazabilidad y Autonomía:** Funciona como un entorno desacoplado que no satura las pantallas de trabajo independiente, permitiendo limpiar las herramientas de diseño sin riesgo de pérdida de información.
+
+## Sistema de Gamificación e Insignias 3D
+
+Para incentivar la experimentación y reconocer las competencias de innovación regional, el laboratorio incorpora un sistema de logros con insignias 3D de alta fidelidad, diseñadas armónicamente con los colores institucionales de cada unidad:
+
+| Insignia | Unidad / Módulo | Color Característico | Competencia Reconocida |
+|---|---|:---:|---|
+| **Pionero Territorial** | Estudio Territorial | **Verde Esmeralda** (#10B981) | Diagnóstico territorial integral y caracterización regional MDVT |
+| **Visionario Estratégico** | Ideación | **Ámbar Dorado** (#F29F05) | Formulación de retos estratégicos y vocación productiva |
+| **Arquitecto de Tendencias** | Árbol de Innovación | **Azul Celeste** (#00C8FF) | Prospectiva tecnológica articulando tendencias globales y frutos locales |
+| **Ingeniero de Prototipos** | Prototipado TRL | **Fucsia Neón** (#E024A5) | Estructuración técnica, arquitectura de solución y validación TRL |
+| **Custodio del Conocimiento** | Banco Unificado | **Púrpura Imperial** (#A78BFA) | Preservación de la memoria y archivo de ejercicios territoriales |
+| **Vínculo Cognitivo** | Agente ZOE 3D | **Cian Digital** (#00F5FF) | Co-creación estratégica asistida por inteligencia artificial aumentada |
+| **Maestro Innovador 360** | Ciclo Integral 360 | **Oro Imperial 24K** (#FFD700) | Dominio y articulación de los cuatro ejes fundamentales del laboratorio |
+
+Cada insignia cuenta con renderizado tridimensional, efectos de halo y resplandor calibrados a su propio color de unidad, eliminando reflejos excesivos o saturados.
+
+## Certificados y Diplomas Oficiales
+
+Cada insignia desbloqueada permite generar e imprimir un **Certificado Oficial de Competencias en Innovación**:
+- **Diagramación Institucional:** Formato horizontal A4 Landscape en estilo de diploma de alta gama.
+- **Logos Oficiales:** Integración directa de los activos de marca del repositorio (INNOVAHUB 360, Emblema UNAD Acreditada en Alta Calidad y Logo VIEM Vicerrectoría de Innovación y Emprendimiento) en alta resolución con canal alfa 100 % transparente.
+- **Acreditación Dinámica:** Detalla el nombre del beneficiario, identificación, equipo, horas de experiencia certificada (de 18 h a 120 h), descripción de la competencia y código único de registro institucional (IH360-...).
+- **Exportación:** Soporte nativo para impresión directa y descarga en PDF desde cualquier navegador.
+
+## Visualización y Despliegue en Línea
+
+- **Repositorio Oficial en GitHub:** [https://github.com/nataliaperez-del/laboratorio-digital-innovacion](https://github.com/nataliaperez-del/laboratorio-digital-innovacion)
+- **GitHub Pages:** Automatizado mediante flujo de trabajo en .github/workflows/deploy.yml con empaquetado de rutas relativas (ase: './').
+- **Despliegue en Hostinger:** Paquete de producción precompilado en hostinger_deploy/ listo para servidor Apache con PHP (mod_rewrite y pasarela segura en includes/gemini_proxy.php).
 
 ## Producción (Hostinger)
 

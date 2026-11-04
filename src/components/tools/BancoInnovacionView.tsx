@@ -31,7 +31,10 @@ import { openCertificatePrintWindow } from '@/lib/certificatePdfExport';
 import type { PrototypePlan } from '@/services/prototyping';
 import type { ToolId } from '@/components/layout/Header';
 
-/** Pestañas del Contenedor de resultados: estudios, ideaciones, árboles, prototipos y logros. */
+/** 
+ * Pestañas del Banco Unificado de Innovación: 
+ * Línea 1 (estudio), Línea 2 (ideacion), Línea 3 (arbol), Línea 4 (prototipado) y Vitrina de Logros/Certificados. 
+ */
 export type BancoTab = 'estudio' | 'ideacion' | 'arbol' | 'prototipado' | 'logros';
 
 interface Props {
@@ -39,7 +42,12 @@ interface Props {
   defaultTab?: BancoTab;
 }
 
-/** Contenedor de resultados: consulta, descarga y reutiliza los ejercicios guardados; insignias y certificados. */
+/** 
+ * Banco Unificado de Innovación:
+ * Módulo transversal e independiente del Laboratorio Digital de Innovación donde se depositan,
+ * custodian y consultan todos los ejercicios relevantes y completos generados en las 4 líneas metodológicas.
+ * Incluye visualización de planes, informes formales descargables (Word/PDF) y la vitrina de logros y certificaciones.
+ */
 export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 'prototipado' }) => {
   const [activeTab, setActiveTab] = useState<BancoTab>(defaultTab);
 

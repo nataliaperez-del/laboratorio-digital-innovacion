@@ -15,7 +15,7 @@ El Laboratorio de Innovación en Línea es un módulo del Observatorio InnovaHub
 | Ideación Estratégica | Declarar una vocación y obtener tres temas posibles | Propuesta interactiva e informe |
 | Árbol de Innovación | Bajar tendencias globales al territorio y llegar a proyectos | Árbol interactivo e informe |
 | Prototipado | Planear un prototipo con hipótesis, fases, métricas y riesgos | Plan interactivo e informe |
-| Contenedor de resultados | Guardar, consultar y descargar los ejercicios completos | Repositorio, insignias y certificados |
+| Banco Unificado de Innovación | Guardar, consultar y descargar los ejercicios completos | Repositorio, insignias y certificados |
 | ZOE | Asistente por voz que explica, orienta y conversa de innovación | Conversación hablada con subtítulos |
 
 Cada herramienta funciona **sola** o **encadenada**: el resultado de una puede ser la entrada de la siguiente.
@@ -25,7 +25,7 @@ Cada herramienta funciona **sola** o **encadenada**: el resultado de una puede s
 - **Navegador:** Chrome o Edge actualizados. Para hablar con ZOE son necesarios, porque el reconocimiento de voz depende del navegador.
 - **Conexión:** las herramientas usan la inteligencia artificial institucional de la UNAD y necesitan internet. No hay que configurar nada: cada vez que abres el Laboratorio queda elegida. Si en el botón **IA** del menú eliges otro proveedor con tu propia clave, solo dura mientras la pestaña esté abierta.
 - **Micrófono:** para ZOE. La primera vez el navegador pide permiso: elige «Permitir».
-- **Dónde se guarda tu trabajo:** cada resultado terminado se guarda solo en el Contenedor de resultados, en este navegador. Para llevarlo a otro equipo, descarga el informe.
+- **Dónde se guarda tu trabajo:** cada resultado terminado se guarda solo en el Banco Unificado de Innovación, en este navegador. Para llevarlo a otro equipo, descarga el informe.
 - **Revisión humana:** todos los resultados se generan con IA. Revisa cifras, fuentes e interpretaciones antes de usarlos en un documento oficial.
 
 ## 3. Recorrido rápido
@@ -34,7 +34,7 @@ Cada herramienta funciona **sola** o **encadenada**: el resultado de una puede s
 2. Si tienes un territorio, empieza por **Estudio Territorial**. Si tienes un tema o un documento, por **Ideación**. Si quieres mirar tendencias, por el **Árbol**. Si ya tienes una idea concreta, por **Prototipado**.
 3. Revisa el resultado en pantalla: es interactivo y explica cada parte.
 4. Descarga el informe formal con el ícono de **Word** (editable) o el de **PDF**.
-5. El ejercicio ya quedó en el **Contenedor de resultados**: el aviso «Guardado en el Contenedor de resultados» lo confirma. Toca **Limpiar** para dejar el módulo listo para otro.
+5. El ejercicio ya quedó en el **Banco Unificado de Innovación**: el aviso «Guardado en el Banco Unificado de Innovación» lo confirma. Toca **Limpiar** para dejar el módulo listo para otro.
 
 ## 4. Herramientas, paso a paso
 
@@ -88,16 +88,16 @@ Cada herramienta funciona **sola** o **encadenada**: el resultado de una puede s
 2. Genera el plan: hipótesis, arquitectura de la solución, fases, métricas, riesgos y nivel de madurez tecnológica (TRL).
 3. Ajusta lo que haga falta y descarga el informe.
 
-### 4.6 Contenedor de resultados e insignias
+### 4.6 Banco Unificado de Innovación e insignias
 
-1. Cada ejercicio terminado se guarda solo en el Contenedor de resultados; si rehaces un bloque, la entrada se actualiza. Con **Limpiar** el módulo queda vacío para empezar otro, sin perder nada.
-2. En el Contenedor de resultados encontrarás cuatro pestañas (estudios, ideaciones, árboles y prototipos) y la pestaña de **logros**.
+1. Cada ejercicio terminado se guarda solo en el Banco Unificado de Innovación; si rehaces un bloque, la entrada se actualiza. Con **Limpiar** el módulo queda vacío para empezar otro, sin perder nada.
+2. En el Banco Unificado de Innovación encontrarás cuatro pestañas (estudios, ideaciones, árboles y prototipos) y la pestaña de **logros**.
 3. Las insignias se desbloquean así:
    - **Pionero Territorial:** hacer o guardar un Estudio Territorial.
    - **Visionario Estratégico:** generar una ideación y elegir tema.
    - **Arquitecto de Tendencias:** construir un Árbol de Innovación.
    - **Ingeniero de Prototipos:** generar un plan de prototipado.
-   - **Custodio del Conocimiento:** guardar un ejercicio en el Contenedor de resultados.
+   - **Custodio del Conocimiento:** guardar un ejercicio en el Banco Unificado de Innovación.
    - **Vínculo Cognitivo:** interactuar con ZOE.
    - **Maestro Innovador 360:** desbloquear las cuatro insignias de las herramientas.
 4. Los niveles van de **Observador Regional** a **Líder de Innovación 360** según tu experiencia. Cada insignia tiene un certificado imprimible.
@@ -162,12 +162,12 @@ Mientras conversan, ZOE puede hacer en la pantalla lo que le pidas: cambiar de h
 
 Para conocer el Laboratorio de punta a punta, toca **«Recorrido guiado con ZOE»** en el Inicio, la **brújula** de la barra de controles de ZOE o dile **«muéstrame el laboratorio»**.
 
-1. ZOE visita el Inicio, el Radar, el Estudio Territorial, Ideación, el Árbol, Prototipado y el Contenedor de resultados.
+1. ZOE visita el Inicio, el Radar, el Estudio Territorial, Ideación, el Árbol, Prototipado y el Banco Unificado de Innovación.
 2. En cada herramienta hace un ejercicio completo y de seguido, con la IA de verdad: explica para qué sirve y lo flexible que es su punto de partida, llena los datos, genera, te cuenta el proceso mientras la IA trabaja (caminando y haciendo gestos) y explica el resultado real con sus ventajas. Es un solo caso de punta a punta (residuos de cosecha en Sogamoso, Boyacá): la Ideación parte del estudio, el Árbol del tema elegido y el plan de prototipo de uno de sus frutos.
 3. Al terminar cada herramienta pregunta si quieres seguir. Responde con la voz («sigamos», «repite», «atrás», «espera», «terminar recorrido») o con los botones **Atrás · Repetir · Seguir · Terminar** del globo de subtítulos, que funcionan también sin micrófono.
 4. Al final te cuenta las cuatro rutas posibles y te lleva a la herramienta por la que quieras empezar (por ejemplo, «por el estudio»).
 
-Si una herramienta tiene trabajo, ZOE la limpia antes del ejercicio; lo que ya estaba terminado queda guardado en el Contenedor de resultados. «Repite» y «atrás» repasan la explicación sin volver a generar. Cada herramienta toma unos minutos mientras la IA genera; si la IA no está disponible, ZOE lo dice con calma y sigue con la siguiente.
+Si una herramienta tiene trabajo, ZOE la limpia antes del ejercicio; lo que ya estaba terminado queda guardado en el Banco Unificado de Innovación. «Repite» y «atrás» repasan la explicación sin volver a generar. Cada herramienta toma unos minutos mientras la IA genera; si la IA no está disponible, ZOE lo dice con calma y sigue con la siguiente.
 
 ### Acompañamiento y apoyo
 
@@ -175,7 +175,7 @@ ZOE acompaña con calidez y sin presión: antes de avanzar pregunta si estás li
 
 ### Sin conexión
 
-Si la IA no responde, ZOE no se detiene: te lo dice una sola vez y sigue contestando con lo que sabe de memoria (preguntas frecuentes, herramientas, rutas, siguiente paso según tu trabajo, chistes y frases de ánimo). Las órdenes, los movimientos, el recorrido guiado, el Contenedor de resultados y los informes ya hechos siguen funcionando. Unos minutos después vuelve a intentar con la IA.
+Si la IA no responde, ZOE no se detiene: te lo dice una sola vez y sigue contestando con lo que sabe de memoria (preguntas frecuentes, herramientas, rutas, siguiente paso según tu trabajo, chistes y frases de ánimo). Las órdenes, los movimientos, el recorrido guiado, el Banco Unificado de Innovación y los informes ya hechos siguen funcionando. Unos minutos después vuelve a intentar con la IA.
 
 ### Su vida en la pantalla
 
@@ -208,7 +208,7 @@ ZOE conoce el Laboratorio, sus herramientas, los conceptos de innovación y lo q
 | ZOE suena distinto de lo habitual | Su voz aún se está descargando o la conexión está en ahorro de datos: mientras tanto usa la del equipo. Al recargar con buena conexión vuelve su voz |
 | ZOE no se ve en 3D | El navegador no puede dibujar 3D: se muestra su imagen fija. Actualiza el navegador o activa la aceleración por hardware |
 | La IA no responde | ZOE sigue contigo respondiendo de memoria. Abre el botón **IA** del menú: se verifica solo y muestra «IA conectada» o el motivo del fallo. Mientras tanto puedes preparar la ficha, el tema o la idea, y generar cuando vuelva |
-| Perdí mi trabajo | El trabajo vive en el navegador: si borraste datos o cambiaste de equipo, recupéralo desde el Contenedor de resultados o desde el informe descargado |
+| Perdí mi trabajo | El trabajo vive en el navegador: si borraste datos o cambiaste de equipo, recupéralo desde el Banco Unificado de Innovación o desde el informe descargado |
 | El informe tiene datos dudosos | Es un resultado asistido por IA: verifica con las fuentes y edítalo en Word |
 
 ## 7. Buenas prácticas
@@ -216,5 +216,5 @@ ZOE conoce el Laboratorio, sus herramientas, los conceptos de innovación y lo q
 - Mientras más contexto des en la Ficha Base o en el tema, mejor será el resultado.
 - Agrega tus propias fuentes: suben el nivel de evidencia.
 - Trata los elementos **N3** como hipótesis y valídalas con la comunidad.
-- Antes de empezar otro ejercicio en el mismo módulo, toca **Limpiar**: el anterior ya está en el Contenedor de resultados.
+- Antes de empezar otro ejercicio en el mismo módulo, toca **Limpiar**: el anterior ya está en el Banco Unificado de Innovación.
 - Pregúntale a ZOE cuando no sepas por dónde seguir.
