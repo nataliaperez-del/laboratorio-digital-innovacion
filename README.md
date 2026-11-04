@@ -2,6 +2,11 @@
 
 Módulo del **Observatorio InnovaHub360** (UNAD · VIEM). Es solo una parte del Observatorio: se alimenta de las señales de su Radar y no reemplaza a sus demás destinos.
 
+> [!NOTE]
+> **📚 Documentación Científica, Metodológica y Arquitectónica Integral:**  
+> Para consultar el marco epistémico completo, sustento teórico-científico (MDVT, Godet, Doble Diamante, TRL, PAPS 3.0), adaptación institucional a la UNAD, arquitectura de software y fichas técnicas por herramienta, consulte el [Documento Maestro Consolidado](DOCUMENTO_MAESTRO_CONSOLIDADO.md) (también accesible en [docs/DOCUMENTO_MAESTRO_CONSOLIDADO.md](docs/DOCUMENTO_MAESTRO_CONSOLIDADO.md)).
+
+
 | Herramienta | Parte de | Resultado en pantalla | Informe formal |
 |---|---|---|---|
 | **Estudio Territorial** | Ficha Base + fuentes propias opcionales | 12 puntos MDVT: pilares con evidencia, matriz FODA, tarjetas de brechas y alertas | Word y PDF |
