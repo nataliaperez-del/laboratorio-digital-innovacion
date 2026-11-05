@@ -1,4 +1,4 @@
-import{r as zn,j as Ol}from"./index-CLDXDuqK.js";/**
+import{r as zn,j as Ol}from"./index-CDdGBLoQ.js";/**
  * @license
  * Copyright 2010-2025 Three.js Authors
  * SPDX-License-Identifier: MIT
