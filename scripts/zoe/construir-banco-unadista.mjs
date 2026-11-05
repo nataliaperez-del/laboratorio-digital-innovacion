@@ -195,7 +195,8 @@ const banco = {
 };
 
 const json = `${JSON.stringify(banco, null, 1)}\n`;
-const previous = existsSync(OUT) ? readFileSync(OUT, 'utf8') : '';
+// Git en Windows puede guardar el archivo con CRLF: se compara sin los finales de línea.
+const previous = existsSync(OUT) ? readFileSync(OUT, 'utf8').replace(/\r\n/g, '\n') : '';
 if (previous !== json) writeFileSync(OUT, json);
 console.log(
   `✓ Banco unadista de ZOE: ${glosario.length} términos (${dictionary.length} del diccionario), ${pasajes.length} pasajes, ${Math.round(json.length / 1024)} KB${previous === json ? ' (sin cambios)' : ''}.`,
