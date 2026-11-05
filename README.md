@@ -16,6 +16,8 @@ Módulo del **Observatorio InnovaHub360** (UNAD · VIEM). Es solo una parte del 
 
 Cada módulo lleva un título grande con la acción (Identificar Oportunidades, Crear Conceptos, Validar Conceptos, Desarrollar Soluciones) y, debajo, el nombre de su método como subtítulo. Esos nombres viven en un solo lugar, [`src/lib/moduleLabels.ts`](src/lib/moduleLabels.ts): de ahí los toman la cabecera, el Inicio, el encabezado de cada módulo, la presentación de ZOE y su voz. Para renombrar un módulo basta con cambiarlo ahí y en el documento maestro de ZOE; el identificador interno (`estudio`, `ideacion`…) no cambia.
 
+En la cabecera, un círculo dice si la IA está conectada: verde si responde, rojo si no ([`AiStatusDot.tsx`](src/components/layout/AiStatusDot.tsx), estado en [`src/store/aiStatus.ts`](src/store/aiStatus.ts)). Se comprueba con una llamada mínima al abrir, al cambiar de proveedor o modelo, al recuperar la red y tras 10 minutos sin noticias; entre medio lo actualizan las llamadas reales, y un fallo real se confirma con una prueba antes de ponerlo en rojo. El panel «IA» usa el mismo estado.
+
 Cada herramienta funciona sola. Encadenarlas es opcional: cada una entrega su resultado a la siguiente con un botón.
 
 ## ZOE

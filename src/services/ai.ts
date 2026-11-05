@@ -8,6 +8,7 @@ import { GoogleGenAI } from '@google/genai';
 import { useStore, type AIProvider, type AppState } from '@/store/useStore';
 import { resolveAnthropicModel } from '@/constants/aiProviders';
 import { generateContentUnadGemini } from '@/lib/unadGeminiProxy';
+import { reportAiDown, reportAiOk, useAiStatus } from '@/store/aiStatus';
 import { cargarTextoFamilia, cargarTextoGrupo } from '@/repositorio/cargarRepositorio';
 import type { GrupoRepositorio } from '@/repositorio/tipos';
 
@@ -49,10 +50,47 @@ export function beginGenerationFlow() {
  * y espera cualquier respuesta. Lanza el error original si las claves o la red fallan.
  */
 export async function testAIConnection(): Promise<void> {
-  beginGenerationFlow();
-  // Tope holgado: los modelos «pensantes» (gemini-2.5) gastan parte del presupuesto razonando
-  // y con un tope diminuto devolverían texto vacío aunque la conexión funcione.
-  await callAI('Responde únicamente con la palabra: OK', { maxOutputTokens: 256 });
+  if (!(await checkAiConnection())) throw new Error(useAiStatus.getState().message || 'La IA no respondió.');
+}
+
+// Tope holgado: los modelos «pensantes» gastan parte del presupuesto razonando y con un tope
+// diminuto devolverían texto vacío aunque la conexión funcione.
+const PROBE_PROMPT = 'Responde únicamente con la palabra: OK';
+let probe: Promise<boolean> | null = null;
+let recheck: ReturnType<typeof setTimeout> | undefined;
+
+/**
+ * ¿Responde la IA elegida? Una sola llamada mínima (sin búsqueda ni continuaciones) que actualiza
+ * el estado de conexión (`src/store/aiStatus.ts`). Es independiente: no la corta «Detener» ni
+ * interfiere con una generación en curso. Si ya hay una prueba andando, devuelve esa misma.
+ */
+export function checkAiConnection(): Promise<boolean> {
+  if (probe) return probe;
+  useAiStatus.setState({ probing: true });
+  probe = (async () => {
+    try {
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+        reportAiDown('El equipo no tiene conexión a internet.');
+        return false;
+      }
+      await callAIOnce(PROBE_PROMPT, { maxOutputTokens: 256, detached: true }, true);
+      reportAiOk();
+      return true;
+    } catch (e) {
+      reportAiDown(e instanceof Error ? e.message : String(e));
+      return false;
+    } finally {
+      probe = null;
+      useAiStatus.setState({ probing: false });
+    }
+  })();
+  return probe;
+}
+
+/** Tras un fallo real se confirma con una prueba: un error del contenido no es una desconexión. */
+function scheduleRecheck(): void {
+  clearTimeout(recheck);
+  recheck = setTimeout(() => void checkAiConnection(), 1000);
 }
 
 /** Opciones de una llamada a la IA. */
@@ -269,7 +307,7 @@ const PROVIDERS: Record<AIProvider, ProviderCall> = {
  * «Detener generación» la corte, y traduce los errores: la cancelación sale como
  * GenerationCancelledError y lo demás como «Error con <proveedor>: <causa>».
  */
-async function callAIOnce(prompt: string, options?: CallAIOptions): Promise<CallAIResult> {
+async function callAIOnce(prompt: string, options?: CallAIOptions, probing = false): Promise<CallAIResult> {
   const detached = Boolean(options?.detached);
   if (cancelRequested && !detached) throw new GenerationCancelledError();
   const state = useStore.getState();
@@ -282,13 +320,17 @@ async function callAIOnce(prompt: string, options?: CallAIOptions): Promise<Call
   try {
     const provider = PROVIDERS[aiProvider];
     if (!provider) throw new Error(`Unsupported AI Provider: ${aiProvider}`);
-    return await provider({ prompt, maxOut: options?.maxOutputTokens, googleSearch: options?.googleSearch, signal, state });
+    const result = await provider({ prompt, maxOut: options?.maxOutputTokens, googleSearch: options?.googleSearch, signal, state });
+    // Cada respuesta real confirma la conexión sin gastar una llamada aparte.
+    if (!probing) reportAiOk();
+    return result;
   } catch (error: unknown) {
     // Abort del usuario: se propaga tal cual para que la UI lo silencie.
     if (error instanceof GenerationCancelledError || signal.aborted || (error as Error)?.name === 'AbortError') {
       throw new GenerationCancelledError();
     }
     console.error('AI Generation Error:', error);
+    if (!probing) scheduleRecheck();
     throw new Error(`Error con ${aiProvider}: ${error instanceof Error ? error.message : String(error)}`);
   } finally {
     if (activeAbort === controller) activeAbort = null;

@@ -127,3 +127,38 @@ describe('motor de IA: un proveedor cada vez', () => {
     await expect(pending).rejects.toBeInstanceOf(GenerationCancelledError);
   });
 });
+
+describe('círculo de conexión de la IA', () => {
+  it('la prueba mínima lo pone verde si la IA responde y rojo con el motivo si no', async () => {
+    const { checkAiConnection } = await import('@/services/ai');
+    const { useAiStatus } = await import('@/store/aiStatus');
+    use('unadGemini');
+    unad.mockResolvedValueOnce({ text: 'OK', finishReason: 'STOP' });
+    await expect(checkAiConnection()).resolves.toBe(true);
+    expect(useAiStatus.getState().status).toBe('ok');
+
+    unad.mockRejectedValueOnce(new Error('No hay conexión con el servidor del Laboratorio'));
+    await expect(checkAiConnection()).resolves.toBe(false);
+    expect(useAiStatus.getState()).toMatchObject({ status: 'error', probing: false });
+    expect(useAiStatus.getState().message).toContain('No hay conexión');
+  });
+
+  it('cada respuesta real lo mantiene verde sin gastar una llamada aparte', async () => {
+    const { useAiStatus, reportAiDown } = await import('@/store/aiStatus');
+    use('unadGemini');
+    reportAiDown('antes');
+    unad.mockResolvedValueOnce({ text: 'Hola', finishReason: 'STOP' });
+    await callAI('pregunta real');
+    expect(useAiStatus.getState().status).toBe('ok');
+    expect(unad).toHaveBeenCalledTimes(1);
+  });
+
+  it('sin internet se pone rojo sin llamar a la IA', async () => {
+    const { checkAiConnection } = await import('@/services/ai');
+    const { useAiStatus } = await import('@/store/aiStatus');
+    vi.stubGlobal('navigator', { onLine: false });
+    await expect(checkAiConnection()).resolves.toBe(false);
+    expect(useAiStatus.getState().status).toBe('error');
+    expect(unad).not.toHaveBeenCalled();
+  });
+});

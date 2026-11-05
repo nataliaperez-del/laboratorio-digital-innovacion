@@ -207,7 +207,7 @@ ZOE conoce el Laboratorio, sus herramientas, los conceptos de innovación y lo q
 | ZOE pide una dirección segura | Abre el Laboratorio con `https://` |
 | ZOE suena distinto de lo habitual | Su voz aún se está descargando o la conexión está en ahorro de datos: mientras tanto usa la del equipo. Al recargar con buena conexión vuelve su voz |
 | ZOE no se ve en 3D | El navegador no puede dibujar 3D: se muestra su imagen fija. Actualiza el navegador o activa la aceleración por hardware |
-| La IA no responde | ZOE sigue contigo respondiendo de memoria. Abre el botón **IA** del menú: se verifica solo y muestra «IA conectada» o el motivo del fallo. Mientras tanto puedes preparar la ficha, el tema o la idea, y generar cuando vuelva |
+| La IA no responde | Mira el **círculo** de la cabecera, junto a las insignias: verde es IA conectada y rojo, sin conexión (pasa el puntero para ver el motivo; tócalo para volver a comprobar). ZOE sigue contigo respondiendo de memoria. Mientras tanto puedes preparar la ficha, el tema o la idea, y generar cuando vuelva |
 | Perdí mi trabajo | El trabajo vive en el navegador: si borraste datos o cambiaste de equipo, recupéralo desde el Banco Unificado de Innovación o desde el informe descargado |
 | El informe tiene datos dudosos | Es un resultado asistido por IA: verifica con las fuentes y edítalo en Word |
 

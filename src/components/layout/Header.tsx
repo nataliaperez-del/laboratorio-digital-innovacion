@@ -4,6 +4,7 @@ import { Sparkles, Sun, Moon, Layers, Compass, Trees, BrainCircuit, Rocket, Menu
 import { useStore } from '@/store/useStore';
 import { evaluateGamification, INNOVATION_BADGES } from '@/lib/gamification';
 import { MODULE_LABELS } from '@/lib/moduleLabels';
+import { AiStatusDot } from './AiStatusDot';
 
 /** Identificador de cada pantalla del Laboratorio. */
 export type ToolId = 'portal' | 'radar' | 'estudio' | 'ideacion' | 'arbol' | 'prototipado' | 'banco';
@@ -152,6 +153,9 @@ export const Header: React.FC<HeaderProps> = ({ currentTool, onSelectTool, theme
               );
             })}
           </nav>
+
+          {/* Señal de la IA: verde conectada, rojo sin conexión. */}
+          <AiStatusDot />
 
           {/* Botón de Insignias y Gamificación */}
           <button

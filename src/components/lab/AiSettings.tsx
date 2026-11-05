@@ -2,7 +2,8 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ChevronDown, Cpu, Eye, EyeOff, Settings, ShieldCheck } from 'lucide-react';
 import { useStore, type AIProvider } from '@/store/useStore';
 import { AI_PROVIDERS_CATALOG } from '@/constants/aiProviders';
-import { testAIConnection } from '@/services/ai';
+import { checkAiConnection } from '@/services/ai';
+import { markAiUnknown, useAiStatus } from '@/store/aiStatus';
 
 type ConnStatus = 'idle' | 'checking' | 'ok' | 'error';
 
@@ -12,7 +13,8 @@ const CONN_LABEL: Record<ConnStatus, string> = {
   ok: 'IA conectada',
   error: 'Sin conexión',
 };
-const CONN_DOT: Record<ConnStatus, string> = { idle: 'bg-white/30', checking: 'bg-[#F29F05] animate-pulse', ok: 'bg-[#A8C63C]', error: 'bg-rose-500' };
+// Los mismos verde y rojo del círculo de la cabecera.
+const CONN_DOT: Record<ConnStatus, string> = { idle: 'bg-white/30', checking: 'bg-[#F29F05] animate-pulse', ok: 'bg-[#22C55E]', error: 'bg-[#EF4444]' };
 
 /**
  * Selector de proveedor de IA, igual al de la app Fase 1: cada visita empieza con la IA
@@ -22,31 +24,22 @@ const CONN_DOT: Record<ConnStatus, string> = { idle: 'bg-white/30', checking: 'b
 export const AiSettings: React.FC = () => {
   const { aiProvider, setAiProvider, apiKeys, setApiKey, providerModels, setProviderModel, ollamaUrl, setOllamaUrl } = useStore();
   const [open, setOpen] = useState(false);
-  const [status, setStatus] = useState<ConnStatus>('idle');
-  const [error, setError] = useState('');
+  // El mismo estado que el círculo de la cabecera: lo que se prueba aquí se ve allá, y al revés.
+  const { status: connection, message: error, probing, checkedAt } = useAiStatus();
+  const status: ConnStatus = probing ? 'checking' : connection;
   const [showKey, setShowKey] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
   const config = AI_PROVIDERS_CATALOG[aiProvider] ?? AI_PROVIDERS_CATALOG.unadGemini;
   const model = providerModels?.[aiProvider] || config.defaultModel;
 
-  const test = useCallback(async () => {
-    setStatus('checking');
-    setError('');
-    try {
-      await testAIConnection();
-      setStatus('ok');
-    } catch (e) {
-      setStatus('error');
-      setError(e instanceof Error ? e.message : String(e));
-    }
-  }, []);
+  const test = useCallback(() => checkAiConnection(), []);
 
   // La IA de la UNAD se verifica sola al abrir el panel; las demás, con «Probar», cuando ya
   // tengan su clave completa (probar mientras se escribe solo mostraría errores).
   useEffect(() => {
-    if (open && status === 'idle' && aiProvider === 'unadGemini') void test();
-  }, [open, status, aiProvider, test]);
+    if (open && !probing && aiProvider === 'unadGemini' && Date.now() - checkedAt > 60_000) void test();
+  }, [open, probing, checkedAt, aiProvider, test]);
 
   useEffect(() => {
     if (!open) return;
@@ -109,7 +102,7 @@ export const AiSettings: React.FC = () => {
                 value={aiProvider}
                 onChange={(e) => {
                   setAiProvider(e.target.value as AIProvider);
-                  setStatus('idle');
+                  markAiUnknown();
                 }}
               >
                 {Object.values(AI_PROVIDERS_CATALOG).map((p) => (
@@ -128,7 +121,7 @@ export const AiSettings: React.FC = () => {
                 value={model}
                 onChange={(e) => {
                   setProviderModel(aiProvider, e.target.value);
-                  setStatus('idle');
+                  markAiUnknown();
                 }}
               >
                 {config.models.map((m) => (
