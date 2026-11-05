@@ -25,7 +25,7 @@ describe('banco de preguntas sin conexión', () => {
   it('lee del documento maestro las preguntas frecuentes y las pantallas', () => {
     expect(bank.length).toBeGreaterThan(80);
     expect(bank.some((e) => e.question === '¿Qué es TRL?')).toBe(true);
-    expect(bank.some((e) => e.question === 'Árbol de Innovación')).toBe(true);
+    expect(bank.some((e) => e.question === 'Validar Conceptos')).toBe(true);
     // Las reglas de estilo («Sin presión.») no son respuestas para decir en voz alta.
     expect(bank.some((e) => /Sin presión|Responde completo|Calidez primero/.test(e.question))).toBe(false);
   });
@@ -52,11 +52,19 @@ describe('banco de preguntas sin conexión', () => {
 
   it('el siguiente paso sale del trabajo real, sin inventar', () => {
     expect(nextStepAdvice({ studyBlocks: 0, studyIssues: 0, hasProposal: false, prototypes: [] })).toContain('muéstrame el laboratorio');
-    expect(nextStepAdvice({ municipality: 'Sogamoso', studyBlocks: 12, studyIssues: 0, hasProposal: false, prototypes: [] })).toContain('Ideación');
+    expect(nextStepAdvice({ municipality: 'Sogamoso', studyBlocks: 12, studyIssues: 0, hasProposal: false, prototypes: [] })).toContain('Crear Conceptos');
     expect(nextStepAdvice({ studyBlocks: 0, studyIssues: 0, hasProposal: true, chosenTheme: null, prototypes: [] })).toContain('tres temas');
     expect(
       nextStepAdvice({ studyBlocks: 0, studyIssues: 0, hasProposal: true, treeTheme: 'Café', treeCounts: { frutos: 4, territorial: 3 }, prototypes: [] }),
     ).toContain('4 frutos');
+  });
+
+  it('conoce los módulos por su nombre nuevo y por el de su método', () => {
+    expect(ask('¿qué es crear conceptos?')).toContain('Ideación');
+    expect(ask('¿qué es validar conceptos?')).toContain('Árbol de Innovación');
+    expect(ask('¿dónde quedó el estudio territorial?')).toContain('Identificar Oportunidades');
+    expect(ask('¿dónde estoy?', 'prototipado')).toContain('Desarrollar Soluciones');
+    expect(ask('¿dónde estoy?', 'prototipado')).toContain('Prototipado');
   });
 
   it('sabe en qué pantalla está', () => {
@@ -147,7 +155,7 @@ describe('recorrido guiado', () => {
   it('pasa por todas las herramientas, empezando por el inicio', () => {
     expect(TOUR_STEPS.map((s) => s.tool)).toEqual(['portal', 'radar', 'estudio', 'ideacion', 'arbol', 'prototipado', 'banco']);
     expect(readyQuestion(0)).toContain('Estoy aquí contigo');
-    expect(readyQuestion(2)).toBe('¿Seguimos con Ideación? Estoy aquí contigo.');
+    expect(readyQuestion(2)).toBe('¿Seguimos con Crear Conceptos? Estoy aquí contigo.');
   });
 
   it('hace el ejercicio completo de punta a punta, encadenando cada resultado', async () => {

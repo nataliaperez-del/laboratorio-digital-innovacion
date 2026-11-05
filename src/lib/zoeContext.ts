@@ -4,26 +4,22 @@
  * ZOE pueda orientar sin inventar resultados (biblia del personaje, «Conocimiento y límites»).
  */
 import type { ToolId } from '@/components/layout/Header';
+import { MODULE_LABELS } from '@/lib/moduleLabels';
 
-/** Nombre de cada pantalla tal como lo dice ZOE. */
+/** Nombre de cada pantalla tal como lo dice ZOE: el título grande del módulo (`moduleLabels.ts`). */
 export const TOOL_NAMES: Record<ToolId, string> = {
+  ...(Object.fromEntries(Object.entries(MODULE_LABELS).map(([id, label]) => [id, label.title])) as Record<ToolId, string>),
   portal: 'Inicio del Laboratorio',
-  radar: 'Radar del Observatorio',
-  estudio: 'Estudio Territorial',
-  ideacion: 'Ideación',
-  arbol: 'Árbol de Innovación',
-  prototipado: 'Prototipado',
-  banco: 'Contenedor de resultados de innovación en línea',
 };
 
 /** Pista breve que ZOE da la primera vez que se visita cada pantalla. */
 export const TOOL_HINTS: Record<ToolId, string> = {
   portal: '¡Hola! Aquí estoy contigo. Cuando estés listo, tócame y te oriento, o pídeme el recorrido guiado.',
   radar: 'Estas señales vienen del Observatorio. Elige una y la llevamos a otra herramienta.',
-  estudio: 'Cuéntame el territorio en la Ficha Base y armamos su diagnóstico.',
-  ideacion: 'Dame un tema o un archivo y buscamos la vocación y tres caminos posibles.',
-  arbol: 'Con un tema basta: de las tendencias globales llegamos hasta los frutos.',
-  prototipado: 'Escribe una idea o elige un fruto del árbol y armamos su plan.',
+  estudio: 'Aquí se hace el Estudio Territorial: cuéntame el territorio en la Ficha Base y armamos su diagnóstico.',
+  ideacion: 'Aquí se hace la Ideación: dame un tema o un archivo y buscamos la vocación y tres caminos posibles.',
+  arbol: 'Aquí se construye el Árbol de Innovación: con un tema basta, de las tendencias globales llegamos hasta los frutos.',
+  prototipado: 'Aquí se hace el Prototipado: escribe una idea o elige un fruto del árbol y armamos su plan.',
   banco: 'Aquí se guardan tus ejercicios completos, tus insignias y tus certificados.',
 };
 
@@ -90,6 +86,12 @@ const NAVIGATION_VERB =
   /\b(abre|abrir|abreme|ll[eé]vame|ll[eé]vanos|lleva(?:r)?me|ve a|vete a|vamos a|vamos al|ir a|ir al|m[uú]estrame|mostrar|entra a|entrar a|p[aá]same a|cambia a|quiero ver|ens[eé][nñ]ame)\b/i;
 
 const TOOL_WORDS: Array<[RegExp, ToolId]> = [
+  // Los títulos de los módulos primero: «validar conceptos» no debe leerse como otra cosa.
+  [/identificar\s+oportunidades/i, 'estudio'],
+  [/crear\s+conceptos/i, 'ideacion'],
+  [/validar\s+conceptos/i, 'arbol'],
+  [/desarrollar\s+soluciones/i, 'prototipado'],
+  [/contenedor/i, 'banco'],
   [/\bradar\b|\bse[nñ]ales\b/i, 'radar'],
   [/\bestudio\b|\bdiagn[oó]stico\b/i, 'estudio'],
   [/\bideaci[oó]n\b|\bvocaci[oó]n\b/i, 'ideacion'],

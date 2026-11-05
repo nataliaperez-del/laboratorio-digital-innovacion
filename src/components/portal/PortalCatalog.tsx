@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ArrowRight, Layers, BrainCircuit, Trees, Rocket, Sparkles, FolderArchive, Trophy, Compass } from 'lucide-react';
 import { ToolId } from '../layout/Header';
+import { MODULE_LABELS } from '@/lib/moduleLabels';
 
 interface PortalCatalogProps {
   onSelectTool: (tool: ToolId) => void;
@@ -44,35 +45,35 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
   const tools = [
     {
       id: 'estudio' as ToolId,
-      name: 'Estudio Territorial',
-      desc: 'Diagnóstico en 12 puntos y fuentes regionales',
+      name: MODULE_LABELS.estudio.title,
+      desc: 'Estudio Territorial: diagnóstico en 12 puntos y fuentes regionales',
       icon: Layers,
       color: '#A8C63C',
     },
     {
       id: 'ideacion' as ToolId,
-      name: 'Ideación Estratégica',
-      desc: 'Vocación productiva y selección de temas',
+      name: MODULE_LABELS.ideacion.title,
+      desc: 'Ideación: vocación productiva y selección de temas',
       icon: BrainCircuit,
       color: '#F29F05',
     },
     {
       id: 'arbol' as ToolId,
-      name: 'Árbol de Innovación',
-      desc: 'Circuito 10 globales · 5 Colombia · 3 territorio',
+      name: MODULE_LABELS.arbol.title,
+      desc: 'Árbol de Innovación: circuito 10 globales · 5 Colombia · 3 territorio',
       icon: Trees,
       color: '#5EC2DD',
     },
     {
       id: 'prototipado' as ToolId,
-      name: 'Prototipado',
-      desc: 'Planes de solución e hipótesis con IA',
+      name: MODULE_LABELS.prototipado.title,
+      desc: 'Prototipado: planes de solución e hipótesis con IA',
       icon: Rocket,
       color: '#E024A5',
     },
     {
       id: 'banco' as ToolId,
-      name: 'Contenedor de resultados',
+      name: MODULE_LABELS.banco.short!,
       desc: 'Repositorio transversal de ejercicios',
       icon: FolderArchive,
       color: '#A78BFA',

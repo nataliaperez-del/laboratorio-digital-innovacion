@@ -233,7 +233,7 @@ const portal: TourStep = {
       'bow',
     );
     await ctx.show(
-      { selector: 'main button', text: /Estudio Territorial|Radar|Ideaci[oó]n/ },
+      { selector: 'main button', text: /Identificar Oportunidades|Crear Conceptos|Radar/ },
       'Son cinco herramientas y un banco donde todo se guarda solo. Y lo mejor: cada una acepta casi cualquier punto de partida. Una palabra, un párrafo, un documento, una señal del Radar o el resultado de otra herramienta.',
       'wag',
     );
@@ -277,8 +277,8 @@ const radar: TourStep = {
       );
     }
     await ctx.show(
-      { selector: 'main button', text: /Ideaci[oó]n/ },
-      'Y aquí está su gran ventaja: con un toque, cualquier señal se convierte en el punto de partida de Ideación, del Árbol o de Prototipado. El Radar no es solo para mirar: es para arrancar a innovar con datos.',
+      { selector: 'main button', text: /Crear Conceptos/ },
+      'Y aquí está su gran ventaja: con un toque, cualquier señal se convierte en el punto de partida de Crear Conceptos, de Validar Conceptos o de Desarrollar Soluciones. El Radar no es solo para mirar: es para arrancar a innovar con datos.',
       'bow',
     );
   },
@@ -292,10 +292,10 @@ const radar: TourStep = {
 
 const estudio: TourStep = {
   tool: 'estudio',
-  title: 'el Estudio Territorial',
+  title: 'Identificar Oportunidades',
   async run(ctx) {
     await ctx.say(
-      'Ahora el Estudio Territorial: el diagnóstico de un municipio con la metodología MDVT, en doce bloques. Caracteriza cómo produce, lee cinco pilares de competitividad con su nivel de evidencia, arma la matriz FODA y señala alertas.',
+      'Ahora, Identificar Oportunidades. Aquí se hace el Estudio Territorial: el diagnóstico de un municipio con la metodología MDVT, en doce bloques. Caracteriza cómo produce, lee cinco pilares de competitividad con su nivel de evidencia, arma la matriz FODA y señala alertas.',
       'wag',
     );
     if (ctx.snapshot().study.blocks && ctx.exists(CLEAR)) {
@@ -367,10 +367,10 @@ const estudio: TourStep = {
 
 const ideacion: TourStep = {
   tool: 'ideacion',
-  title: 'Ideación',
+  title: 'Crear Conceptos',
   async run(ctx) {
     await ctx.say(
-      'Sigue Ideación, donde una inquietud se vuelve dirección. Declara la vocación, que es el para qué del proyecto, y propone tres temas posibles para que el equipo decida con criterio.',
+      'Sigue Crear Conceptos, donde se hace la Ideación y una inquietud se vuelve dirección. Declara la vocación, que es el para qué del proyecto, y propone tres temas posibles para que el equipo decida con criterio.',
       'wag',
     );
     if (ctx.snapshot().ideation.has && ctx.exists(CLEAR)) {
@@ -411,7 +411,7 @@ const ideacion: TourStep = {
       );
       await ctx.press({ selector: 'button', text: /^Elegir este tema$/ });
       await ctx.say(
-        `Para seguir el ejercicio elijo el primero, «${ideation.themes[0]}». En un equipo real, esta decisión es de ustedes: yo solo la facilito. Y con el tema elegido, un botón lo lleva al Árbol o a Prototipado.`,
+        `Para seguir el ejercicio elijo el primero, «${ideation.themes[0]}». En un equipo real, esta decisión es de ustedes: yo solo la facilito. Y con el tema elegido, un botón lo lleva a Validar Conceptos o a Desarrollar Soluciones.`,
         'bow',
       );
     }
@@ -429,10 +429,10 @@ const ideacion: TourStep = {
 
 const arbol: TourStep = {
   tool: 'arbol',
-  title: 'el Árbol de Innovación',
+  title: 'Validar Conceptos',
   async run(ctx) {
     await ctx.say(
-      'Llegamos al Árbol de Innovación, mi favorito porque huele a bosque. Para cualquier tema conecta las tendencias del mundo con las oportunidades del territorio, y de ahí saca frutos concretos para trabajar.',
+      'Llegamos a Validar Conceptos, donde vive el Árbol de Innovación, mi favorito porque huele a bosque. Para cualquier tema conecta las tendencias del mundo con las oportunidades del territorio, y de ahí saca frutos concretos para trabajar.',
       'wag',
     );
     if (ctx.snapshot().tree.has && ctx.exists(CLEAR)) {
@@ -445,11 +445,11 @@ const arbol: TourStep = {
     const explanation = ideation.chosen ? firstSentence(ideation.chosenBody ?? '', 300) : TOUR_EXAMPLE.treeExplanation;
     await ctx.show(
       { selector: '[aria-label="Origen del tema"]' },
-      'El tema puede ser desde una palabra hasta el título de un reto, un archivo o una señal del Radar. Y si vienes de Ideación, llega solo con un botón.',
+      'El tema puede ser desde una palabra hasta el título de un reto, un archivo o una señal del Radar. Y si vienes de Crear Conceptos, llega solo con un botón.',
       'stroll',
     );
     await ctx.press({ selector: '[aria-label="Origen del tema"] button', text: /Escribirlo/ });
-    const talking = ctx.say(ideation.chosen ? `Escribo el tema que elegimos en Ideación: «${theme}».` : `Escribo el tema del ejemplo: «${theme}».`);
+    const talking = ctx.say(ideation.chosen ? `Escribo el tema que elegimos en Crear Conceptos: «${theme}».` : `Escribo el tema del ejemplo: «${theme}».`);
     await ctx.set({ selector: '#tree-theme' }, theme);
     if (explanation) await ctx.set({ selector: '#tree-expl' }, explanation);
     await talking;
@@ -469,7 +469,7 @@ const arbol: TourStep = {
     );
     if (tree.frutos.length) {
       await ctx.say(
-        `Algunos frutos para cosechar: ${joinNames(tree.frutos.slice(0, 3))}. Cada uno muestra de qué tendencia viene, su evidencia y su impacto esperado, y con un toque pasa a Prototipado.`,
+        `Algunos frutos para cosechar: ${joinNames(tree.frutos.slice(0, 3))}. Cada uno muestra de qué tendencia viene, su evidencia y su impacto esperado, y con un toque pasa a Desarrollar Soluciones.`,
         'stroll',
       );
     }
@@ -491,10 +491,10 @@ const arbol: TourStep = {
 
 const prototipado: TourStep = {
   tool: 'prototipado',
-  title: 'Prototipado',
+  title: 'Desarrollar Soluciones',
   async run(ctx) {
     await ctx.say(
-      'Penúltima parada: Prototipado, donde una idea se vuelve un plan que se puede ejecutar. Hipótesis, arquitectura, fases, métricas, riesgos y madurez tecnológica, todo en un solo plan.',
+      'Penúltima parada: Desarrollar Soluciones. Aquí se hace el Prototipado, donde una idea se vuelve un plan que se puede ejecutar. Hipótesis, arquitectura, fases, métricas, riesgos y madurez tecnológica, todo en un solo plan.',
       'wag',
     );
     if (ctx.snapshot().prototype.has && ctx.exists(CLEAR)) {
@@ -547,7 +547,7 @@ const prototipado: TourStep = {
       'wag',
     );
     await ctx.say(
-      'Esa es la potencia de Prototipado: en minutos pasas de una idea a un plan que se puede presentar, medir y ejecutar, con sus riesgos anticipados. Y se descarga en Word o PDF.',
+      'Esa es la potencia de Desarrollar Soluciones: en minutos pasas de una idea a un plan que se puede presentar, medir y ejecutar, con sus riesgos anticipados. Y se descarga en Word o PDF.',
       'bow',
     );
   },

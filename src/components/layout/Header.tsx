@@ -3,6 +3,7 @@ import { AiSettings } from '@/components/lab/AiSettings';
 import { Sparkles, Sun, Moon, Layers, Compass, Trees, BrainCircuit, Rocket, Menu, X, Home, FolderArchive, Trophy } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { evaluateGamification, INNOVATION_BADGES } from '@/lib/gamification';
+import { MODULE_LABELS } from '@/lib/moduleLabels';
 
 /** Identificador de cada pantalla del Laboratorio. */
 export type ToolId = 'portal' | 'radar' | 'estudio' | 'ideacion' | 'arbol' | 'prototipado' | 'banco';
@@ -53,11 +54,11 @@ export const Header: React.FC<HeaderProps> = ({ currentTool, onSelectTool, theme
 
   const navTools = [
     { id: 'portal' as ToolId, name: 'Inicio', icon: Home, color: '#27DCFF' },
-    { id: 'estudio' as ToolId, name: 'Estudio Territorial', icon: Layers, color: '#A8C63C' },
-    { id: 'ideacion' as ToolId, name: 'Ideación Estratégica', icon: BrainCircuit, color: '#F29F05' },
-    { id: 'arbol' as ToolId, name: 'Árbol de Innovación', icon: Trees, color: '#5EC2DD' },
-    { id: 'prototipado' as ToolId, name: 'Prototipado', icon: Rocket, color: '#E024A5' },
-    { id: 'banco' as ToolId, name: 'Contenedor de resultados', icon: FolderArchive, color: '#A78BFA' },
+    { id: 'estudio' as ToolId, name: MODULE_LABELS.estudio.title, icon: Layers, color: '#A8C63C' },
+    { id: 'ideacion' as ToolId, name: MODULE_LABELS.ideacion.title, icon: BrainCircuit, color: '#F29F05' },
+    { id: 'arbol' as ToolId, name: MODULE_LABELS.arbol.title, icon: Trees, color: '#5EC2DD' },
+    { id: 'prototipado' as ToolId, name: MODULE_LABELS.prototipado.title, icon: Rocket, color: '#E024A5' },
+    { id: 'banco' as ToolId, name: MODULE_LABELS.banco.short!, icon: FolderArchive, color: '#A78BFA' },
   ];
 
   return (

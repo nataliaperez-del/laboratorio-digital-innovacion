@@ -28,12 +28,13 @@ import { estudioReport, ideacionReport, arbolReport, prototipadoReport } from '@
 import { evaluateGamification, INNOVATION_BADGES } from '@/lib/gamification';
 import { BadgeGraphicRenderer, RankEmblem } from '../gamification/BadgeGraphics';
 import { openCertificatePrintWindow } from '@/lib/certificatePdfExport';
+import { MODULE_LABELS } from '@/lib/moduleLabels';
 import type { PrototypePlan } from '@/services/prototyping';
 import type { ToolId } from '@/components/layout/Header';
 
-/** 
- * Pestañas del Banco Unificado de Innovación: 
- * Línea 1 (estudio), Línea 2 (ideacion), Línea 3 (arbol), Línea 4 (prototipado) y Vitrina de Logros/Certificados. 
+/**
+ * Pestañas del Banco Unificado de Innovación:
+ * Línea 1 (estudio), Línea 2 (ideacion), Línea 3 (arbol), Línea 4 (prototipado) y Vitrina de Logros/Certificados.
  */
 export type BancoTab = 'estudio' | 'ideacion' | 'arbol' | 'prototipado' | 'logros';
 
@@ -42,7 +43,7 @@ interface Props {
   defaultTab?: BancoTab;
 }
 
-/** 
+/**
  * Banco Unificado de Innovación:
  * Módulo transversal e independiente del Laboratorio Digital de Innovación donde se depositan,
  * custodian y consultan todos los ejercicios relevantes y completos generados en las 4 líneas metodológicas.
@@ -329,7 +330,7 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
               Formula alternativas estratégicas y selección de tema para archivarlas en esta sección.
               <div className="pt-3">
                 <button type="button" onClick={() => onNavigate('ideacion')} className="metal px-4 py-2 text-xs font-bold flex items-center gap-2 mx-auto">
-                  Ir al Taller de Ideación <ArrowRight className="w-4 h-4" />
+                  Ir a {MODULE_LABELS.ideacion.title} <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
             </EmptyState>
@@ -445,7 +446,7 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
               Genera árboles holográficos de tendencias y guárdalos para consulta y análisis de frutos.
               <div className="pt-3">
                 <button type="button" onClick={() => onNavigate('arbol')} className="metal px-4 py-2 text-xs font-bold flex items-center gap-2 mx-auto">
-                  Ir al Taller del Árbol <ArrowRight className="w-4 h-4" />
+                  Ir a {MODULE_LABELS.arbol.title} <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
             </EmptyState>
@@ -569,10 +570,10 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
         <div className="space-y-4">
           {prototypes.length === 0 ? (
             <EmptyState title="No hay planes de prototipado en el Contenedor de resultados">
-              Diseña soluciones e hipótesis en el Taller de Prototipado para guardarlas en este banco.
+              Diseña soluciones e hipótesis en Desarrollar Soluciones (Prototipado) para guardarlas en este banco.
               <div className="pt-3">
                 <button type="button" onClick={() => onNavigate('prototipado')} className="metal px-4 py-2 text-xs font-bold flex items-center gap-2 mx-auto">
-                  Ir al Taller de Prototipado <ArrowRight className="w-4 h-4" />
+                  Ir a {MODULE_LABELS.prototipado.title} <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
             </EmptyState>

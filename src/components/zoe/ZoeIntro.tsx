@@ -2,6 +2,7 @@ import React, { lazy, Suspense, useCallback, useEffect, useRef, useState } from 
 import { BrainCircuit, Compass, Layers, Rocket, RotateCcw, Trees, X } from 'lucide-react';
 import type { ZoeSoulState } from './ZoeCanvas3D';
 import { useZoeVoice } from './useZoeVoice';
+import { MODULE_LABELS } from '@/lib/moduleLabels';
 
 const ZoeCanvas3D = lazy(() => import('./ZoeCanvas3D'));
 
@@ -80,10 +81,10 @@ const CODE_LINES = [
 
 const TOOLS = [
   { icon: Compass, name: 'Radar', text: 'Señales del Observatorio', color: '#5EC2DD', x: 14, y: 26 },
-  { icon: Layers, name: 'Estudio Territorial', text: 'El diagnóstico', color: '#A8C63C', x: 86, y: 24 },
-  { icon: BrainCircuit, name: 'Ideación', text: 'Vocación y temas', color: '#F3C26B', x: 12, y: 70 },
-  { icon: Trees, name: 'Árbol', text: 'Tendencias y frutos', color: '#A8C63C', x: 88, y: 68 },
-  { icon: Rocket, name: 'Prototipado', text: 'Del plan a la prueba', color: '#A98FD6', x: 50, y: 12 },
+  { icon: Layers, name: MODULE_LABELS.estudio.title, text: 'Estudio Territorial', color: '#A8C63C', x: 86, y: 24 },
+  { icon: BrainCircuit, name: MODULE_LABELS.ideacion.title, text: 'Ideación: vocación y temas', color: '#F3C26B', x: 12, y: 70 },
+  { icon: Trees, name: MODULE_LABELS.arbol.title, text: 'Árbol de Innovación', color: '#A8C63C', x: 88, y: 68 },
+  { icon: Rocket, name: MODULE_LABELS.prototipado.title, text: 'Prototipado: del plan a la prueba', color: '#A98FD6', x: 50, y: 12 },
 ];
 
 /**

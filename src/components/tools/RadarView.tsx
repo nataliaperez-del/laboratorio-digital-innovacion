@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { BrainCircuit, ExternalLink, Rocket, Trees } from 'lucide-react';
 import { useStore } from '@/store/useStore';
+import { MODULE_LABELS } from '@/lib/moduleLabels';
 import { loadRadarFeed, OBSERVATORIO_URL, signalAsInput, type RadarFeed, type RadarSignal } from '@/services/observatorio';
 import { ErrorNotice, SegmentedControl, ToolHeader } from '@/components/lab/common';
 import { RadarScope } from './RadarScope';
@@ -49,7 +50,7 @@ export const RadarView: React.FC<Props> = ({ onNavigate }) => {
   const related = active ? (feed?.senales ?? []).filter((s) => active.relacionadas.includes(s.id)) : [];
 
   const toIdeation = (s: RadarSignal) => {
-    if (themeProposalMarkdown.trim() && !window.confirm('Ya hay un resultado en Ideación. ¿Quieres reemplazarlo?')) return;
+    if (themeProposalMarkdown.trim() && !window.confirm('Ya hay un resultado en Crear Conceptos. ¿Quieres reemplazarlo?')) return;
     setIdeationResult({ kind: 'observatorio', label: s.nombre, text: signalAsInput(s) }, '', []);
     onNavigate('ideacion');
   };
@@ -66,7 +67,7 @@ export const RadarView: React.FC<Props> = ({ onNavigate }) => {
     <div className="w-full space-y-6">
       <ToolHeader
         title="Radar del Observatorio"
-        description="Las señales que vigila el Observatorio InnovaHub360 alimentan al Laboratorio. Explóralas y lleva cualquiera a Ideación, al Árbol de Innovación o a Prototipado."
+        description="Las señales que vigila el Observatorio InnovaHub360 alimentan al Laboratorio. Explóralas y lleva cualquiera a Crear Conceptos, a Validar Conceptos o a Desarrollar Soluciones."
       >
         <a className="lab-btn" href={`${OBSERVATORIO_URL}index.php?route=%2Fradar`} target="_blank" rel="noopener noreferrer">
           Ver en el Observatorio <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
@@ -205,13 +206,13 @@ export const RadarView: React.FC<Props> = ({ onNavigate }) => {
                 <div className="pt-2 border-t border-white/10 space-y-2">
                   <span className="text-[11px] font-semibold text-brand-textMuted block">Usar esta señal en el Laboratorio</span>
                   <button type="button" className="lab-btn w-full" onClick={() => toIdeation(active)}>
-                    <BrainCircuit className="w-4 h-4" aria-hidden="true" /> Ideación
+                    <BrainCircuit className="w-4 h-4" aria-hidden="true" /> {MODULE_LABELS.ideacion.title}
                   </button>
                   <button type="button" className="lab-btn w-full" onClick={() => toTree(active)}>
-                    <Trees className="w-4 h-4" aria-hidden="true" /> Árbol de Innovación
+                    <Trees className="w-4 h-4" aria-hidden="true" /> {MODULE_LABELS.arbol.title}
                   </button>
                   <button type="button" className="lab-btn w-full" onClick={() => toPrototype(active)}>
-                    <Rocket className="w-4 h-4" aria-hidden="true" /> Prototipado
+                    <Rocket className="w-4 h-4" aria-hidden="true" /> {MODULE_LABELS.prototipado.title}
                   </button>
                 </div>
               </aside>

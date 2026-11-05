@@ -9,15 +9,22 @@ import type { GenerationPartStatus } from '@/prompts/themeAndInnovationPrompts';
 /** Encabezado común de cada herramienta. */
 export const ToolHeader: React.FC<{
   title: string;
+  /** El método o producto del módulo («Estudio Territorial»), bajo el título grande. */
+  subtitle?: string;
   description: string;
   titleColor?: string;
   children?: React.ReactNode;
-}> = ({ title, description, titleColor, children }) => (
+}> = ({ title, subtitle, description, titleColor, children }) => (
   <div className="flex flex-wrap items-end justify-between gap-4">
     <div className="min-w-0">
       <h1 className="h2 text-3xl md:text-4xl font-bold tracking-tight" style={{ color: titleColor || '#FFFFFF' }}>
         {title}
       </h1>
+      {subtitle && (
+        <p className="sy text-base md:text-lg font-semibold tracking-wide mt-0.5 opacity-80" style={{ color: titleColor || '#FFFFFF' }}>
+          {subtitle}
+        </p>
+      )}
       <p className="bd text-sm text-brand-textSecondary mt-1 max-w-3xl">{description}</p>
     </div>
     {children && <div className="flex flex-wrap items-center gap-2.5">{children}</div>}

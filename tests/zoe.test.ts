@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cleanZoeReply, describeWork, isDoneReply, parseZoeCommand, seemsUnfinished, wantsMoreTime } from '@/lib/zoeContext';
+import { cleanZoeReply, describeWork, isDoneReply, parseZoeCommand, seemsUnfinished, TOOL_NAMES, wantsMoreTime } from '@/lib/zoeContext';
 import { recognitionLang, splitSentences } from '@/components/zoe/useZoeVoice';
 import { normalizeClipName, pickClips } from '@/components/zoe/zoeClipDirector';
 
@@ -8,6 +8,16 @@ describe('órdenes de voz', () => {
     expect(parseZoeCommand('Llévame al árbol')).toEqual({ type: 'navigate', tool: 'arbol' });
     expect(parseZoeCommand('abre el estudio territorial')).toEqual({ type: 'navigate', tool: 'estudio' });
     expect(parseZoeCommand('vamos a prototipado')).toEqual({ type: 'navigate', tool: 'prototipado' });
+  });
+
+  it('navega también por el título grande de cada módulo', () => {
+    expect(parseZoeCommand('llévame a identificar oportunidades')).toEqual({ type: 'navigate', tool: 'estudio' });
+    expect(parseZoeCommand('abre crear conceptos')).toEqual({ type: 'navigate', tool: 'ideacion' });
+    expect(parseZoeCommand('vamos a validar conceptos')).toEqual({ type: 'navigate', tool: 'arbol' });
+    expect(parseZoeCommand('llévame a desarrollar soluciones')).toEqual({ type: 'navigate', tool: 'prototipado' });
+    expect(parseZoeCommand('abre el contenedor de resultados')).toEqual({ type: 'navigate', tool: 'banco' });
+    expect(TOOL_NAMES.estudio).toBe('Identificar Oportunidades');
+    expect(TOOL_NAMES.arbol).toBe('Validar Conceptos');
   });
 
   it('una pregunta o una mención no cambian de pantalla', () => {

@@ -11,10 +11,10 @@ El Laboratorio de Innovación en Línea es un módulo del Observatorio InnovaHub
 | Pantalla | Para qué sirve | Resultado |
 |---|---|---|
 | Radar del Observatorio | Explorar las señales de innovación que publica el Observatorio | Ficha de la señal, que se puede llevar a otra herramienta |
-| Estudio Territorial | Diagnosticar un municipio con la metodología MDVT | Diagnóstico interactivo e informe en Word o PDF |
-| Ideación Estratégica | Declarar una vocación y obtener tres temas posibles | Propuesta interactiva e informe |
-| Árbol de Innovación | Bajar tendencias globales al territorio y llegar a proyectos | Árbol interactivo e informe |
-| Prototipado | Planear un prototipo con hipótesis, fases, métricas y riesgos | Plan interactivo e informe |
+| Identificar Oportunidades · Estudio Territorial | Diagnosticar un municipio con la metodología MDVT | Diagnóstico interactivo e informe en Word o PDF |
+| Crear Conceptos · Ideación | Declarar una vocación y obtener tres temas posibles | Propuesta interactiva e informe |
+| Validar Conceptos · Árbol de Innovación | Bajar tendencias globales al territorio y llegar a proyectos | Árbol interactivo e informe |
+| Desarrollar Soluciones · Prototipado | Planear un prototipo con hipótesis, fases, métricas y riesgos | Plan interactivo e informe |
 | Banco Unificado de Innovación | Guardar, consultar y descargar los ejercicios completos | Repositorio, insignias y certificados |
 | ZOE | Asistente por voz que explica, orienta y conversa de innovación | Conversación hablada con subtítulos |
 
@@ -31,7 +31,7 @@ Cada herramienta funciona **sola** o **encadenada**: el resultado de una puede s
 ## 3. Recorrido rápido
 
 1. Abre **Inicio** y elige por dónde empezar. Si es tu primera vez, mira la presentación de ZOE.
-2. Si tienes un territorio, empieza por **Estudio Territorial**. Si tienes un tema o un documento, por **Ideación**. Si quieres mirar tendencias, por el **Árbol**. Si ya tienes una idea concreta, por **Prototipado**.
+2. Si tienes un territorio, empieza por **Identificar Oportunidades**. Si tienes un tema o un documento, por **Crear Conceptos**. Si quieres mirar tendencias, por **Validar Conceptos**. Si ya tienes una idea concreta, por **Prototipado**.
 3. Revisa el resultado en pantalla: es interactivo y explica cada parte.
 4. Descarga el informe formal con el ícono de **Word** (editable) o el de **PDF**.
 5. El ejercicio ya quedó en el **Banco Unificado de Innovación**: el aviso «Guardado en el Banco Unificado de Innovación» lo confirma. Toca **Limpiar** para dejar el módulo listo para otro.
@@ -48,9 +48,9 @@ Cada herramienta funciona **sola** o **encadenada**: el resultado de una puede s
    - **Color:** prioridad.
 3. Toca una señal para ver su ficha: impacto, adopción, horizonte, madurez, evidencia, casos y señales relacionadas.
 4. Usa los filtros de **Área** y **Prioridad**, o cambia a la vista **Lista**.
-5. Con los botones de la ficha lleva la señal a **Ideación**, al **Árbol de Innovación** o a **Prototipado**.
+5. Con los botones de la ficha lleva la señal a **Crear Conceptos**, a **Validar Conceptos** o a **Desarrollar Soluciones**.
 
-### 4.2 Estudio Territorial
+### 4.2 Identificar Oportunidades · Estudio Territorial
 
 1. Llena la **Ficha Base**: municipio, departamento y el contexto que conozcas (sectores, población, retos).
 2. Si tienes documentos propios, agrégalos como fuentes. El estudio los usa y los cita.
@@ -61,15 +61,15 @@ Cada herramienta funciona **sola** o **encadenada**: el resultado de una puede s
    - alertas.
 4. Revisa los bloques marcados «por revisar» y descarga el informe.
 
-### 4.3 Ideación Estratégica
+### 4.3 Crear Conceptos · Ideación
 
 1. Elige la entrada: un tema escrito, un archivo, una señal del Radar o el Estudio Territorial.
 2. Genera la propuesta. Verás la **vocación** (el para qué del servicio o proyecto) y **tres temas** posibles.
-3. Elige el tema con tu equipo. Ese tema puede pasar al Árbol o a Prototipado.
+3. Elige el tema con tu equipo. Ese tema puede pasar a Validar Conceptos o a Desarrollar Soluciones.
 
-### 4.4 Árbol de Innovación
+### 4.4 Validar Conceptos · Árbol de Innovación
 
-1. Escribe un tema o recibe uno desde Ideación o el Radar.
+1. Escribe un tema o recibe uno desde Crear Conceptos o el Radar.
 2. Genera el árbol:
    - **Tronco:** 10 tendencias globales, 5 en Colombia y 3 en el territorio.
    - **Hojas:** las oportunidades.
@@ -80,9 +80,9 @@ Cada herramienta funciona **sola** o **encadenada**: el resultado de una puede s
    - **N1:** viene del Observatorio.
    - **N2:** tiene fuente citada.
    - **N3:** es una hipótesis por verificar.
-4. Elige un fruto y llévalo a Prototipado, o descarga el informe.
+4. Elige un fruto y llévalo a Desarrollar Soluciones, o descarga el informe.
 
-### 4.5 Prototipado
+### 4.5 Desarrollar Soluciones · Prototipado
 
 1. Escribe una idea o recibe un fruto del Árbol.
 2. Genera el plan: hipótesis, arquitectura de la solución, fases, métricas, riesgos y nivel de madurez tecnológica (TRL).
@@ -162,7 +162,7 @@ Mientras conversan, ZOE puede hacer en la pantalla lo que le pidas: cambiar de h
 
 Para conocer el Laboratorio de punta a punta, toca **«Recorrido guiado con ZOE»** en el Inicio, la **brújula** de la barra de controles de ZOE o dile **«muéstrame el laboratorio»**.
 
-1. ZOE visita el Inicio, el Radar, el Estudio Territorial, Ideación, el Árbol, Prototipado y el Banco Unificado de Innovación.
+1. ZOE visita el Inicio, el Radar, Identificar Oportunidades, Crear Conceptos, Validar Conceptos, Desarrollar Soluciones y el Contenedor de resultados de innovación en línea.
 2. En cada herramienta hace un ejercicio completo y de seguido, con la IA de verdad: explica para qué sirve y lo flexible que es su punto de partida, llena los datos, genera, te cuenta el proceso mientras la IA trabaja (caminando y haciendo gestos) y explica el resultado real con sus ventajas. Es un solo caso de punta a punta (residuos de cosecha en Sogamoso, Boyacá): la Ideación parte del estudio, el Árbol del tema elegido y el plan de prototipo de uno de sus frutos.
 3. Al terminar cada herramienta pregunta si quieres seguir. Responde con la voz («sigamos», «repite», «atrás», «espera», «terminar recorrido») o con los botones **Atrás · Repetir · Seguir · Terminar** del globo de subtítulos, que funcionan también sin micrófono.
 4. Al final te cuenta las cuatro rutas posibles y te lleva a la herramienta por la que quieras empezar (por ejemplo, «por el estudio»).

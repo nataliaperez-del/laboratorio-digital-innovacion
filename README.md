@@ -9,10 +9,12 @@ Módulo del **Observatorio InnovaHub360** (UNAD · VIEM). Es solo una parte del 
 
 | Herramienta | Parte de | Resultado en pantalla | Informe formal |
 |---|---|---|---|
-| **Estudio Territorial** | Ficha Base + fuentes propias opcionales | 12 puntos MDVT: pilares con evidencia, matriz FODA, tarjetas de brechas y alertas | Word y PDF |
-| **Ideación** | Un tema, un archivo, una señal del Radar o el Estudio | Vocación y tres temas para decidir | Word y PDF |
-| **Árbol de Innovación** | Un tema, un archivo, una señal o el tema de Ideación | Árbol 10-5-3 interactivo y tabla | Word y PDF con la figura del árbol |
-| **Prototipado** | Una idea, un resultado del Árbol o una señal | Plan por pestañas y banco de planes | Word y PDF con cronograma |
+| **Identificar Oportunidades** · Estudio Territorial | Ficha Base + fuentes propias opcionales | 12 puntos MDVT: pilares con evidencia, matriz FODA, tarjetas de brechas y alertas | Word y PDF |
+| **Crear Conceptos** · Ideación | Un tema, un archivo, una señal del Radar o el Estudio | Vocación y tres temas para decidir | Word y PDF |
+| **Validar Conceptos** · Árbol de Innovación | Un tema, un archivo, una señal o el tema de Ideación | Árbol 10-5-3 interactivo y tabla | Word y PDF con la figura del árbol |
+| **Desarrollar Soluciones** · Prototipado | Una idea, un resultado del Árbol o una señal | Plan por pestañas y banco de planes | Word y PDF con cronograma |
+
+Cada módulo lleva un título grande con la acción (Identificar Oportunidades, Crear Conceptos, Validar Conceptos, Desarrollar Soluciones) y, debajo, el nombre de su método como subtítulo. Esos nombres viven en un solo lugar, [`src/lib/moduleLabels.ts`](src/lib/moduleLabels.ts): de ahí los toman la cabecera, el Inicio, el encabezado de cada módulo, la presentación de ZOE y su voz. Para renombrar un módulo basta con cambiarlo ahí y en el documento maestro de ZOE; el identificador interno (`estudio`, `ideacion`…) no cambia.
 
 Cada herramienta funciona sola. Encadenarlas es opcional: cada una entrega su resultado a la siguiente con un botón.
 

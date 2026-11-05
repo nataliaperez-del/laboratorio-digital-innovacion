@@ -9,6 +9,7 @@ import { generateContainer, regenerateContenedor2Section } from '@/services/terr
 import { connectOwnSourcesFolder, DriveFolderError, extractDriveFolderId } from '@/services/institutionalDrive';
 import { CONTENEDOR2_SECTIONS, type Contenedor2SectionResult } from '@/prompts/contenedor2Sections';
 import { estudioReport } from '@/lib/labReports';
+import { MODULE_LABELS } from '@/lib/moduleLabels';
 import { readInputFile, INPUT_FILE_ACCEPT } from '@/lib/readInputFile';
 import { EVIDENCE_SCORE, parseAlerts, parseFoda, parseInsightCards, parsePillars, parseSources, type FodaMatrix, type Pillar } from '@/lib/territorialInsights';
 import { Disclosure, RichDocument } from '@/components/lab/RichDocument';
@@ -46,7 +47,7 @@ const BLOCK_HELP: Record<number, string> = {
   4: 'Qué se está moviendo en el territorio.',
   5: 'Vacíos frente a territorios comparables o estándares nacionales.',
   6: 'Condiciones favorables que se pueden aprovechar.',
-  7: 'Síntesis estratégica: de aquí parte la herramienta de Ideación.',
+  7: 'Síntesis estratégica: de aquí parte Crear Conceptos (Ideación).',
   8: 'Contraste del diagnóstico con las fuentes propias del territorio.',
   9: 'Lo que una persona debe verificar antes de citar este estudio.',
   10: 'Referencias en APA 7.',
@@ -442,7 +443,7 @@ export const EstudioTerritorialView: React.FC<Props> = ({ onNavigate }) => {
     if (
       current?.kind !== 'estudio' &&
       useStore.getState().themeProposalMarkdown.trim() &&
-      !window.confirm('Ya hay un resultado en Ideación. ¿Quieres reemplazarlo por uno basado en este estudio?')
+      !window.confirm('Ya hay un resultado en Crear Conceptos. ¿Quieres reemplazarlo por uno basado en este estudio?')
     )
       return;
     setIdeationResult({ kind: 'estudio', label: `Estudio Territorial de ${prompt0Data.municipality}`, text: containerData }, '', []);
@@ -455,16 +456,17 @@ export const EstudioTerritorialView: React.FC<Props> = ({ onNavigate }) => {
   return (
     <div className="w-full space-y-6">
       <ToolHeader
-        title="Estudio Territorial"
+        title={MODULE_LABELS.estudio.title}
+        subtitle={MODULE_LABELS.estudio.subtitle}
         titleColor="#A8C63C"
-        description="Diagnóstico de un territorio en doce puntos de entrega con la metodología MDVT: caracterización productiva, lectura por pilares, matriz FODA y contraste con fuentes propias. Funciona solo y puede alimentar a Ideación y al Árbol."
+        description="Diagnóstico de un territorio en doce puntos de entrega con la metodología MDVT: caracterización productiva, lectura por pilares, matriz FODA y contraste con fuentes propias. Funciona solo y puede alimentar a Crear Conceptos y a Validar Conceptos."
       >
         {hasStudy && inBank && <BancoStatus color="#A8C63C" onOpen={() => onNavigate('banco')} />}
         {hasStudy && <ReportActions disabled={busy} getReport={() => estudioReport(prompt0Data, containerData)} />}
         {hasStudy && <ClearButton disabled={busy} onClear={clearAll} />}
         {hasStudy && (
           <button type="button" className="metal px-4 py-2 text-xs font-bold flex items-center gap-2" disabled={busy} onClick={sendToIdeation}>
-            Llevar a Ideación <ArrowRight className="w-4 h-4" aria-hidden="true" />
+            Llevar a {MODULE_LABELS.ideacion.title} <ArrowRight className="w-4 h-4" aria-hidden="true" />
           </button>
         )}
       </ToolHeader>

@@ -13,6 +13,7 @@
  */
 import type { ToolId } from '@/components/layout/Header';
 import { TOOL_HINTS, TOOL_NAMES, type ZoeWorkState } from '@/lib/zoeContext';
+import { MODULE_LABELS } from '@/lib/moduleLabels';
 
 /** Una pregunta del banco con su respuesta y sus palabras clave. */
 export interface BankEntry {
@@ -274,37 +275,29 @@ export function feelingReply(text: string, random: () => number = Math.random): 
 
 /** Las rutas para recorrer el Laboratorio, según con qué cuenta la persona. */
 export const ROUTES_TEXT =
-  'Hay cuatro caminos, según lo que tengas. Si tienes un territorio, la ruta completa: Estudio Territorial, luego Ideación con ese estudio, el Árbol con el estudio como evidencia, Prototipado desde un fruto, y todo queda en el Contenedor de resultados. Si tienes un tema o un documento, empieza por Ideación y sigue al Árbol y a Prototipado. Si quieres mirar tendencias, empieza por el Radar y lleva una señal al Árbol o a Ideación. Y si ya tienes una idea concreta, ve directo a Prototipado.';
+  'Hay cuatro caminos, según lo que tengas. Si tienes un territorio, la ruta completa: Identificar Oportunidades con su Estudio Territorial, luego Crear Conceptos con ese estudio, Validar Conceptos en el Árbol con el estudio como evidencia, Desarrollar Soluciones desde un fruto, y todo queda en el Contenedor de resultados. Si tienes un tema o un documento, empieza por Crear Conceptos y sigue a Validar Conceptos y a Desarrollar Soluciones. Si quieres mirar tendencias, empieza por el Radar y lleva una señal a Validar Conceptos o a Crear Conceptos. Y si ya tienes una idea concreta, ve directo a Desarrollar Soluciones.';
 
 /** El siguiente paso natural según el trabajo real de la persona (nunca inventa resultados). */
 export function nextStepAdvice(work?: ZoeWorkState): string {
   if (!work || (!work.studyBlocks && !work.hasProposal && !work.treeTheme && !work.prototypes.length)) {
-    return 'Todavía no tienes ejercicios, así que el camino está abierto. Si tienes un territorio, empieza por el Estudio Territorial; si tienes un tema, por Ideación. Y si quieres, te hago el recorrido guiado: solo dime «muéstrame el laboratorio».';
+    return 'Todavía no tienes ejercicios, así que el camino está abierto. Si tienes un territorio, empieza por Identificar Oportunidades; si tienes un tema, por Crear Conceptos. Y si quieres, te hago el recorrido guiado: solo dime «muéstrame el laboratorio».';
   }
   if (work.prototypes.length) {
     return `¡Ya tienes ${work.prototypes.length === 1 ? 'un plan de prototipo' : `${work.prototypes.length} planes de prototipo`}! Revisa el plan con calma, descarga el informe y pasa por el Contenedor de resultados a ver tus insignias.`;
   }
   if (work.treeTheme) {
     const frutos = work.treeCounts?.frutos ?? 0;
-    return `Tu árbol sobre «${work.treeTheme}» ${frutos ? `tiene ${frutos} frutos` : 'ya está listo'}. El siguiente paso es elegir un fruto y llevarlo a Prototipado para armar su plan.`;
+    return `Tu árbol sobre «${work.treeTheme}» ${frutos ? `tiene ${frutos} frutos` : 'ya está listo'}. El siguiente paso es elegir un fruto y llevarlo a Desarrollar Soluciones para armar su plan.`;
   }
   if (work.hasProposal && !work.chosenTheme)
-    return 'En Ideación tienes tres temas esperando. Elige el que más te convenza y con él construimos el Árbol de Innovación.';
+    return 'En Crear Conceptos tienes tres temas esperando. Elige el que más te convenza y con él lo validamos en el Árbol de Innovación.';
   if (work.hasProposal)
-    return `Con el tema «${work.chosenTheme}» elegido, lo natural es construir el Árbol de Innovación para ver tendencias, oportunidades y frutos.`;
-  return `Ya tienes el Estudio Territorial de ${work.municipality}. El siguiente paso natural es Ideación, usando ese estudio como insumo, para declarar la vocación y elegir un tema.`;
+    return `Con el tema «${work.chosenTheme}» elegido, lo natural es pasar a Validar Conceptos y construir su Árbol de Innovación, para ver tendencias, oportunidades y frutos.`;
+  return `Ya tienes el Estudio Territorial de ${work.municipality}. El siguiente paso natural es Crear Conceptos, usando ese estudio como insumo, para declarar la vocación y elegir un tema.`;
 }
 
-/** Nombre de la sección del documento que describe cada pantalla. */
-const SCREEN_TITLES: Record<ToolId, string> = {
-  portal: 'Inicio',
-  radar: 'Radar del Observatorio',
-  estudio: 'Estudio Territorial',
-  ideacion: 'Ideación Estratégica',
-  arbol: 'Árbol de Innovación',
-  prototipado: 'Prototipado',
-  banco: 'Contenedor de resultados de innovación en línea',
-};
+/** Nombre de la sección del documento que describe cada pantalla: el título grande de cada módulo. */
+const SCREEN_TITLES = Object.fromEntries(Object.entries(MODULE_LABELS).map(([id, label]) => [id, label.title])) as Record<ToolId, string>;
 
 const pick = (list: readonly string[], random: () => number) => list[Math.floor(random() * list.length)] ?? '';
 

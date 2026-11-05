@@ -14,6 +14,7 @@ import {
 import { signalAsInput } from '@/services/observatorio';
 import { FRUIT_LABEL, LEVEL_LABEL } from '@/lib/innovationTreeGraph';
 import { prototipadoReport } from '@/lib/labReports';
+import { MODULE_LABELS } from '@/lib/moduleLabels';
 import {
   BancoStatus,
   ClearButton,
@@ -252,7 +253,8 @@ export const PrototipadoView: React.FC<Props> = ({ onNavigate }) => {
   return (
     <div className="w-full space-y-6">
       <ToolHeader
-        title="Prototipado"
+        title={MODULE_LABELS.prototipado.title}
+        subtitle={MODULE_LABELS.prototipado.subtitle}
         titleColor="#E024A5"
         description="Arma un plan de prototipado completo con IA: hipótesis, arquitectura, fases, métricas y riesgos. Parte de una idea libre o de un resultado del Árbol de Innovación."
       >
@@ -311,7 +313,7 @@ export const PrototipadoView: React.FC<Props> = ({ onNavigate }) => {
             <p className="text-sm text-brand-textMuted flex flex-wrap items-center gap-2">
               Aún no hay árbol.
               <button type="button" className="lab-btn lab-btn-sm" onClick={() => onNavigate('arbol')}>
-                <Trees className="w-3 h-3" aria-hidden="true" /> Ir al Árbol
+                <Trees className="w-3 h-3" aria-hidden="true" /> Ir a {MODULE_LABELS.arbol.title}
               </button>
               o escribe tu idea en «Una idea».
             </p>

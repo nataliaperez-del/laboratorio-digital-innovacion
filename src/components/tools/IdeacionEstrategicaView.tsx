@@ -6,6 +6,7 @@ import { generateThemeVocationAndOptions, regenerateVocationSection } from '@/se
 import { signalAsInput, type RadarSignal } from '@/services/observatorio';
 import { parseThemeProposal, type ParsedTheme } from '@/lib/themeProposal';
 import { ideacionReport } from '@/lib/labReports';
+import { MODULE_LABELS } from '@/lib/moduleLabels';
 import { buildDocumentPlan, inlineToPlainText } from '@/lib/documentPlan';
 import { parseAlerts } from '@/lib/territorialInsights';
 import { VOCATION_PARTS, type InputSource } from '@/prompts/themeAndInnovationPrompts';
@@ -222,7 +223,8 @@ export const IdeacionEstrategicaView: React.FC<Props> = ({ onNavigate }) => {
   return (
     <div className="w-full space-y-6">
       <ToolHeader
-        title="Ideación"
+        title={MODULE_LABELS.ideacion.title}
+        subtitle={MODULE_LABELS.ideacion.subtitle}
         titleColor="#F29F05"
         description="Construye la vocación y tres alternativas de tema con el mismo proceso de la vocación territorial: identifica dinámicas, cruza brechas y oportunidades, y deja la decisión al equipo. Parte de un tema, un archivo, una señal del Observatorio o el Estudio Territorial."
       >

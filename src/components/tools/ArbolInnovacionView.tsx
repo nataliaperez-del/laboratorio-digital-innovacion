@@ -7,6 +7,7 @@ import { signalAsInput } from '@/services/observatorio';
 import { FRUIT_LABEL, LEVEL_LABEL, routeOf, type FruitType, type TreeGraph, type TreeLevel, type TreeNode } from '@/lib/innovationTreeGraph';
 import { renderTreeSvg } from '@/lib/innovationTreeSvg';
 import { arbolReport } from '@/lib/labReports';
+import { MODULE_LABELS } from '@/lib/moduleLabels';
 import { INNOVATION_TREE_PARTS } from '@/prompts/themeAndInnovationPrompts';
 import { Disclosure, RichDocument } from '@/components/lab/RichDocument';
 import {
@@ -357,7 +358,8 @@ export const ArbolInnovacionView: React.FC<Props> = ({ onNavigate }) => {
   return (
     <div className="w-full space-y-6">
       <ToolHeader
-        title="Árbol de Innovación"
+        title={MODULE_LABELS.arbol.title}
+        subtitle={MODULE_LABELS.arbol.subtitle}
         titleColor="#5EC2DD"
         description="De las tendencias globales a las de Colombia y el territorio, y de allí a oportunidades y frutos: proyectos, servicios y prototipos. La IA lo construye para cualquier tema; explóralo aquí y descarga el informe formal."
       >
