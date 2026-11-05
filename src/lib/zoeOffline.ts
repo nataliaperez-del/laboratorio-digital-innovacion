@@ -5,6 +5,9 @@
  * y las frases. Así, enseñarle algo nuevo a ZOE sin conexión es lo mismo que enseñárselo con IA:
  * editar ese archivo.
  *
+ * Las preguntas «¿qué es…?» sobre el lenguaje unadista las responde el diccionario del banco
+ * unadista (`src/lib/zoeKnowledge.ts`).
+ *
  * Además reconoce cómo se siente la persona (estrés, cansancio, frustración, tristeza, miedo) y
  * la acompaña. Las señales de riesgo se atienden siempre aquí, con o sin IA, con un mensaje
  * revisado y las líneas de ayuda verificadas: no se dejan a la improvisación de un modelo.
@@ -14,6 +17,7 @@
 import type { ToolId } from '@/components/layout/Header';
 import { TOOL_HINTS, TOOL_NAMES, type ZoeWorkState } from '@/lib/zoeContext';
 import { MODULE_LABELS } from '@/lib/moduleLabels';
+import { glossaryAnswer, loadedUnadistaBank, type UnadistaBank } from '@/lib/zoeKnowledge';
 
 /** Una pregunta del banco con su respuesta y sus palabras clave. */
 export interface BankEntry {
@@ -28,6 +32,8 @@ export interface OfflineContext {
   work?: ZoeWorkState;
   /** Para elegir chistes y frases; en las pruebas se fija para que el resultado sea estable. */
   random?: () => number;
+  /** Banco unadista (glosario); si no se pasa, se usa el que ya esté cargado. */
+  bank?: UnadistaBank | null;
 }
 
 // ── Texto ──
@@ -62,10 +68,14 @@ function stem(word: string): string {
 
 /** Palabras clave de un texto, ya normalizadas. */
 export function keywords(text: string): string[] {
-  return normalizeText(text)
-    .split(' ')
-    .filter((w) => w.length > 1 && !STOPWORDS.has(w))
-    .map(stem);
+  return (
+    normalizeText(text)
+      // Dictado: «contenedor dos» es el Contenedor 2. Los dígitos sueltos cuentan: distinguen el 1 del 2.
+      .replace(/\bcontenedor (uno|dos)\b/g, (_, n: string) => `contenedor ${n === 'uno' ? '1' : '2'}`)
+      .split(' ')
+      .filter((w) => (w.length > 1 || /\d/.test(w)) && !STOPWORDS.has(w))
+      .map(stem)
+  );
 }
 
 /** Dos palabras se parecen si son iguales o comparten los seis primeros caracteres (prototipo, prototipado). */
@@ -345,5 +355,8 @@ export function offlineAnswer(text: string, markdown: string, ctx: OfflineContex
   }
   const entry = bestEntry(parseBank(markdown), text);
   if (entry) return entry.answer;
+  // «¿Qué es la reticularidad?»: el diccionario del metalenguaje unadista también responde sin IA.
+  const meaning = glossaryAnswer(ctx.bank === undefined ? loadedUnadistaBank() : ctx.bank, text);
+  if (meaning) return meaning;
   return OFFLINE_FALLBACK;
 }

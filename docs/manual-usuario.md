@@ -225,6 +225,29 @@ El Laboratorio también sigue sin conexión:
 
 ZOE conoce el Laboratorio, sus herramientas, los conceptos de innovación y lo que tienes en pantalla. Bromea, motiva y agradece, pero no inventa datos: los informes los generan las herramientas, aunque ZOE puede presionar el botón por ti. Su conocimiento está en `src/content/zoe/documento-maestro.md`: lo usa la IA y, sin conexión, su banco de preguntas y respuestas.
 
+### Habla en unadista y conoce el MHUS 5.0
+
+ZOE tiene un banco de información con el repositorio institucional:
+
+- el diccionario completo del metalenguaje unadista (los 268 términos del Anexo C del Contenedor 1, más el glosario operativo);
+- el marco institucional del Contenedor 1, con el Modelo Heutagógico Unadista Solidario 5.0;
+- todo el Contenedor 2: la metodología MDVT, los diez ejes, las fuentes y sus reglas.
+
+Con eso:
+
+- Habla como unadista cuando viene al caso. Si cuentas que organizas tus propios tiempos, te dirá que eso es aprendizaje autónomo, y te lo explicará en palabras sencillas.
+- Da razón del MHUS 5.0 completo, por partes: qué es, su base filosófica, sus principios, sus siete dimensiones y sus ejes transversales. Después de cada parte te ofrece seguir.
+- Responde «¿qué es…?» o «¿qué significa…?» de cualquier término unadista, también sin conexión.
+- Explica qué son el Contenedor 1 y el Contenedor 2, aunque digas «contenedor dos».
+- No inventa: si un término no está en el banco, te lo dice.
+
+| Le dices | ZOE responde |
+|---|---|
+| «Explícame el modelo heutagógico unadista 5.0» | Qué es el MHUS 5.0 y sus siete dimensiones; luego ofrece los principios y los ejes |
+| «¿Y su base filosófica?» | La perspectiva de Habermas: acción comunicativa, diálogo y ética |
+| «¿Qué significa glocalidad?» | La definición del diccionario unadista |
+| «¿Cuántas fuentes pide el Contenedor 2?» | Mínimo cincuenta, en diez ejes |
+
 ## 6. Solución de problemas
 
 | Problema | Qué hacer |
