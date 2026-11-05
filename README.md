@@ -121,6 +121,28 @@ El **Banco Unificado de Innovación** es un módulo transversal e independiente 
   - **Línea 4 · Planes de Prototipado:** Repositorio de planes técnicos con niveles TRL, fases de desarrollo, métricas de validación y gestión de riesgos.
 - **Trazabilidad y Autonomía:** Funciona como un entorno desacoplado que no satura las pantallas de trabajo independiente, permitiendo limpiar las herramientas de diseño sin riesgo de pérdida de información.
 
+### Métricas y satisfacción
+
+La pestaña **Métricas y satisfacción** del Contenedor de resultados (`src/components/tools/MetricasDashboard.tsx`) es un tablero interactivo que se calcula en el navegador con lo que ya está guardado, sin IA y sin conexión (`computeMetrics` en `src/lib/contenedorMetrics.ts`):
+
+- **Filtros** en una fila: período (todo, 30 días, 90 días, 12 meses) y línea del método. Tocar una barra de «Resultados por línea» filtra por esa línea y resalta su barra.
+- **Cifras principales:** resultados guardados, territorios estudiados (departamentos y zonas), utilidad percibida, NPS y documentos entregados.
+- **Gráficos:** resultados por línea, actividad por semana o mes, calidad de los bloques del estudio y de las partes de la ideación, evidencia de los árboles (N1, N2, N3), frutos por tipo, planes por madurez TRL, cobertura por departamento, NPS (detractores, pasivos, promotores) y utilidad por línea. Cada gráfico tiene descripción emergente con el puntero o el teclado y «Ver los datos» con la tabla.
+- **Conclusiones** (`buildConclusions`): reglas fijas sobre esas cifras, no texto de la IA. Señalan dónde se detiene el trabajo en el método, qué falta decidir (tema elegido, frutos del árbol), qué revisar (bloques con aviso, hipótesis N3), los planes armados sin IA y cómo va la satisfacción.
+- Colores validados con el validador de paletas en tema oscuro y claro (variables `.viz` de `src/index.css`): un tono para magnitudes, rampa ordinal para la evidencia, rojo, gris y azul verdoso para el NPS y colores de estado, siempre con ícono y rótulo, para la calidad.
+
+### Encuesta de satisfacción antes de descargar
+
+Antes de entregar un documento en Word o PDF (`ReportActions` en `src/components/lab/common.tsx`), la persona responde tres preguntas obligatorias (`src/lib/satisfaction.ts`, `SatisfactionDialog.tsx`): utilidad del resultado (1 a 5), facilidad para obtenerlo (1 a 5) y recomendación del Laboratorio (0 a 10, para el NPS). «Enviar y descargar» se habilita solo con las tres respuestas; cancelar no descarga nada. Se pregunta una vez por documento: el mismo en el otro formato se entrega directo y, si el documento se rehace, se vuelve a preguntar (`documentKey`). Las respuestas y las descargas se guardan en el navegador (`surveyResponses` y `downloads` en el almacén) y alimentan el tablero. ZOE no ve ni responde la encuesta (`data-zoe-ignore`): la opinión es siempre de la persona. Los certificados de insignias no piden encuesta.
+
+## Laboratorio sin conexión
+
+Sin IA no se detiene el trabajo: lo que está en el Contenedor de resultados sigue disponible.
+
+- **La página abre sin internet** después de la primera visita: `public/sw.js` guarda la aplicación (página, código, estilos, imágenes, el modelo de ZOE y el Repositorio CIP-DF a medida que se usan). La página va red primero; el resto, lo guardado primero y actualizado en segundo plano. Nunca guarda `/api/`, `/includes/` ni `.php`: la IA y la base de datos van siempre en vivo. Solo se registra en la versión publicada (`src/lib/registerOffline.ts`), no en `npm run dev`.
+- **Aviso en los talleres** (`OfflineNotice`): cuando el círculo de la IA está rojo o el equipo no tiene red (`useAiOffline` en `src/store/aiStatus.ts`), cada taller explica qué se puede hacer y lleva al Contenedor: abrir un resultado con «Cargar en Taller», elegir el tema de una ideación y llevarlo al Árbol, llevar un fruto a Prototipado, descargar en Word o PDF (se arman en el navegador) y ver las métricas.
+- **Plan base sin IA** (`src/lib/offlinePlan.ts`): en Prototipado, «Resultado del Árbol» ofrece los frutos de cualquier árbol guardado en el Contenedor. Sin conexión aparece «Armar plan base sin IA», que arma el plan con los datos reales del fruto y su árbol (problemas de las raíces, solución, impacto, cadena de tendencias y alertas como supuestos) y fases estándar según la madurez TRL. Lo que el Contenedor no dice queda «Por precisar con el equipo»: nunca se inventa. El plan lleva el chip «Plan base sin IA» y, cuando vuelve la conexión, «Completar con IA» lo lleva al formulario para generarlo completo.
+
 ## Sistema de Gamificación e Insignias 3D
 
 Para incentivar la experimentación y reconocer las competencias de innovación regional, el laboratorio incorpora un sistema de logros con insignias 3D de alta fidelidad, diseñadas armónicamente con los colores institucionales de cada unidad:
@@ -158,6 +180,7 @@ Ver [hostinger_deploy/README_HOSTINGER.md](hostinger_deploy/README_HOSTINGER.md)
 ## Limitaciones conocidas
 
 - El PDF se genera con el diálogo de impresión del navegador: se elige «Guardar como PDF», como en Fase 1.
-- Los resultados se guardan en el navegador de cada persona (`localStorage`); aún no se comparten entre equipos.
+- Los resultados se guardan en el navegador de cada persona (`localStorage`); aún no se comparten entre equipos. Lo mismo pasa con las encuestas de satisfacción: el tablero muestra las del navegador, no las de todos los equipos.
+- Sin conexión, la página solo abre si ya se visitó con conexión en ese navegador; el Radar del Observatorio y la IA necesitan internet.
 - Las plantillas de `public/` se sirven por web, como en Fase 1: son internas para la interfaz, pero alguien con la URL podría leerlas.
 - El marco institucional (`CONTENEDOR_1`) sigue mencionando CIP; solo se usa para verificar alineación y las reglas de alcance impiden que pase al resultado.

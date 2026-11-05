@@ -27,6 +27,8 @@ rmSync(path.join(DEPLOY, 'REPOSITORIO_CIP_DF'), { recursive: true, force: true }
 cpSync(path.join(DIST, 'assets'), assets, { recursive: true });
 cpSync(path.join(DIST, 'REPOSITORIO_CIP_DF'), path.join(DEPLOY, 'REPOSITORIO_CIP_DF'), { recursive: true });
 cpSync(path.join(DIST, 'index.html'), path.join(DEPLOY, 'index.html'));
+// Laboratorio sin conexión: el service worker va en la raíz para cubrir todo el sitio.
+cpSync(path.join(DIST, 'sw.js'), path.join(DEPLOY, 'sw.js'));
 console.log('✓ hostinger_deploy/ actualizado.');
 if (!existsSync(path.join(DEPLOY, 'config', 'ia.php'))) {
   console.warn('! Falta config/ia.php: copia config/ia.example.php y completa las credenciales.');

@@ -23,6 +23,7 @@ import {
   SegmentedControl,
   ToolHeader,
   type ProgressState,
+  OfflineNotice,
 } from '@/components/lab/common';
 import { ObservatorioPicker } from '@/components/lab/ObservatorioPicker';
 import type { ToolId } from '@/components/layout/Header';
@@ -236,6 +237,7 @@ export const IdeacionEstrategicaView: React.FC<Props> = ({ onNavigate }) => {
       </ToolHeader>
 
       <ErrorNotice message={error} onClose={() => setError(null)} />
+      <OfflineNotice onOpenBank={() => onNavigate('banco')}>Puedes elegir uno de los tres temas de una ideación guardada y llevarlo al Árbol o a Prototipado.</OfflineNotice>
 
       <section className="lab-panel space-y-4" aria-label="Insumo de la ideación">
         <div className="flex flex-wrap items-center justify-between gap-3">

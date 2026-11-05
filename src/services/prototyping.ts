@@ -77,6 +77,8 @@ export interface PrototypePlan {
   validationMetrics: string[];
   risks: Array<{ riesgo: string; mitigacion: string }>;
   supuestos: string[];
+  /** Plan base armado sin IA con lo que hay en el Contenedor (`src/lib/offlinePlan.ts`): se completa con IA después. */
+  offline?: boolean;
 }
 
 function buildPrompt(brief: PrototypeBrief, fichaBlock: string): string {

@@ -179,7 +179,8 @@ export function describeAction(action: ZoeAction, label?: string): string {
 /** Controles de la última lectura, por id. */
 const registry = new Map<string, { el: HTMLElement; control: ZoeControl }>();
 
-const OFF_LIMITS = '.zoe-stage, .zoe-house, .lab-credits, header, [aria-label="Proveedor de IA"], [aria-hidden="true"], [hidden]';
+// `[data-zoe-ignore]`: lo que solo responde la persona, como la encuesta de satisfacción.
+const OFF_LIMITS = '.zoe-stage, .zoe-house, .lab-credits, header, [aria-label="Proveedor de IA"], [aria-hidden="true"], [hidden], [data-zoe-ignore]';
 
 const squash = (text: string | null | undefined, max = 80) => (text ?? '').replace(/\s+/g, ' ').trim().slice(0, max);
 
@@ -218,7 +219,7 @@ function labelOf(el: HTMLElement): string {
 export function readScreen(): ZoeControl[] {
   registry.clear();
   const roots = [document.querySelector('main'), ...Array.from(document.querySelectorAll<HTMLElement>('[role="dialog"][aria-modal="true"]'))].filter(
-    (root): root is HTMLElement => Boolean(root) && !root!.closest('.zoe-stage, .zoe-intro'),
+    (root): root is HTMLElement => Boolean(root) && !root!.closest('.zoe-stage, .zoe-intro, [data-zoe-ignore]'),
   );
   const fields: Array<{ el: HTMLElement; control: Omit<ZoeControl, 'id'> }> = [];
   const buttons: Array<{ el: HTMLElement; control: Omit<ZoeControl, 'id'> }> = [];

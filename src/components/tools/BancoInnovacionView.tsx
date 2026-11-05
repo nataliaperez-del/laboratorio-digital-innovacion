@@ -18,6 +18,7 @@ import {
   Lock,
   Zap,
   Printer,
+  BarChart3,
 } from 'lucide-react';
 import { useStore, type SavedStudy, type SavedIdeation, type SavedTree } from '@/store/useStore';
 import { ToolHeader, EmptyState, ReportActions } from '@/components/lab/common';
@@ -31,12 +32,14 @@ import { openCertificatePrintWindow } from '@/lib/certificatePdfExport';
 import { MODULE_LABELS } from '@/lib/moduleLabels';
 import type { PrototypePlan } from '@/services/prototyping';
 import type { ToolId } from '@/components/layout/Header';
+import { MetricasDashboard } from './MetricasDashboard';
 
 /**
  * Pestañas del Banco Unificado de Innovación:
- * Línea 1 (estudio), Línea 2 (ideacion), Línea 3 (arbol), Línea 4 (prototipado) y Vitrina de Logros/Certificados.
+ * Línea 1 (estudio), Línea 2 (ideacion), Línea 3 (arbol), Línea 4 (prototipado), Vitrina de Logros/Certificados
+ * y el tablero de Métricas y satisfacción.
  */
-export type BancoTab = 'estudio' | 'ideacion' | 'arbol' | 'prototipado' | 'logros';
+export type BancoTab = 'estudio' | 'ideacion' | 'arbol' | 'prototipado' | 'logros' | 'metricas';
 
 interface Props {
   onNavigate: (tool: ToolId) => void;
@@ -130,6 +133,13 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
       color: '#FFD700',
       count: gamification.unlockedBadgeIds.length,
     },
+    {
+      id: 'metricas' as BancoTab,
+      label: 'Métricas y satisfacción',
+      icon: BarChart3,
+      color: '#27DCFF',
+      count: null as number | null,
+    },
   ];
 
   const activeMeta = tabs.find((t) => t.id === activeTab)!;
@@ -171,16 +181,18 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
             >
               <Icon className="w-4 h-4" style={{ color: t.color }} />
               <span>{t.label}</span>
-              <span
-                className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-mono border"
-                style={{
-                  backgroundColor: `${t.color}20`,
-                  borderColor: `${t.color}50`,
-                  color: t.color,
-                }}
-              >
-                {t.count}
-              </span>
+              {t.count !== null && (
+                <span
+                  className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-mono border"
+                  style={{
+                    backgroundColor: `${t.color}20`,
+                    borderColor: `${t.color}50`,
+                    color: t.color,
+                  }}
+                >
+                  {t.count}
+                </span>
+              )}
             </button>
           );
         })}
@@ -663,6 +675,9 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
           )}
         </div>
       )}
+
+      {/* PESTAÑA 6: MÉTRICAS Y SATISFACCIÓN (sin IA, también sin conexión) */}
+      {activeTab === 'metricas' && <MetricasDashboard />}
 
       {/* PESTAÑA 5: INSIGNIAS Y LOGROS DE INNOVACIÓN */}
       {activeTab === 'logros' && (

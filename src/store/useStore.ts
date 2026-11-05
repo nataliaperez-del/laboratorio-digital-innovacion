@@ -8,6 +8,7 @@ import { assembleParts, type GenerationPartResult, type InputSource } from '@/pr
 import type { TreeGraph } from '@/lib/innovationTreeGraph';
 import type { PrototypeBrief, PrototypePlan } from '@/services/prototyping';
 import type { Procedencia } from '@/repositorio/procedencia';
+import type { ReportModule } from '@/lib/labReports';
 
 /** Proveedores de IA del panel «IA»: la UNAD (por defecto) o uno comercial/local con clave propia. */
 export type AIProvider = 'unadGemini' | 'gemini' | 'openai' | 'anthropic' | 'ollama';
@@ -78,6 +79,42 @@ export interface SavedTree {
   markdown: string;
   graph: TreeGraph;
 }
+
+/** Formato de una descarga formal. */
+export type DownloadFormat = 'word' | 'pdf';
+
+/**
+ * Respuesta a las tres preguntas de satisfacción que se hacen antes de entregar un documento
+ * (`src/lib/satisfaction.ts`). Se guarda sin datos personales: solo el documento y las notas.
+ */
+export interface SurveyResponse {
+  id: string;
+  /** ISO 8601. */
+  at: string;
+  module: ReportModule;
+  /** Nombre legible del documento. */
+  document: string;
+  /** Identifica el documento: si se vuelve a descargar el mismo, no se pregunta otra vez. */
+  docKey: string;
+  format: DownloadFormat;
+  /** ¿Qué tan útil es? 1 a 5. */
+  utilidad: number;
+  /** ¿Qué tan fácil fue obtenerlo? 1 a 5. */
+  facilidad: number;
+  /** ¿Lo recomendarías? 0 a 10 (NPS). */
+  recomendacion: number;
+}
+
+/** Una descarga formal en Word o PDF. */
+export interface DownloadRecord {
+  at: string;
+  module: ReportModule;
+  format: DownloadFormat;
+  document: string;
+}
+
+/** Cuántas respuestas y descargas se conservan en el navegador (las más recientes). */
+const MAX_LOG = 500;
 
 /** De dónde salen las fuentes del Estudio: solo internet o también documentos propios. */
 export type FuentesMode = 'sin_fuentes' | 'con_fuentes';
@@ -181,6 +218,12 @@ export interface AppState {
   clearIdeacion: () => void;
   clearArbol: () => void;
   clearPrototipado: () => void;
+
+  // ── Satisfacción y descargas (tablero de métricas del Contenedor) ──
+  surveyResponses: SurveyResponse[];
+  addSurveyResponse: (response: SurveyResponse) => void;
+  downloads: DownloadRecord[];
+  recordDownload: (download: DownloadRecord) => void;
 
   // ── Gamificación e Insignias de Innovación ──
   zoeInteractions: number;
@@ -320,6 +363,10 @@ export const useStore = create<AppState>()(
           bankIds: { ...state.bankIds, arbol: null },
         })),
       clearPrototipado: () => set({ prototypeSeed: null, activePrototypeId: null }),
+      surveyResponses: [],
+      addSurveyResponse: (response) => set((state) => ({ surveyResponses: [response, ...(state.surveyResponses ?? [])].slice(0, MAX_LOG) })),
+      downloads: [],
+      recordDownload: (download) => set((state) => ({ downloads: [download, ...(state.downloads ?? [])].slice(0, MAX_LOG) })),
       zoeInteractions: 0,
       recordZoeInteraction: () => set((state) => ({ zoeInteractions: (state.zoeInteractions || 0) + 1 })),
       acknowledgedBadges: [],
@@ -426,6 +473,8 @@ export const useStore = create<AppState>()(
         savedStudies: state.savedStudies,
         savedIdeations: state.savedIdeations,
         savedTrees: state.savedTrees,
+        surveyResponses: state.surveyResponses,
+        downloads: state.downloads,
         zoeInteractions: state.zoeInteractions,
         acknowledgedBadges: state.acknowledgedBadges,
         ollamaUrl: state.ollamaUrl,

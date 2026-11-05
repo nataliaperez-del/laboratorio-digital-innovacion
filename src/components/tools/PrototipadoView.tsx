@@ -1,6 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { BrainCircuit, CheckCircle2, FileText, ListChecks, Rocket, ShieldAlert, Sparkles, Target, Trash2, Trees, Wrench } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { BrainCircuit, CheckCircle2, FileText, ListChecks, Rocket, ShieldAlert, Sparkles, Target, Trash2, Trees, WifiOff, Wrench } from 'lucide-react';
 import { useStore } from '@/store/useStore';
+import { useAiOffline } from '@/store/aiStatus';
+import { buildOfflinePlan, type OfflineTreeSource } from '@/lib/offlinePlan';
+import type { TreeGraph } from '@/lib/innovationTreeGraph';
 import { GenerationCancelledError } from '@/services/ai';
 import {
   generatePrototypePlan,
@@ -21,6 +24,7 @@ import {
   EmptyState,
   ErrorNotice,
   GenerationProgress,
+  OfflineNotice,
   ReportActions,
   SegmentedControl,
   ToolHeader,
@@ -184,8 +188,21 @@ interface Props {
 
 /** Herramienta de Prototipado: formulario de la idea y plan generado. */
 export const PrototipadoView: React.FC<Props> = ({ onNavigate }) => {
-  const { prompt0Data, treeGraph, prototypeSeed, setPrototypeSeed, prototypes, addPrototype, removePrototype, activePrototypeId, clearPrototipado } =
-    useStore();
+  const {
+    prompt0Data,
+    treeGraph,
+    savedTrees,
+    bankIds,
+    prototypeSeed,
+    setPrototypeSeed,
+    prototypes,
+    addPrototype,
+    removePrototype,
+    activePrototypeId,
+    clearPrototipado,
+  } = useStore();
+  const offline = useAiOffline();
+  const formRef = useRef<HTMLElement>(null);
 
   const [mode, setMode] = useState<OriginMode>('idea');
   const [topic, setTopic] = useState('');
@@ -196,6 +213,19 @@ export const PrototipadoView: React.FC<Props> = ({ onNavigate }) => {
   const [scope, setScope] = useState<string>(SCOPE_OPTIONS[1]);
   const [progress, setProgress] = useState<ProgressState | null>(null);
   const [error, setError] = useState<string | null>(null);
+  /** Fruto elegido y su árbol: con ellos se arma el plan base sin IA. */
+  const [fruitSource, setFruitSource] = useState<OfflineTreeSource | null>(null);
+
+  // Los árboles del Contenedor de resultados, además del que está abierto en el taller.
+  const trees = useMemo(() => {
+    const list: Array<{ id: string; label: string; graph: TreeGraph }> = savedTrees
+      .filter((t) => t.graph?.nodos?.length)
+      .map((t) => ({ id: t.id, label: `${t.theme} · ${new Date(t.createdAt).toLocaleDateString()}`, graph: t.graph }));
+    if (treeGraph && !savedTrees.some((t) => t.id === bankIds.arbol)) list.unshift({ id: 'taller', label: `${treeGraph.tema} · en el taller`, graph: treeGraph });
+    return list;
+  }, [savedTrees, treeGraph, bankIds.arbol]);
+  const [treeId, setTreeId] = useState<string | null>(null);
+  const chosenTree = trees.find((t) => t.id === treeId) ?? trees.find((t) => t.id === bankIds.arbol || t.id === 'taller') ?? trees[0] ?? null;
 
   // Insumo que llega del Árbol, de Ideación o del Radar.
   useEffect(() => {
@@ -203,11 +233,13 @@ export const PrototipadoView: React.FC<Props> = ({ onNavigate }) => {
     setTopic(prototypeSeed.topic);
     setContext(prototypeSeed.context);
     setOrigin(prototypeSeed.origin);
+    const node = prototypeSeed.origin.kind === 'arbol' ? treeGraph?.nodos.find((n) => n.codigo === prototypeSeed.origin.code) : undefined;
+    setFruitSource(node && treeGraph ? { graph: treeGraph, node } : null);
     setMode(prototypeSeed.origin.kind === 'arbol' ? 'arbol' : prototypeSeed.origin.kind === 'observatorio' ? 'observatorio' : 'idea');
     setPrototypeSeed(null);
-  }, [prototypeSeed, setPrototypeSeed]);
+  }, [prototypeSeed, setPrototypeSeed, treeGraph]);
 
-  const fruits = useMemo(() => treeGraph?.nodos.filter((n) => n.nivel === 'fruto' || n.nivel === 'hoja') ?? [], [treeGraph]);
+  const fruits = useMemo(() => chosenTree?.graph.nodos.filter((n) => n.nivel === 'fruto' || n.nivel === 'hoja') ?? [], [chosenTree]);
   // Solo el plan en curso: los anteriores están en el Banco y no reaparecen al volver al módulo.
   const active = prototypes.find((p) => p.id === activePrototypeId) ?? null;
   const busy = progress !== null;
@@ -217,6 +249,27 @@ export const PrototipadoView: React.FC<Props> = ({ onNavigate }) => {
     setTopic('');
     setContext('');
     setOrigin({ kind: 'idea', label: 'Idea libre' });
+    setFruitSource(null);
+  };
+
+  /** Sin IA: plan base con los datos reales del fruto y su árbol; lo que falte queda «por precisar». */
+  const generateOffline = () => {
+    if (busy || !topic.trim()) return;
+    setError(null);
+    const source = origin.kind === 'arbol' && fruitSource ? fruitSource : undefined;
+    addPrototype(buildOfflinePlan({ origin, topic: topic.trim(), context, category, trl, scope }, source));
+  };
+
+  /** Lleva un plan base al formulario para que la IA lo complete. */
+  const completeWithAi = (plan: PrototypePlan) => {
+    setMode(plan.origin.kind === 'arbol' ? 'arbol' : plan.origin.kind === 'observatorio' ? 'observatorio' : 'idea');
+    setTopic(plan.name);
+    setContext([plan.problemSolved, plan.solution && `Solución posible: ${plan.solution}`].filter(Boolean).join('\n'));
+    setOrigin(plan.origin);
+    setCategory(plan.category);
+    setTrl(plan.trlTarget);
+    setScope(plan.scope);
+    formRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
   };
 
   const generate = async () => {
@@ -244,6 +297,7 @@ export const PrototipadoView: React.FC<Props> = ({ onNavigate }) => {
     setTrl(TRL_OPTIONS[1]);
     setScope(SCOPE_OPTIONS[1]);
     setError(null);
+    setFruitSource(null);
   };
 
   const remove = (plan: PrototypePlan) => {
@@ -262,8 +316,12 @@ export const PrototipadoView: React.FC<Props> = ({ onNavigate }) => {
       </ToolHeader>
 
       <ErrorNotice message={error} onClose={() => setError(null)} />
+      <OfflineNotice onOpenBank={() => onNavigate('banco')}>
+        Aquí mismo puedes elegir un fruto de cualquier árbol guardado (o escribir tu idea) y usar «Armar plan base sin IA»; cuando vuelva la conexión, lo completas
+        con IA.
+      </OfflineNotice>
 
-      <section className="lab-panel space-y-4" aria-label="Datos del plan">
+      <section ref={formRef} className="lab-panel space-y-4" aria-label="Datos del plan">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-sm font-bold text-[#E024A5] sy flex items-center gap-2">
             <Rocket className="w-4 h-4 text-[#E024A5]" aria-hidden="true" /> ¿Qué vamos a prototipar?
@@ -279,6 +337,21 @@ export const PrototipadoView: React.FC<Props> = ({ onNavigate }) => {
             ]}
           />
         </div>
+
+        {mode === 'arbol' && trees.length > 1 && (
+          <div>
+            <label className="lab-label" htmlFor="proto-tree">
+              Árbol del Contenedor
+            </label>
+            <select id="proto-tree" className="lab-input" value={chosenTree?.id ?? ''} onChange={(e) => setTreeId(e.target.value)}>
+              {trees.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {mode === 'arbol' &&
           (fruits.length ? (
@@ -296,7 +369,8 @@ export const PrototipadoView: React.FC<Props> = ({ onNavigate }) => {
                         .filter(Boolean)
                         .join('\n'),
                     );
-                    setOrigin({ kind: 'arbol', code: n.codigo, label: `Árbol de Innovación: ${treeGraph?.tema}` });
+                    setOrigin({ kind: 'arbol', code: n.codigo, label: `Árbol de Innovación: ${chosenTree?.graph.tema}` });
+                    if (chosenTree) setFruitSource({ graph: chosenTree.graph, node: n });
                     if (n.tipo_fruto === 'servicio') setCategory('Servicio de Innovación');
                     if (n.tipo_fruto === 'proyecto') setCategory('Proyecto Territorial');
                     if (n.tipo_fruto === 'prototipo') setCategory('Prototipo Tecnológico');
@@ -382,7 +456,18 @@ export const PrototipadoView: React.FC<Props> = ({ onNavigate }) => {
           </div>
         </div>
 
-        <div className="flex justify-end">
+        <div className="flex flex-wrap justify-end gap-2.5">
+          {offline && (
+            <button
+              type="button"
+              className="lab-btn px-5 py-2.5 disabled:opacity-40"
+              disabled={busy || !topic.trim()}
+              onClick={generateOffline}
+              title="Arma un plan base con los datos del Contenedor, sin IA. Lo que falte queda «por precisar»."
+            >
+              <WifiOff className="w-4 h-4" aria-hidden="true" /> Armar plan base sin IA
+            </button>
+          )}
           <button
             type="button"
             className="metal px-6 py-2.5 text-xs font-bold flex items-center gap-2 disabled:opacity-40"
@@ -404,6 +489,11 @@ export const PrototipadoView: React.FC<Props> = ({ onNavigate }) => {
                 <span className="lab-chip">{active.category}</span>
                 <span className="lab-chip">{active.trlTarget}</span>
                 <span className="lab-chip">{active.scope}</span>
+                {active.offline && (
+                  <span className="lab-chip" style={{ color: 'var(--brand-amber-text)', borderColor: 'rgba(242, 159, 5, .5)' }}>
+                    <WifiOff className="w-3 h-3" aria-hidden="true" /> Plan base sin IA
+                  </span>
+                )}
                 <BancoStatus color="#E024A5" onOpen={() => onNavigate('banco')} />
               </div>
               <h2 className="text-2xl font-bold text-[#E024A5] sy">{active.name}</h2>
@@ -414,6 +504,11 @@ export const PrototipadoView: React.FC<Props> = ({ onNavigate }) => {
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
+              {active.offline && !offline && (
+                <button type="button" className="lab-btn lab-btn-sm" disabled={busy} onClick={() => completeWithAi(active)}>
+                  <Sparkles className="w-3.5 h-3.5" aria-hidden="true" /> Completar con IA
+                </button>
+              )}
               <ReportActions getReport={() => prototipadoReport(prompt0Data, active)} />
               <button type="button" className="lab-btn" onClick={() => remove(active)} aria-label={`Eliminar ${active.name}`}>
                 <Trash2 className="w-4 h-4" aria-hidden="true" />

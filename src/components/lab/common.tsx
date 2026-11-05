@@ -1,10 +1,29 @@
 import React, { useState } from 'react';
-import { AlertCircle, CheckCircle2, Eraser, FileDown, FileText, FileUp, FolderArchive, Loader2, Printer, RefreshCw, Sparkles, Square, X } from 'lucide-react';
-import { cancelActiveGeneration } from '@/services/ai';
+import {
+  AlertCircle,
+  CheckCircle2,
+  Eraser,
+  FileDown,
+  FileText,
+  FileUp,
+  FolderArchive,
+  Loader2,
+  Printer,
+  RefreshCw,
+  Sparkles,
+  Square,
+  WifiOff,
+  X,
+} from 'lucide-react';
+import { cancelActiveGeneration, checkAiConnection } from '@/services/ai';
 import { INPUT_FILE_ACCEPT, readInputFile } from '@/lib/readInputFile';
 import { buildDocumentPlan } from '@/lib/documentPlan';
 import type { LabReport } from '@/lib/labReports';
+import { documentKey, needsSurvey, type SurveyField } from '@/lib/satisfaction';
 import type { GenerationPartStatus } from '@/prompts/themeAndInnovationPrompts';
+import { useAiOffline } from '@/store/aiStatus';
+import { useStore, type DownloadFormat } from '@/store/useStore';
+import { SatisfactionDialog } from './SatisfactionDialog';
 
 /** Encabezado común de cada herramienta. */
 export const ToolHeader: React.FC<{
@@ -126,14 +145,49 @@ export const SectionReview: React.FC<{
 /**
  * Descargas formales. La pantalla es para explorar; aquí sale el documento académico con
  * portada, tabla de contenido, índices y numeración de páginas.
+ *
+ * Antes de entregar un documento por primera vez se responden tres preguntas de satisfacción
+ * (`SatisfactionDialog`); sin respuestas no hay descarga. El mismo documento en el otro formato
+ * ya no vuelve a preguntar. Funciona sin conexión: todo se arma y se guarda en el navegador.
  */
 export const ReportActions: React.FC<{ getReport: () => LabReport | null; disabled?: boolean }> = ({ getReport, disabled }) => {
   const [busy, setBusy] = useState<'word' | 'pdf' | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [asking, setAsking] = useState<{ format: DownloadFormat; report: LabReport } | null>(null);
+  const addSurveyResponse = useStore((s) => s.addSurveyResponse);
+  const recordDownload = useStore((s) => s.recordDownload);
 
-  const downloadWord = async () => {
+  const deliver = (format: DownloadFormat, report: LabReport) => {
+    recordDownload({ at: new Date().toISOString(), module: report.module, format, document: report.meta.title || report.fileName });
+    void (format === 'word' ? downloadWord(report) : downloadPdf(report));
+  };
+
+  /** Pide la encuesta si este documento aún no se evaluó; si ya, entrega de una vez. */
+  const request = (format: DownloadFormat) => {
     const report = getReport();
     if (!report) return;
+    const answered = useStore.getState().surveyResponses ?? [];
+    if (needsSurvey(answered, documentKey(report))) setAsking({ format, report });
+    else deliver(format, report);
+  };
+
+  const submitSurvey = (answers: Record<SurveyField, number>) => {
+    if (!asking) return;
+    const { format, report } = asking;
+    addSurveyResponse({
+      id: `survey-${Date.now()}`,
+      at: new Date().toISOString(),
+      module: report.module,
+      document: report.meta.title || report.fileName,
+      docKey: documentKey(report),
+      format,
+      ...answers,
+    });
+    setAsking(null);
+    deliver(format, report);
+  };
+
+  const downloadWord = async (report: LabReport) => {
     setBusy('word');
     setError(null);
     try {
@@ -148,9 +202,7 @@ export const ReportActions: React.FC<{ getReport: () => LabReport | null; disabl
     }
   };
 
-  const downloadPdf = async () => {
-    const report = getReport();
-    if (!report) return;
+  const downloadPdf = async (report: LabReport) => {
     setBusy('pdf');
     setError(null);
     try {
@@ -175,7 +227,7 @@ export const ReportActions: React.FC<{ getReport: () => LabReport | null; disabl
         type="button"
         className="lab-btn lab-btn-icon"
         disabled={disabled || busy !== null}
-        onClick={downloadWord}
+        onClick={() => request('word')}
         aria-label={busy === 'word' ? 'Armando el informe en Word' : 'Descargar informe en Word'}
         title="Informe formal en Word editable: portada, tabla de contenido, índices y numeración"
       >
@@ -189,7 +241,7 @@ export const ReportActions: React.FC<{ getReport: () => LabReport | null; disabl
         type="button"
         className="lab-btn lab-btn-icon"
         disabled={disabled || busy !== null}
-        onClick={downloadPdf}
+        onClick={() => request('pdf')}
         aria-label={busy === 'pdf' ? 'Preparando el informe en PDF' : 'Descargar informe en PDF'}
         title="Informe formal en PDF: elige «Guardar como PDF» en la ventana de impresión"
       >
@@ -204,6 +256,43 @@ export const ReportActions: React.FC<{ getReport: () => LabReport | null; disabl
           {error}
         </span>
       )}
+      {asking && (
+        <SatisfactionDialog
+          format={asking.format}
+          documentName={asking.report.meta.title || asking.report.fileName}
+          onSubmit={submitSurvey}
+          onCancel={() => setAsking(null)}
+        />
+      )}
+    </div>
+  );
+};
+
+/**
+ * Sin IA no se acaba el trabajo: lo que está en el Contenedor de resultados se consulta, se carga
+ * en los talleres, se encadena entre herramientas, se descarga y se mide sin conexión.
+ */
+export const OfflineNotice: React.FC<{ onOpenBank: () => void; children?: React.ReactNode }> = ({ onOpenBank, children }) => {
+  const offline = useAiOffline();
+  if (!offline) return null;
+  return (
+    <div className="lab-offline" role="status">
+      <WifiOff className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
+      <div className="min-w-0 flex-1 space-y-1">
+        <p className="text-xs font-semibold">La IA no está disponible ahora, pero puedes seguir trabajando.</p>
+        <p className="text-xs text-brand-textSecondary">
+          Con lo que ya está en el Contenedor de resultados puedes abrir un resultado en este taller, pasarlo a otra herramienta, descargarlo en Word o
+          PDF y revisar sus métricas. {children}
+        </p>
+      </div>
+      <div className="flex flex-wrap gap-2 shrink-0">
+        <button type="button" className="lab-btn lab-btn-sm" onClick={onOpenBank}>
+          <FolderArchive className="w-3.5 h-3.5" aria-hidden="true" /> Abrir el Contenedor
+        </button>
+        <button type="button" className="lab-btn lab-btn-sm" onClick={() => void checkAiConnection()} title="Volver a comprobar la conexión con la IA">
+          <RefreshCw className="w-3.5 h-3.5" aria-hidden="true" /> Reintentar
+        </button>
+      </div>
     </div>
   );
 };

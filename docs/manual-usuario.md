@@ -84,9 +84,10 @@ Cada herramienta funciona **sola** o **encadenada**: el resultado de una puede s
 
 ### 4.5 Desarrollar Soluciones · Prototipado
 
-1. Escribe una idea o recibe un fruto del Árbol.
+1. Escribe una idea o recibe un fruto del Árbol. En **Resultado del Árbol** puedes elegir cualquier árbol guardado en el Contenedor de resultados y uno de sus frutos.
 2. Genera el plan: hipótesis, arquitectura de la solución, fases, métricas, riesgos y nivel de madurez tecnológica (TRL).
 3. Ajusta lo que haga falta y descarga el informe.
+4. **Sin conexión:** aparece **Armar plan base sin IA**. Arma el plan con los datos reales del fruto y su árbol, y con fases estándar según la madurez elegida; lo que falta queda escrito «Por precisar con el equipo». El plan lleva el sello **Plan base sin IA**. Cuando vuelva la conexión, toca **Completar con IA** y luego **Armar el plan con IA**.
 
 ### 4.6 Banco Unificado de Innovación e insignias
 
@@ -101,6 +102,25 @@ Cada herramienta funciona **sola** o **encadenada**: el resultado de una puede s
    - **Vínculo Cognitivo:** interactuar con ZOE.
    - **Maestro Innovador 360:** desbloquear las cuatro insignias de las herramientas.
 4. Los niveles van de **Observador Regional** a **Líder de Innovación 360** según tu experiencia. Cada insignia tiene un certificado imprimible.
+
+### 4.7 Métricas y satisfacción
+
+En el Contenedor de resultados, la pestaña **Métricas y satisfacción** muestra un tablero con lo que ya está guardado en tu navegador. Funciona sin conexión y sin IA.
+
+1. Elige el **período** (todo, 30 días, 90 días o 12 meses) y, si quieres, una **línea del método**. También puedes tocar una barra de «Resultados por línea» para ver solo esa línea; tócala de nuevo para volver a todas.
+2. Arriba están las cifras principales: resultados guardados, territorios estudiados, utilidad percibida, NPS (recomendación) y documentos entregados.
+3. Los gráficos muestran la actividad en el tiempo, la calidad de los estudios y las ideaciones, la evidencia de los árboles, los frutos por tipo, los planes por madurez, la cobertura por departamento y la satisfacción. Pasa el puntero (o usa el tabulador) sobre una barra para ver su valor, o abre **Ver los datos** para ver la tabla.
+4. Al final, las **Conclusiones** dicen qué muestran las cifras y cuál es el siguiente paso. Salen de reglas fijas sobre los datos, no las escribe la IA.
+
+### 4.8 Encuesta antes de descargar
+
+Antes de entregar un documento en Word o PDF, el Laboratorio te hace tres preguntas:
+
+1. ¿Qué tan útil es este resultado para tu proyecto? (1 a 5)
+2. ¿Qué tan fácil fue obtenerlo en el Laboratorio? (1 a 5)
+3. Del 0 al 10, ¿qué tan probable es que recomiendes el Laboratorio a un colega?
+
+El botón **Enviar y descargar** se activa cuando respondes las tres. Si cancelas, no se descarga nada. Se pregunta una sola vez por documento: si después lo bajas en el otro formato, sale directo; si rehaces el documento, se vuelve a preguntar. ZOE no responde la encuesta por ti. Tus respuestas se ven en **Métricas y satisfacción**.
 
 ## 5. ZOE, el asistente por voz
 
@@ -177,6 +197,14 @@ ZOE acompaña con calidez y sin presión: antes de avanzar pregunta si estás li
 
 Si la IA no responde, ZOE no se detiene: te lo dice una sola vez y sigue contestando con lo que sabe de memoria (preguntas frecuentes, herramientas, rutas, siguiente paso según tu trabajo, chistes y frases de ánimo). Las órdenes, los movimientos, el recorrido guiado, el Banco Unificado de Innovación y los informes ya hechos siguen funcionando. Unos minutos después vuelve a intentar con la IA.
 
+El Laboratorio también sigue sin conexión:
+
+- Después de abrirlo una vez con internet, la página vuelve a abrir aunque no haya red.
+- Cada taller muestra un aviso con lo que puedes hacer y el botón **Abrir el Contenedor**.
+- Desde el Contenedor puedes abrir un resultado con **Cargar en Taller**, elegir el tema de una ideación y llevarlo al Árbol, llevar un fruto a Prototipado, descargar en Word o PDF y ver las métricas.
+- En Prototipado puedes **Armar plan base sin IA** a partir de un fruto guardado.
+- Lo que necesita la IA (generar estudios, ideaciones, árboles y planes completos) y el Radar del Observatorio esperan a que vuelva la conexión.
+
 ### Su vida en la pantalla
 
 - Si nadie lo necesita, a veces pasea, se sienta o busca el rincón con menos botones y se echa a dormir un rato. Tocarlo lo despierta.
@@ -207,7 +235,9 @@ ZOE conoce el Laboratorio, sus herramientas, los conceptos de innovación y lo q
 | ZOE pide una dirección segura | Abre el Laboratorio con `https://` |
 | ZOE suena distinto de lo habitual | Su voz aún se está descargando o la conexión está en ahorro de datos: mientras tanto usa la del equipo. Al recargar con buena conexión vuelve su voz |
 | ZOE no se ve en 3D | El navegador no puede dibujar 3D: se muestra su imagen fija. Actualiza el navegador o activa la aceleración por hardware |
-| La IA no responde | Mira el **círculo** de la cabecera, junto a las insignias: verde es IA conectada y rojo, sin conexión (pasa el puntero para ver el motivo; tócalo para volver a comprobar). ZOE sigue contigo respondiendo de memoria. Mientras tanto puedes preparar la ficha, el tema o la idea, y generar cuando vuelva |
+| La IA no responde | Mira el **círculo** de la cabecera, junto a las insignias: verde es IA conectada y rojo, sin conexión (pasa el puntero para ver el motivo; tócalo para volver a comprobar). ZOE sigue contigo respondiendo de memoria. Mientras tanto puedes preparar la ficha, el tema o la idea, seguir con lo del Contenedor de resultados (sección 5, «Sin conexión») y generar cuando vuelva |
+| No se descarga el informe | Responde las tres preguntas de la encuesta: **Enviar y descargar** se activa con las tres. Para el PDF, permite las ventanas emergentes del sitio |
+| Las métricas no muestran las encuestas de otros equipos | Por ahora cada navegador guarda sus propias respuestas: el tablero muestra las de tu equipo |
 | Perdí mi trabajo | El trabajo vive en el navegador: si borraste datos o cambiaste de equipo, recupéralo desde el Banco Unificado de Innovación o desde el informe descargado |
 | El informe tiene datos dudosos | Es un resultado asistido por IA: verifica con las fuentes y edítalo en Word |
 

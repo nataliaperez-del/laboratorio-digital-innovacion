@@ -23,6 +23,7 @@ import {
   SectionReview,
   ToolHeader,
   type ProgressState,
+  OfflineNotice,
 } from '@/components/lab/common';
 import type { ToolId } from '@/components/layout/Header';
 
@@ -472,6 +473,7 @@ export const EstudioTerritorialView: React.FC<Props> = ({ onNavigate }) => {
       </ToolHeader>
 
       <ErrorNotice message={error} onClose={() => setError(null)} />
+      <OfflineNotice onOpenBank={() => onNavigate('banco')}>Para un estudio guardado, ábrelo desde el Contenedor con «Cargar en Taller».</OfflineNotice>
 
       {/* Ficha Base */}
       <section className="lab-panel space-y-4" aria-label="Ficha Base">

@@ -4,6 +4,7 @@
  * sin gastar nada, con cada llamada real: si una respuesta llega, la IA está conectada.
  * No se guarda en el navegador: cada visita vuelve a comprobarlo.
  */
+import { useEffect, useState } from 'react';
 import { create } from 'zustand';
 
 /** `checking` solo se ve en la primera comprobación; después se conserva el último color mientras se vuelve a probar. */
@@ -29,6 +30,25 @@ export function reportAiOk(now = Date.now()): void {
 /** La IA no respondió (o el navegador perdió la red). */
 export function reportAiDown(message: string, now = Date.now()): void {
   useAiStatus.setState({ status: 'error', message, checkedAt: now });
+}
+
+/**
+ * ¿Hay que trabajar sin IA? Sí cuando el equipo no tiene red o la última prueba falló (círculo
+ * rojo). Mientras se comprueba se supone que sí hay IA, para no mostrar avisos de más.
+ */
+export function useAiOffline(): boolean {
+  const status = useAiStatus((s) => s.status);
+  const [online, setOnline] = useState(() => typeof navigator === 'undefined' || navigator.onLine !== false);
+  useEffect(() => {
+    const update = () => setOnline(navigator.onLine !== false);
+    window.addEventListener('online', update);
+    window.addEventListener('offline', update);
+    return () => {
+      window.removeEventListener('online', update);
+      window.removeEventListener('offline', update);
+    };
+  }, []);
+  return status === 'error' || !online;
 }
 
 /** Se cambió de proveedor o de modelo: lo sabido ya no vale hasta volver a probar. */

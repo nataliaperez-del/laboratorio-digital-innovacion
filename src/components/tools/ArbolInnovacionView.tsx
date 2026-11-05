@@ -22,6 +22,7 @@ import {
   SegmentedControl,
   ToolHeader,
   type ProgressState,
+  OfflineNotice,
 } from '@/components/lab/common';
 import { ObservatorioPicker } from '@/components/lab/ObservatorioPicker';
 import type { ToolId } from '@/components/layout/Header';
@@ -369,6 +370,7 @@ export const ArbolInnovacionView: React.FC<Props> = ({ onNavigate }) => {
       </ToolHeader>
 
       <ErrorNotice message={error} onClose={() => setError(null)} />
+      <OfflineNotice onOpenBank={() => onNavigate('banco')}>Puedes explorar un árbol guardado y llevar cualquiera de sus frutos a Prototipado.</OfflineNotice>
 
       <section className="lab-panel space-y-4" aria-label="Tema del árbol">
         <div className="flex flex-wrap items-center justify-between gap-3">

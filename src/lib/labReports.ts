@@ -10,8 +10,12 @@ import { FRUIT_LABEL } from '@/lib/innovationTreeGraph';
 import type { Prompt0Data } from '@/store/useStore';
 import type { PrototypePlan } from '@/services/prototyping';
 
+/** Herramienta que produce un informe: también identifica sus encuestas de satisfacción. */
+export type ReportModule = 'estudio' | 'ideacion' | 'arbol' | 'prototipado';
+
 /** Informe listo para descargar: nombre de archivo, Markdown, figuras y portada. */
 export interface LabReport {
+  module: ReportModule;
   fileName: string;
   markdown: string;
   figures: PlannedFigure[];
@@ -45,6 +49,7 @@ export function safeFileName(prefix: string, label: string): string {
 export function estudioReport(ficha: Prompt0Data, markdown: string): LabReport {
   const place = [ficha.municipality, ficha.department].filter(Boolean).join(', ') || 'Territorio';
   return {
+    module: 'estudio',
     fileName: safeFileName('Estudio_Territorial', ficha.municipality || ficha.department),
     markdown,
     figures: [],
@@ -62,6 +67,7 @@ export function estudioReport(ficha: Prompt0Data, markdown: string): LabReport {
 /** Informe de la Ideación, nombrado por su insumo. */
 export function ideacionReport(ficha: Prompt0Data, markdown: string, sourceLabel: string): LabReport {
   return {
+    module: 'ideacion',
     fileName: safeFileName('Ideacion_Vocacion_y_Temas', sourceLabel),
     markdown,
     figures: [],
@@ -79,6 +85,7 @@ export function ideacionReport(ficha: Prompt0Data, markdown: string, sourceLabel
 /** Informe del Árbol de Innovación con la figura del árbol tras su título. */
 export function arbolReport(ficha: Prompt0Data, markdown: string, graph: TreeGraph): LabReport {
   return {
+    module: 'arbol',
     fileName: safeFileName('Arbol_de_Innovacion', graph.tema),
     markdown,
     figures: [{ spec: treeFigure(graph), afterHeading: /[aá]rbol de innovaci[oó]n/i }],
@@ -139,6 +146,7 @@ export function prototypeMarkdown(plan: PrototypePlan): string {
 /** Informe del plan de prototipado con la figura del cronograma. */
 export function prototipadoReport(ficha: Prompt0Data, plan: PrototypePlan): LabReport {
   return {
+    module: 'prototipado',
     fileName: safeFileName('Plan_de_Prototipado', plan.name),
     markdown: prototypeMarkdown(plan),
     figures: [{ spec: buildTimelineFigure(`Cronograma del plan: ${plan.name}`, plan.phases), afterHeading: /cronograma/i }],

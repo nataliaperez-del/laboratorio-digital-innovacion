@@ -2,6 +2,9 @@ import React, { lazy, Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
+import { registerOffline } from './lib/registerOffline';
+
+registerOffline();
 
 // Visor de clips de ZOE: herramienta de revisión, se descarga solo si se abre.
 const ZoeVisor = lazy(() => import('./components/zoe/ZoeVisor'));
