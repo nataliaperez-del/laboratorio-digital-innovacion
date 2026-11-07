@@ -4,7 +4,7 @@ Módulo del **Observatorio InnovaHub360** (UNAD · VIEM). Es solo una parte del 
 
 > [!NOTE]
 > **📚 Documentación Científica, Metodológica y Arquitectónica Integral:**  
-> Para consultar el marco epistémico completo, sustento teórico-científico (MDVT, Godet, Doble Diamante, TRL, PAPS 3.0), adaptación institucional a la UNAD, arquitectura de software y fichas técnicas por herramienta, consulte el [Documento Maestro Consolidado](DOCUMENTO_MAESTRO_CONSOLIDADO.md) (también accesible en [docs/DOCUMENTO_MAESTRO_CONSOLIDADO.md](docs/DOCUMENTO_MAESTRO_CONSOLIDADO.md)).
+> Para consultar el marco epistémico completo, sustento teórico-científico (MHUS 5.0, PAPS, MDVT, Godet, Doble Diamante, TRL), la justificación de ZOE como mediación heutagógica, adaptación institucional a la UNAD, arquitectura de software y fichas técnicas por herramienta, consulte el [Documento Maestro Consolidado](DOCUMENTO_MAESTRO_CONSOLIDADO.md) (también accesible en [docs/DOCUMENTO_MAESTRO_CONSOLIDADO.md](docs/DOCUMENTO_MAESTRO_CONSOLIDADO.md)).
 
 
 | Herramienta | Parte de | Resultado en pantalla | Informe formal |
