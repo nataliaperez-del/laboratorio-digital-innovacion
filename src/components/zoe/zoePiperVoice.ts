@@ -1,32 +1,44 @@
+import { applyTone } from './zoeTone';
+
 /**
- * Voz propia de ZOE: Piper con la voz «es_MX-claude-high» (licencia Apache 2.0), ejecutada en el
- * navegador con ONNX. Es la variante «tierna» que eligió el equipo
- * (`muestras-voz-zoe/zoe-mexico-claude-tierna.wav`, tres semitonos más aguda), llevada un 50 % más
- * allá a pedido de la usuaria: cuatro semitonos y medio, masculina y fluida
- * (`muestras-voz-zoe/zoe-tierna-masculina-fluida.wav`).
+ * Voz propia de ZOE: Piper con la voz masculina de «es_ES-sharvard-medium» (hablante «M»; corpus
+ * Sharvard de la Universidad de Edimburgo, licencia CC BY 3.0), ejecutada en el navegador con ONNX.
+ * Es la voz Piper en español más parecida a la muestra de referencia que eligió la usuaria
+ * (`muestras-voz-zoe/referencia-voice-preview.mp3`): mismo tamaño de voz (espaciado de formantes a
+ * un 1–2 % del de la referencia) y el espectro más cercano.
+ * Se lee con la fonética de espeak para Latinoamérica («es-419»: seseo, sin la «z» española); los
+ * fonemas son los mismos con los que se entrenó el modelo.
  *
- * Para subir el tono sin acelerar, el modelo habla un poco más lento (su `length_scale` sube en la
- * misma proporción) y el audio se reproduce más rápido. Ese cambio de tono también aclara el timbre:
- * la salida le devuelve cuerpo en los graves y suaviza los agudos para que siga sonando masculina.
+ * Lo robótico de la voz anterior venía de reproducir el audio acelerado para subirle el tono (el
+ * timbre se desplazaba con él y Chrome lo interpolaba de forma lineal) y de obligar al modelo a
+ * hablar más lento para compensar. Ahora el modelo habla a su ritmo, el audio suena a su velocidad
+ * en un contexto de audio con la frecuencia de muestreo de la voz, y el tono se ajusta frase a
+ * frase sin tocar el timbre (`zoeTone.ts`): 2,3 semitonos más grave y una entonación más amplia.
+ * Muestras: `muestras-voz-zoe/zoe-nueva-sharvard-grave.wav` (la que usa ZOE) y
+ * `zoe-nueva-sharvard-natural.wav` (sin ajuste de tono).
  *
  * El motor es propio: la sesión de `@mintplex-labs/piper-tts-web` vuelve a crear el fonetizador
  * (espeak-ng) en cada frase, unos 2 s de espera cada vez; aquí se crea una sola vez. De esa librería
  * solo se usa el fonetizador compilado (alias `piper-phonemize` en vite.config.ts), y el modelo se
  * guarda donde ella lo guarda.
  *
- * El modelo pesa 63 MB: se descarga una vez, cuando el navegador está desocupado, y queda guardado.
+ * El modelo pesa 77 MB: se descarga una vez, cuando el navegador está desocupado, y queda guardado.
  * Mientras tanto, o si algo falla, ZOE habla con la voz del sistema.
  */
-const VOICE_FILE = 'es_MX-claude-high.onnx';
-const MODEL_URL = `https://huggingface.co/diffusionstudio/piper-voices/resolve/main/es/es_MX/claude/high/${VOICE_FILE}`;
+const VOICE_FILE = 'es_ES-sharvard-medium.onnx';
+const MODEL_URL = `https://huggingface.co/diffusionstudio/piper-voices/resolve/main/es/es_ES/sharvard/medium/${VOICE_FILE}`;
+/** Frecuencia de muestreo del modelo: el audio se reproduce a esta misma, sin interpolar. */
+const VOICE_SAMPLE_RATE = 22050;
+/** Hablante masculino del modelo (tiene dos: «M» y «F»). */
+const SPEAKER = 'M';
+/** Fonética latinoamericana de espeak. */
+const ESPEAK_VOICE = 'es-419';
+/** Voces anteriores que pueden haber quedado guardadas en el navegador: se borran para liberar espacio. */
+const OLD_VOICE_FILES = ['es_MX-claude-high.onnx', 'es_MX-claude-high.onnx.json'];
 const ONNX_WASM = 'https://cdnjs.cloudflare.com/ajax/libs/onnxruntime-web/1.18.0/';
 const PHONEMIZER_WASM = 'https://cdn.jsdelivr.net/npm/@diffusionstudio/piper-wasm@1.0.0/build/piper_phonemize';
-/** Cuatro semitonos y medio más aguda: un 50 % más tierna que la muestra elegida (3 semitonos). */
-export const TENDER_RATE = 2 ** (4.5 / 12);
-/** Ritmo final de la muestra: un 5 % más pausado que la voz original. */
-const PACE = 0.95;
 /** Marca de la configuración ajustada: si cambia el ajuste, se rehace. */
-const TUNING = 'tierna-v2';
+const TUNING = 'grave-v3';
 
 interface VoiceConfig {
   zoe?: string;
@@ -50,7 +62,17 @@ let audio: AudioContext | null = null;
 /** El modelo atiende una frase a la vez. */
 let queue: Promise<unknown> = Promise.resolve();
 
-const context = () => (audio ??= new AudioContext());
+/** Contexto de audio a la frecuencia de la voz: el navegador la lleva al altavoz con su conversor de calidad. */
+function context(): AudioContext {
+  if (!audio) {
+    try {
+      audio = new AudioContext({ sampleRate: VOICE_SAMPLE_RATE });
+    } catch {
+      audio = new AudioContext();
+    }
+  }
+  return audio;
+}
 
 /** ¿La voz propia ya está cargada? Si no, `speak` usa la del sistema. */
 export const isZoeVoiceReady = () => ready;
@@ -94,13 +116,19 @@ async function writeStored(name: string, data: Blob): Promise<void> {
   }
 }
 
+/** Borra los modelos de voces anteriores (63 MB cada uno) que ya no se usan. */
+async function forgetOldVoices(): Promise<void> {
+  const folder = await storage().catch(() => undefined);
+  for (const name of OLD_VOICE_FILES) await folder?.removeEntry(name).catch(() => undefined);
+}
+
 async function download(url: string): Promise<Blob> {
   const response = await fetch(url);
   if (!response.ok) throw new Error(`${url.split('/').at(-1)} no disponible (${response.status}).`);
   return response.blob();
 }
 
-/** Configuración del modelo con el ritmo y la expresividad de la muestra. */
+/** Configuración del modelo, con la fonética latinoamericana y el ritmo propio de la voz. */
 async function loadConfig(): Promise<VoiceConfig> {
   const name = `${VOICE_FILE}.json`;
   try {
@@ -111,8 +139,13 @@ async function loadConfig(): Promise<VoiceConfig> {
   }
   const config = JSON.parse(await (await download(`${MODEL_URL}.json`)).text()) as VoiceConfig;
   config.zoe = TUNING;
-  // noise_w 0,8: duraciones más parejas entre sílabas, un hablar más fluido.
-  config.inference = { length_scale: (config.inference?.length_scale ?? 1) * PACE * TENDER_RATE, noise_scale: 0.7, noise_w: 0.8 };
+  config.espeak = { ...config.espeak, voice: ESPEAK_VOICE };
+  // Los valores del modelo: sin estirar ni apurar el habla, que es lo que la volvía mecánica.
+  config.inference = {
+    length_scale: config.inference?.length_scale ?? 1,
+    noise_scale: config.inference?.noise_scale ?? 0.667,
+    noise_w: config.inference?.noise_w ?? 0.8,
+  };
   await writeStored(name, new Blob([JSON.stringify(config)], { type: 'application/json' }));
   return config;
 }
@@ -146,7 +179,9 @@ async function createEngine(): Promise<Engine> {
     locateFile: (file) => (file.endsWith('.wasm') ? `${PHONEMIZER_WASM}.wasm` : file.endsWith('.data') ? `${PHONEMIZER_WASM}.data` : file),
   });
   const { noise_scale, length_scale, noise_w } = config.inference;
-  const multiSpeaker = Object.keys(config.speaker_id_map ?? {}).length > 0;
+  const speakers = config.speaker_id_map ?? {};
+  const multiSpeaker = Object.keys(speakers).length > 0;
+  const speaker = BigInt(speakers[SPEAKER] ?? 0);
   const created: Engine = {
     sampleRate: config.audio.sample_rate,
     phonemize(text) {
@@ -160,7 +195,7 @@ async function createEngine(): Promise<Engine> {
         input_lengths: new ort.Tensor('int64', BigInt64Array.from([BigInt(ids.length)]), [1]),
         scales: new ort.Tensor('float32', Float32Array.from([noise_scale, length_scale, noise_w]), [3]),
       };
-      if (multiSpeaker) feeds.sid = new ort.Tensor('int64', BigInt64Array.from([0n]), [1]);
+      if (multiSpeaker) feeds.sid = new ort.Tensor('int64', BigInt64Array.from([speaker]), [1]);
       const { output } = await session.run(feeds);
       return output.data as Float32Array;
     },
@@ -176,6 +211,7 @@ export function prepareZoeVoice(): Promise<Engine> | null {
   engine ??= createEngine().then(
     (created) => {
       ready = true;
+      void forgetOldVoices();
       return created;
     },
     (e) => {
@@ -357,15 +393,14 @@ export async function synthesizeZoe(text: string): Promise<AudioBuffer> {
   const turn = queue.then(async () => {
     const pieces: Float32Array[] = [];
     for (const ids of voice.phonemize(speechText(text))) {
-      const piece = shapeSentence(await voice.speak(ids), voice.sampleRate);
+      const piece = shapeSentence(applyTone(await voice.speak(ids), voice.sampleRate), voice.sampleRate);
       if (piece.length) pieces.push(piece);
     }
     return pieces;
   });
   queue = turn.catch(() => undefined);
   const pieces = await turn;
-  // El audio suena acelerado (TENDER_RATE): el silencio se alarga en la misma proporción.
-  const gap = Math.round(SENTENCE_SILENCE_S * voice.sampleRate * TENDER_RATE);
+  const gap = Math.round(SENTENCE_SILENCE_S * voice.sampleRate);
   const length = pieces.reduce((sum, piece) => sum + piece.length, 0) + gap * Math.max(0, pieces.length - 1);
   if (!length) throw new Error('Frase sin sonido.');
   const buffer = context().createBuffer(1, length, voice.sampleRate);
@@ -381,38 +416,38 @@ export async function synthesizeZoe(text: string): Promise<AudioBuffer> {
 let output: AudioNode | null = null;
 
 /**
- * Salida de la voz: más cuerpo en los graves y agudos más suaves (el cambio de tono aclara el
- * timbre y lo vuelve estridente; así sigue sonando masculina), y un compresor suave que iguala lo
- * fuerte y lo débil.
+ * Salida de la voz: un ecualizador suave que acerca su espectro al de la referencia (−4 dB bajo
+ * 150 Hz, que retumbaban, y +3 dB de presencia hacia 1,8 kHz: la diferencia promedio por bandas
+ * baja de 3,5 a 2,5 dB) y un compresor suave que iguala lo fuerte y lo débil.
  */
 function voiceOutput(ctx: AudioContext): AudioNode {
   if (output?.context === ctx) return output;
   const body = ctx.createBiquadFilter();
   body.type = 'lowshelf';
-  body.frequency.value = 220;
-  body.gain.value = 2;
-  const soften = ctx.createBiquadFilter();
-  soften.type = 'highshelf';
-  soften.frequency.value = 4500;
-  soften.gain.value = -4.5;
+  body.frequency.value = 150;
+  body.gain.value = -4;
+  const presence = ctx.createBiquadFilter();
+  presence.type = 'peaking';
+  presence.frequency.value = 1800;
+  presence.Q.value = 0.7;
+  presence.gain.value = 3;
   const compressor = ctx.createDynamicsCompressor();
   compressor.threshold.value = -18;
   compressor.knee.value = 12;
   compressor.ratio.value = 3;
   compressor.attack.value = 0.003;
   compressor.release.value = 0.25;
-  body.connect(soften).connect(compressor).connect(ctx.destination);
+  body.connect(presence).connect(compressor).connect(ctx.destination);
   output = body;
   return output;
 }
 
-/** Reproduce el audio con el tono de ZOE (TENDER_RATE); devuelve con qué detenerlo. */
+/** Reproduce el audio a su velocidad (el tono ya viene ajustado); devuelve con qué detenerlo. */
 export function playZoe(buffer: AudioBuffer, onEnded: () => void): () => void {
   const ctx = context();
   void ctx.resume();
   const source = ctx.createBufferSource();
   source.buffer = buffer;
-  source.playbackRate.value = TENDER_RATE;
   source.connect(voiceOutput(ctx));
   source.onended = onEnded;
   source.start();

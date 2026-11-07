@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  TENDER_RATE,
   isZoeVoiceReady,
   pauseAfter,
   playZoe,
@@ -249,7 +248,7 @@ export function useZoeVoice() {
             else void playFrom(i + 1);
           };
           stopCurrent = playZoe(buffer, advance);
-          timerRef.current = window.setTimeout(advance, (buffer.duration / TENDER_RATE) * 1000 + 1500);
+          timerRef.current = window.setTimeout(advance, buffer.duration * 1000 + 1500);
         };
         void playFrom(0);
       };
