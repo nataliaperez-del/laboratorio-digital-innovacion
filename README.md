@@ -173,10 +173,26 @@ Cada insignia desbloqueada permite generar e imprimir un **Certificado Oficial d
 - **Repositorio Oficial en GitHub:** [https://github.com/nataliaperez-del/laboratorio-digital-innovacion](https://github.com/nataliaperez-del/laboratorio-digital-innovacion)
 - **GitHub Pages:** Automatizado mediante flujo de trabajo en .github/workflows/deploy.yml con empaquetado de rutas relativas (ase: './').
 - **Despliegue en Hostinger:** Paquete de producción precompilado en hostinger_deploy/ listo para servidor Apache con PHP (mod_rewrite y pasarela segura en includes/gemini_proxy.php).
+- **Despliegue en Vercel:** compilación y funciones de servidor en `api/` (ver «Producción (Vercel)»).
 
 ## Producción (Hostinger)
 
 Ver [hostinger_deploy/README_HOSTINGER.md](hostinger_deploy/README_HOSTINGER.md). Las credenciales van en `config/ia.php`, que no se sube al repositorio.
+
+## Producción (Vercel)
+
+Vercel compila con `npm run build` ([vercel.json](vercel.json)) y atiende las dos rutas de servidor con funciones: [api/unad-gemini.ts](api/unad-gemini.ts) (IA institucional, hasta 300 s por respuesta) y [api/observatorio/radar.ts](api/observatorio/radar.ts) (Radar, guardado 6 h en la CDN). Las dos usan [server/iaProxy.ts](server/iaProxy.ts), la misma lógica del servidor de desarrollo. [.vercelignore](.vercelignore) deja fuera `.env.local`, `hostinger_deploy/` (con `config/ia.php`) y el material de trabajo.
+
+Variables del proyecto en Vercel (Settings → Environment Variables):
+
+| Variable | Tipo | Para qué |
+|---|---|---|
+| `UNAD_GEMINI_X_API_KEY`, `UNAD_GEMINI_BEARER` | Sensible, solo servidor | Pasarela UNAD IA 360 |
+| `UNAD_GEMINI_BASE_URL`, `UNAD_GEMINI_MODEL` | Opcional, solo servidor | Otra pasarela u otro modelo por defecto |
+| `GEMINI_API_KEY` | Opcional, sensible | Google directo si no hay pasarela UNAD |
+| `VITE_GOOGLE_CLIENT_ID` | Pública, se compila en la página | Carga desde Google Drive; el dominio de Vercel debe estar autorizado en el cliente OAuth |
+
+Un cambio de variables solo aplica en el siguiente despliegue. Vercel limita el cuerpo de cada petición a 4,5 MB, frente a los 12 MB del servidor local; los límites de contexto (`VITE_MAX_*`) quedan por debajo. El proxy rechaza peticiones de navegador que vengan de otra web, para que nadie más use la cuota de la UNAD.
 
 ## Limitaciones conocidas
 

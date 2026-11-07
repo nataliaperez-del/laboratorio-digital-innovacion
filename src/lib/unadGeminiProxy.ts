@@ -76,7 +76,7 @@ function parseProxyResponse(rawText: string, status: number): UnadGeminiGenerate
         status === 500
           ? ' Suele deberse a un prompt demasiado grande para el proxy UNAD: reduce `VITE_MAX_COMBINED_SOURCE_CHARS` y `VITE_MAX_C2_PROMPT_DOC_CHARS`.'
           : status === 404
-            ? ' La ruta /api/unad-gemini no existe en el servidor: revisa el .htaccess y includes/gemini_proxy.php.'
+            ? ' La ruta /api/unad-gemini no existe en el servidor: en Hostinger revisa el .htaccess e includes/gemini_proxy.php; en Vercel, la función api/unad-gemini.ts.'
             : status === 401 || status === 403
               ? ' Revisa las credenciales: define UNAD_GEMINI_X_API_KEY y UNAD_GEMINI_BEARER en el servidor o escríbelas en el botón «IA» de la cabecera.'
               : '';

@@ -43,3 +43,6 @@ modelo-para-autorig/
 
 public/assets/badges_original_backup/
 hostinger_deploy/assets/badges_original_backup/
+.vercel
+.env*
+!.env.example

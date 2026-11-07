@@ -1,0 +1,11 @@
+# Lo que nunca se sube a Vercel: credenciales, paquetes de Hostinger y material de trabajo.
+.env
+.env.*
+!.env.example
+hostinger_deploy/
+*.zip
+muestras-voz-zoe/
+modelo-para-autorig/
+node_modules/
+dist/
+.git/

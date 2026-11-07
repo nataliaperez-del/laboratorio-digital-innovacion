@@ -14,8 +14,8 @@
     "zoe:banco": "node scripts/zoe/construir-banco-unadista.mjs",
     "predev": "node scripts/sellar-repositorio.mjs && node scripts/zoe/construir-banco-unadista.mjs",
     "prebuild": "node scripts/sellar-repositorio.mjs && node scripts/zoe/construir-banco-unadista.mjs",
-    "format": "prettier --write \"src/**/*.{ts,tsx}\" \"tests/**/*.ts\" \"scripts/*.mjs\" vite.config.ts vite-plugin-unad-gemini-proxy.ts",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"tests/**/*.ts\" \"scripts/*.mjs\" vite.config.ts vite-plugin-unad-gemini-proxy.ts"
+    "format": "prettier --write \"src/**/*.{ts,tsx}\" \"tests/**/*.ts\" \"scripts/*.mjs\" \"server/*.ts\" \"api/**/*.ts\" vite.config.ts vite-plugin-unad-gemini-proxy.ts",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"tests/**/*.ts\" \"scripts/*.mjs\" \"server/*.ts\" \"api/**/*.ts\" vite.config.ts vite-plugin-unad-gemini-proxy.ts"
   },
   "dependencies": {
     "@google/genai": "^1.29.0",
