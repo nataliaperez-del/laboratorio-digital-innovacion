@@ -140,7 +140,7 @@ ZOE es un schnauzer holográfico que vive en la pantalla. No tiene chat de texto
 - ZOE **termina siempre sus respuestas**. Si lo tocas mientras habla, acaba la idea y luego te escucha.
 - Para cortar la conversación, toca la **equis** del globo de subtítulos o el botón del micrófono.
 - El botón del **parlante** lo silencia; los subtítulos siguen apareciendo.
-- **Su voz:** la primera vez, ZOE descarga su voz (unos 63 MB) y la guarda en el navegador; mientras tanto habla con la voz del equipo. Con el ahorro de datos activo o una conexión lenta usa siempre la del equipo. Con su voz propia (tierna, masculina y fluida) dice cada idea completa, respira entre frases como al hablar (un poco más después de una pregunta) y mantiene el mismo volumen de principio a fin.
+- **Su voz:** la primera vez, ZOE descarga su voz (unos 77 MB) y la guarda en el navegador; mientras tanto habla con la voz del equipo. Con el ahorro de datos activo o una conexión lenta usa siempre la del equipo. Con su voz propia (masculina y grave; dice la «z» y la «c» como «s», como en Latinoamérica) dice cada idea completa, respira entre frases como al hablar (un poco más después de una pregunta) y mantiene el mismo volumen de principio a fin.
 
 ### Órdenes directas
 
@@ -258,7 +258,7 @@ Con eso:
 | ZOE pide una dirección segura | Abre el Laboratorio con `https://` |
 | ZOE suena distinto de lo habitual | Su voz aún se está descargando o la conexión está en ahorro de datos: mientras tanto usa la del equipo. Al recargar con buena conexión vuelve su voz |
 | ZOE no se ve en 3D | El navegador no puede dibujar 3D: se muestra su imagen fija. Actualiza el navegador o activa la aceleración por hardware |
-| La IA no responde | Mira el **círculo** de la cabecera, junto a las insignias: verde es IA conectada y rojo, sin conexión (pasa el puntero para ver el motivo; tócalo para volver a comprobar). ZOE sigue contigo respondiendo de memoria. Mientras tanto puedes preparar la ficha, el tema o la idea, seguir con lo del Contenedor de resultados (sección 5, «Sin conexión») y generar cuando vuelva |
+| La IA no responde | Mira el **círculo** de la cabecera, antes de la casita de Inicio: verde es IA conectada y rojo, sin conexión (pasa el puntero para ver el motivo; tócalo para volver a comprobar). ZOE sigue contigo respondiendo de memoria. Mientras tanto puedes preparar la ficha, el tema o la idea, seguir con lo del Contenedor de resultados (sección 5, «Sin conexión») y generar cuando vuelva |
 | No se descarga el informe | Responde las tres preguntas de la encuesta: **Enviar y descargar** se activa con las tres. Para el PDF, permite las ventanas emergentes del sitio |
 | Las métricas no muestran las encuestas de otros equipos | Por ahora cada navegador guarda sus propias respuestas: el tablero muestra las de tu equipo |
 | Perdí mi trabajo | El trabajo vive en el navegador: si borraste datos o cambiaste de equipo, recupéralo desde el Banco Unificado de Innovación o desde el informe descargado |

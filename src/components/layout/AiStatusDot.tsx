@@ -7,7 +7,8 @@ import { useStore } from '@/store/useStore';
 const STALE_MS = 10 * 60_000;
 
 /**
- * El círculo de la cabecera: verde si la IA responde, rojo si no. Solo el círculo; el detalle va
+ * El círculo de la cabecera, antes de la casita de Inicio: verde si la IA responde, rojo si no.
+ * Solo el círculo, y solo en esos dos colores: durante la primera prueba no se ve. El detalle va
  * en su descripción emergente y en el panel «IA».
  *
  * Comprueba al abrir la página y al cambiar de proveedor o modelo, al recuperar la red, al volver

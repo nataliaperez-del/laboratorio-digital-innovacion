@@ -442,7 +442,8 @@ button.lab-card:hover { border-color: var(--brand-teal-text); }
 .ai-dot { width: 10px; height: 10px; border-radius: 999px; transition: background-color .3s ease, box-shadow .3s ease; }
 .ai-dot-ok { background: #22C55E; box-shadow: 0 0 8px rgba(34, 197, 94, .75); }
 .ai-dot-error { background: #EF4444; box-shadow: 0 0 8px rgba(239, 68, 68, .75); }
-.ai-dot-checking { background: rgba(255, 255, 255, .35); }
+/* Mientras se hace la primera prueba no se ve nada (solo verde o rojo); el espacio queda reservado. */
+.ai-dot-checking { background: transparent; }
 .ai-dot.is-probing { animation: ai-dot-pulse 1.4s ease-in-out infinite; }
 @keyframes ai-dot-pulse { 50% { opacity: .45; } }
 @media (prefers-reduced-motion: reduce) { .ai-dot.is-probing { animation: none; } }

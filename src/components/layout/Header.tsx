@@ -114,6 +114,9 @@ export const Header: React.FC<HeaderProps> = ({ currentTool, onSelectTool, theme
             BLOQUE JUSTIFICADO A LA DERECHA: ICONOS CON TOOLTIPS + MENÚ HAMBURGUESA
             ========================================================================= */}
         <div className="flex items-center gap-2 sm:gap-2.5">
+          {/* Señal de la IA, antes de la casita de Inicio: verde conectada, rojo sin conexión. */}
+          <AiStatusDot />
+
           {/* Tira compacta de sólo iconos con Tooltip Flotante */}
           <nav className="flex items-center gap-1 sm:gap-1.5 p-1 sm:p-1.5 g2 rounded-full border border-white/10">
             {navTools.map((tool) => {
@@ -152,25 +155,28 @@ export const Header: React.FC<HeaderProps> = ({ currentTool, onSelectTool, theme
                 </div>
               );
             })}
+
+            {/* Vitrina de insignias: al final de la tira, solo el trofeo; el nivel va en su descripción. */}
+            <div className="relative group">
+              <button
+                type="button"
+                onClick={onOpenBadges}
+                aria-label={`Abrir vitrina de insignias · ${gamification.currentRank.title}, nivel ${gamification.currentRank.level} (${gamification.unlockedBadgeIds.length} de ${INNOVATION_BADGES.length})`}
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all cursor-pointer text-brand-textSecondary hover:bg-white/10 border border-transparent"
+              >
+                <Trophy className="w-4 h-4 sm:w-4.5 sm:h-4.5 transition-transform group-hover:scale-110" style={{ color: '#FFD700' }} />
+              </button>
+              <div
+                className="absolute top-full mt-2.5 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-xl bg-[#04222B]/95 text-white text-[11px] font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 shadow-[0_8px_20px_rgba(0,0,0,0.6)] z-50 flex items-center gap-1.5 transform group-hover:translate-y-0 translate-y-1"
+                style={{ border: '1px solid #FFD70060' }}
+              >
+                <span className="w-1.5 h-1.5 rounded-full inline-block shadow-[0_0_6px]" style={{ backgroundColor: '#FFD700', color: '#FFD700' }} />
+                <span>
+                  Insignias · Nv.{gamification.currentRank.level} · {gamification.unlockedBadgeIds.length}/{INNOVATION_BADGES.length}
+                </span>
+              </div>
+            </div>
           </nav>
-
-          {/* Señal de la IA: verde conectada, rojo sin conexión. */}
-          <AiStatusDot />
-
-          {/* Botón de Insignias y Gamificación */}
-          <button
-            type="button"
-            onClick={onOpenBadges}
-            className="h-9 sm:h-10 px-2.5 sm:px-3 rounded-full g2 border border-[#FFD700]/30 hover:border-[#FFD700] hover:bg-[#FFD700]/15 transition-all cursor-pointer flex items-center gap-1.5 shadow-[0_0_12px_rgba(255,215,0,0.15)] group shrink-0"
-            title={`Vitrina de Insignias · ${gamification.currentRank.title} (${gamification.unlockedBadgeIds.length}/${INNOVATION_BADGES.length})`}
-            aria-label="Abrir vitrina de insignias"
-          >
-            <Trophy className="w-4 h-4 text-[#FFD700] group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-bold text-white sy">Nv.{gamification.currentRank.level}</span>
-            <span className="hidden sm:inline text-[11px] font-semibold text-[#FFD700]">
-              {gamification.unlockedBadgeIds.length}/{INNOVATION_BADGES.length}
-            </span>
-          </button>
 
           {/* Botón y Menú Hamburguesa Superior Derecho */}
           <div className="relative" ref={menuRef}>
