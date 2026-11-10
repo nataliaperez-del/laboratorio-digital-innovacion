@@ -1,8 +1,9 @@
 import React, { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Compass, Dog, Footprints, Globe, Heart, House, Mic, Moon, Volume2, VolumeX, X } from 'lucide-react';
+import { Compass, Dog, Footprints, Globe, Heart, House, MessageSquare, Mic, Moon, Volume2, VolumeX, X } from 'lucide-react';
 import type { ZoeSoulState, ZoeTrick } from './ZoeCanvas3D';
 import { splitSentences, useZoeVoice, type ZoeListenFailure } from './useZoeVoice';
 import { doghouseDoor, ZoeDoghouse } from './ZoeDoghouse';
+import { ZoeChat, type ZoeChatMessage } from './ZoeChat';
 import type { ToolId } from '../layout/Header';
 import { askZoe, currentWork } from '@/services/zoeAi';
 import {
@@ -89,6 +90,7 @@ const MIC_PROBLEMS: Partial<Record<ZoeListenFailure, string>> = {
   'sin-https': 'Para escucharte, esta página debe abrirse con una dirección segura, con h t t p s.',
   'sin-red': 'El servicio de voz del navegador no responde. Necesita internet, y funciona en Chrome o Edge.',
   error: 'No alcancé a escucharte: el reconocimiento de voz falló. Intentemos otra vez en un momento.',
+  ruido: 'Escríbeme: hay mucho ruido y no puedo escucharte. Te respondo aquí mismo.',
 };
 
 /** Saludo de la primera conversación: sin afán, pregunta antes de avanzar. */
@@ -324,6 +326,13 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
   const aiDownUntil = useRef(0);
   const offlineNoticed = useRef(false);
   const [caption, setCaption] = useState<string | null>(null);
+  // Chat de texto: cuando hay ruido o falla el micrófono, se le escribe a ZOE; responde en texto y, si se quiere, en voz.
+  const [chatOpen, setChatOpen] = useState(false);
+  const chatOpenRef = useRef(false);
+  const [chatVoice, setChatVoice] = useState(true);
+  const chatVoiceRef = useRef(true);
+  const [chatLog, setChatLog] = useState<ZoeChatMessage[]>([]);
+  const chatSeq = useRef(0);
   const [heard, setHeard] = useState<string | null>(null);
   const silentTries = useRef(0);
   const captionTimer = useRef<number | undefined>(undefined);
@@ -531,7 +540,8 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
   /** Al terminar de hablar: si la conversación sigue abierta, vuelve a escuchar. */
   const afterSpeech = useCallback((keepListening: boolean) => {
     setBehavior('idle');
-    if (keepListening && talkingRef.current) {
+    // Con el chat abierto no se vuelve a abrir el micrófono: se está escribiendo.
+    if (keepListening && talkingRef.current && !chatOpenRef.current) {
       // Un respiro antes de abrir el micrófono: que no se oiga a sí mismo.
       window.setTimeout(() => {
         if (talkingRef.current) listenRef.current();
@@ -540,15 +550,28 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
   }, []);
 
   /** Dice algo y avisa cuando termina; si otra locución la interrumpe, no avisa. */
+  const logChat = useCallback((from: ZoeChatMessage['from'], text: string) => {
+    chatSeq.current += 1;
+    setChatLog((log) => [...log, { id: chatSeq.current, from, text }].slice(-60));
+  }, []);
+
   const sayAndWait = useCallback(
     (text: string) =>
       new Promise<void>((resolve) => {
         setBehavior('speaking');
         setHeard(null);
         setCaption(splitSentences(text)[0] ?? text);
+        if (chatOpenRef.current) {
+          // En el chat la respuesta queda escrita; la voz es opcional.
+          logChat('zoe', text);
+          if (!chatVoiceRef.current) {
+            window.setTimeout(resolve, Math.min(3500, 500 + text.length * 20));
+            return;
+          }
+        }
         voice.speak(text, resolve, setCaption);
       }),
-    [voice],
+    [logChat, voice],
   );
 
   /** Dice algo y, si la conversación sigue abierta, vuelve a escuchar. */
@@ -583,6 +606,43 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
     voice.stopSpeaking();
     setBehavior('idle');
     setHeard(null);
+  }, [voice]);
+
+  /** Abre el chat flotante; con `notice`, ZOE lo dice y lo deja escrito (p. ej. «hay mucho ruido»). */
+  const openChat = useCallback(
+    (notice?: string) => {
+      chatOpenRef.current = true;
+      setChatOpen(true);
+      voice.stopListening();
+      if (!talkingRef.current) startTalking();
+      if (notice) {
+        remember(null, notice);
+        void sayAndWait(notice).then(() => afterSpeech(false));
+      }
+    },
+    [afterSpeech, remember, sayAndWait, startTalking, voice],
+  );
+
+  const closeChat = useCallback(() => {
+    chatOpenRef.current = false;
+    setChatOpen(false);
+    endConversation();
+  }, [endConversation]);
+
+  /** Del chat de vuelta a la voz. */
+  const chatToMic = useCallback(() => {
+    chatOpenRef.current = false;
+    setChatOpen(false);
+    voice.stopSpeaking();
+    if (!talkingRef.current) startTalking();
+    listenRef.current();
+  }, [startTalking, voice]);
+
+  const toggleChatVoice = useCallback(() => {
+    const next = !chatVoiceRef.current;
+    chatVoiceRef.current = next;
+    setChatVoice(next);
+    if (!next) voice.stopSpeaking();
   }, [voice]);
 
   // ── Recorrido guiado ──
@@ -916,7 +976,7 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
       const filler = window.setTimeout(() => {
         const line = pickOne(FILLERS);
         setCaption(line);
-        voice.speak(line);
+        if (!chatOpenRef.current || chatVoiceRef.current) voice.speak(line);
       }, FILLER_AFTER_MS);
       try {
         let reply = await askZoe(text, historyRef.current, toolRef.current);
@@ -979,9 +1039,25 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
     ],
   );
 
+  /** Lo escrito en el chat sigue el mismo camino que lo dicho: órdenes, recorrido, IA y respuesta de memoria. */
+  const sendChat = useCallback(
+    (text: string) => {
+      logChat('user', text);
+      voice.stopSpeaking();
+      if (!talkingRef.current) startTalking();
+      void answer(text);
+    },
+    [answer, logChat, startTalking, voice],
+  );
+
   const onListenFail = useCallback(
     (reason: ZoeListenFailure) => {
       setBehavior('idle');
+      if (reason === 'ruido') {
+        // Mucho ruido: se deja de insistir con el micrófono y se pasa al chat.
+        openChat(MIC_PROBLEMS.ruido);
+        return;
+      }
       if (reason === 'sin-voz' && pendingRef.current) {
         // Se le preguntó si había terminado y guardó silencio: ya terminó.
         const question = pendingRef.current;
@@ -1005,11 +1081,11 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
           say('¿Sigues ahí? Te escucho.');
         }
       } else {
-        endConversation();
-        say(MIC_PROBLEMS[reason] ?? MIC_PROBLEMS.error!, false);
+        // Si el micrófono no sirve, queda el chat.
+        openChat(`${MIC_PROBLEMS[reason] ?? MIC_PROBLEMS.error!} Mientras tanto, escríbeme aquí.`);
       }
     },
-    [answer, endConversation, say],
+    [answer, endConversation, openChat, say],
   );
 
   /**
@@ -1052,7 +1128,7 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
 
   const startConversation = useCallback(async () => {
     if (!voice.canListen) {
-      say('Para conversar por voz necesito Chrome o Edge: este navegador no me deja escuchar.', false);
+      openChat('Para conversar por voz necesito Chrome o Edge, pero puedes escribirme aquí.');
       return;
     }
     wake();
@@ -1070,7 +1146,7 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
       remember(null, GREETING);
       say(GREETING);
     }
-  }, [onListenFail, remember, say, startTalking, voice, wake]);
+  }, [onListenFail, openChat, remember, say, startTalking, voice, wake]);
 
   /** Tocarlo: empieza a conversar; si escucha, termina. Si está hablando no se le corta: termina la idea y luego escucha. */
   const onTouchZoe = useCallback(() => {
@@ -1274,6 +1350,13 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
       color: '#27DCFF',
     },
     {
+      label: chatOpen ? 'Cerrar el chat con ZOE' : 'Escribirle a ZOE',
+      icon: <MessageSquare className="w-4 h-4" />,
+      onClick: () => (chatOpen ? closeChat() : openChat()),
+      pressed: chatOpen,
+      color: '#5EC2DD',
+    },
+    {
       label: touring ? 'Terminar el recorrido guiado' : 'Recorrido guiado por el Laboratorio',
       icon: <Compass className="w-4 h-4" />,
       onClick: () => (touring ? tourControl('stop') : startTour()),
@@ -1325,6 +1408,18 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
   return (
     <>
       {homeTrip !== 'none' && <ZoeDoghouse occupied={false} />}
+      {chatOpen && (
+        <ZoeChat
+          messages={chatLog}
+          thinking={behavior === 'thinking'}
+          voiceOn={chatVoice}
+          canUseMic={voice.canListen}
+          onSend={sendChat}
+          onToggleVoice={toggleChatVoice}
+          onUseMic={chatToMic}
+          onClose={closeChat}
+        />
+      )}
       <div
         className={`zoe-stage fixed z-40 group ${tripClass}`}
         style={{
@@ -1336,7 +1431,7 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
         }}
       >
         {/* Subtítulos: lo que ZOE dice, también para quien no puede oírlo. No es un chat. */}
-        {(caption || status || heard || touring) && (
+        {(caption || status || heard || touring) && (!chatOpen || touring) && (
           <div
             className={`zoe-caption ${position.x < window.innerWidth / 2 ? 'zoe-caption-left' : ''}`}
             // Frente a la casita el escenario sale un poco de la pantalla: el globo no se corta.

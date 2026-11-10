@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { createNoiseDetector, NOISY_LEVEL } from '@/lib/zoeNoise';
 import {
   isZoeVoiceReady,
   pauseAfter,
@@ -51,7 +52,7 @@ export function splitSentences(text: string): string[] {
 }
 
 /** Por qué ZOE no pudo escuchar: permiso, micrófono, HTTPS, red, silencio u otro error. */
-export type ZoeListenFailure = 'sin-permiso' | 'sin-microfono' | 'mic-mudo' | 'sin-https' | 'sin-red' | 'sin-voz' | 'error';
+export type ZoeListenFailure = 'sin-permiso' | 'sin-microfono' | 'mic-mudo' | 'sin-https' | 'sin-red' | 'sin-voz' | 'ruido' | 'error';
 
 /** Espera a que la persona empiece a hablar; el reconocedor solo aguanta unos segundos y se reabre. */
 const LISTEN_WINDOW_MS = 12000;
@@ -71,7 +72,7 @@ export function recognitionLang(preferred: readonly string[]): string {
 }
 
 /** Volumen del micrófono mientras se escucha: da una señal visible y distingue un micrófono mudo. */
-async function openLevelMeter(onLevel?: (level: number) => void) {
+async function openLevelMeter(onLevel?: (level: number) => void, onNoisy?: () => void) {
   // En Android el reconocedor y otra captura de audio se estorban.
   if (/android/i.test(navigator.userAgent) || !navigator.mediaDevices) return null;
   const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -80,12 +81,19 @@ async function openLevelMeter(onLevel?: (level: number) => void) {
   analyser.fftSize = 512;
   context.createMediaStreamSource(stream).connect(analyser);
   const samples = new Float32Array(analyser.fftSize);
-  const meter = { peak: 0, close: () => undefined as void };
+  const meter = { peak: 0, sum: 0, count: 0, noisy: false, close: () => undefined as void };
+  const isNoisy = createNoiseDetector();
   const timer = window.setInterval(() => {
     analyser.getFloatTimeDomainData(samples);
     const level = Math.sqrt(samples.reduce((sum, v) => sum + v * v, 0) / samples.length);
     meter.peak = Math.max(meter.peak, level);
+    meter.sum += level;
+    meter.count += 1;
     onLevel?.(level);
+    if (!meter.noisy && isNoisy(level, 80)) {
+      meter.noisy = true;
+      onNoisy?.();
+    }
   }, 80);
   meter.close = () => {
     window.clearInterval(timer);
@@ -303,9 +311,12 @@ export function useZoeVoice() {
       const finish = () => {
         const text = spoken.trim();
         const peak = meter?.peak;
+        // Ruido: el medidor lo vio sostenido, o el volumen medio fue alto durante toda la escucha.
+        const noisy = Boolean(meter && (meter.noisy || (meter.count > 25 && meter.sum / meter.count > NOISY_LEVEL)));
         close();
         if (text) onText(text);
         else if (failure) onFail(failure);
+        else if (noisy) onFail('ruido');
         else onFail(peak !== undefined && peak < SILENT_MIC_LEVEL ? 'mic-mudo' : 'sin-voz');
       };
       const windowTimer = window.setTimeout(() => {
@@ -360,7 +371,11 @@ export function useZoeVoice() {
         }
       };
       open();
-      void openLevelMeter(onLevel)
+      // Ruido sostenido sin que el reconocedor entienda nada: no se espera al final, se avisa ya.
+      const onNoisy = () => {
+        if (isCurrent() && !spoken && !failure) finish();
+      };
+      void openLevelMeter(onLevel, onNoisy)
         .then((opened) => {
           if (isCurrent()) meter = opened;
           else opened?.close();
