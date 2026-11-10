@@ -232,13 +232,19 @@
 .halo {
   position: absolute;
   border-radius: 999px;
-  animation: swim var(--s2, 48s) ease-in-out infinite;
+  animation: swim 24s ease-in-out infinite;
+  will-change: transform;
   pointer-events: none;
 }
+/* Cada halo flota a su ritmo y en su sentido: el fondo respira sin repetirse a la vista. */
+.halo:nth-of-type(2) { animation-duration: 31s; animation-direction: reverse; }
+.halo:nth-of-type(3) { animation-duration: 37s; animation-delay: -11s; }
+.halo:nth-of-type(4) { animation-duration: 27s; animation-delay: -16s; animation-direction: reverse; }
 
 @keyframes swim {
   0%, 100% { transform: translate(0,0) scale(1); }
-  50% { transform: translate(-32px,24px) scale(1.08); }
+  33% { transform: translate(90px,-60px) scale(1.14); }
+  66% { transform: translate(-70px,50px) scale(.92); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -677,3 +683,14 @@ button.viz-hbar-row { cursor: pointer; }
 .zoe-chat-form input:focus-visible { outline: 2px solid #27DCFF; outline-offset: 1px; }
 .zoe-chat-form button { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 999px; color: #04222B; background: #27DCFF; cursor: pointer; }
 .zoe-chat-form button:disabled { opacity: .4; cursor: default; }
+
+/* Ingreso institucional y acceso restringido */
+.login-gate { display: flex; align-items: center; justify-content: center; min-height: 60vh; padding: 16px; }
+.login-card { width: min(440px, 100%); display: flex; flex-direction: column; gap: 12px; padding: 24px; border-radius: 18px; color: var(--text-primary); background: color-mix(in srgb, var(--bg-page) 70%, transparent); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border: 1px solid rgba(39, 220, 255, .24); box-shadow: 0 10px 34px rgba(0, 0, 0, .25); }
+.login-title { font-size: 20px; font-weight: 700; }
+.login-text { font-size: 14px; line-height: 1.5; color: var(--text-muted); }
+.login-notice { padding: 8px 12px; border-radius: 10px; font-size: 13px; background: rgba(243, 194, 107, .14); border: 1px solid rgba(243, 194, 107, .35); }
+.login-error { padding: 8px 12px; border-radius: 10px; font-size: 13px; background: rgba(239, 68, 68, .12); border: 1px solid rgba(239, 68, 68, .4); }
+.login-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 16px; border-radius: 999px; font-size: 14px; font-weight: 700; color: #04222B; background: #27DCFF; cursor: pointer; }
+.login-btn:disabled { opacity: .6; cursor: default; }
+.login-footnote { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }

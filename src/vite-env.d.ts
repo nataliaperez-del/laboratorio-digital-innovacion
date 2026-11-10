@@ -6,6 +6,8 @@ interface ImportMetaEnv {
   readonly VITE_ALLOWED_EMAIL_DOMAINS?: string;
   /** Opcional: minutos de inactividad antes de cerrar la sesión (5–720; por defecto 30). */
   readonly VITE_SESSION_IDLE_MINUTES?: string;
+  /** Correos de los administradores (los que ven el Contenedor de resultados), separados por coma. */
+  readonly VITE_ADMIN_EMAILS?: string;
   /** SOLO DESARROLLO: 'true' desactiva la pantalla de ingreso. */
   readonly VITE_AUTH_DISABLED?: string;
   /** Opcional: máx. caracteres del texto de Drive enviados al modelo (por defecto 900000). */

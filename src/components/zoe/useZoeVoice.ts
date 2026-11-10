@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createNoiseDetector, NOISY_LEVEL } from '@/lib/zoeNoise';
+import { playBark, splitBarks } from '@/lib/zoeBark';
+import { playRecorded } from '@/lib/zoeRecorded';
 import {
   isZoeVoiceReady,
   pauseAfter,
@@ -169,6 +171,26 @@ export function useZoeVoice() {
       const finish = () => {
         if (run === speechRun.current) onEnd?.();
       };
+      // «¡Woa, woa!» no se pronuncia: suena un ladrido real y luego sigue el resto de la frase.
+      const { barks, rest } = splitBarks(text);
+      if (barks > 0) {
+        if (muted) {
+          text = rest || '¡Guau!';
+        } else {
+          const stopBark = playBark(() => {
+            cutOwnVoice.current = null;
+            if (run !== speechRun.current) return;
+            if (rest) speak(rest, onEnd, onPart);
+            else finish();
+          });
+          cutOwnVoice.current = (andFinish) => {
+            stopBark();
+            cutOwnVoice.current = null;
+            if (andFinish) finish();
+          };
+          return;
+        }
+      }
       const silent = () => {
         // En silencio queda el subtítulo: se da tiempo de leerlo.
         onPart?.(text);
@@ -261,12 +283,32 @@ export function useZoeVoice() {
         void playFrom(0);
       };
 
+      const synthesized = () => {
+        // La voz propia va por oraciones completas; la del sistema, en tramos cortos que no corte.
+        if (isZoeVoiceReady()) return ownVoice(withQuickStart(speechSentences(text)));
+        // Mientras la voz propia se descarga, habla la del sistema.
+        void prepareZoeVoice()?.catch(() => undefined);
+        systemVoice(splitSentences(text));
+      };
       if (muted) return silent();
-      // La voz propia va por oraciones completas; la del sistema, en tramos cortos que no corte.
-      if (isZoeVoiceReady()) return ownVoice(withQuickStart(speechSentences(text)));
-      // Mientras la voz propia se descarga, habla la del sistema.
-      void prepareZoeVoice()?.catch(() => undefined);
-      systemVoice(splitSentences(text));
+      // Las frases fijas de ZOE tienen su grabación; si no la hay, se sintetiza como siempre.
+      const stopRecorded = playRecorded(
+        text,
+        () => {
+          cutOwnVoice.current = null;
+          finish();
+        },
+        () => {
+          cutOwnVoice.current = null;
+          if (run === speechRun.current) synthesized();
+        },
+        () => onPart?.(text),
+      );
+      cutOwnVoice.current = (andFinish) => {
+        stopRecorded();
+        cutOwnVoice.current = null;
+        if (andFinish) finish();
+      };
     },
     [muted, canSpeak, stopSpeaking],
   );

@@ -11,6 +11,7 @@ import { BadgesModal } from './components/gamification/BadgesModal';
 import { BadgeNotificationToast } from './components/gamification/BadgeNotificationToast';
 import { ZoeFreePresence, type ZoeRequest } from './components/zoe/ZoeFreePresence';
 import { useStore } from './store/useStore';
+import { AdminOnly, LoginScreen, SessionKeeper, useAuth } from './components/auth/AuthGate';
 import { startAutoDeposit } from './store/bancoAutomatico';
 
 const ZoeIntro = lazy(() => import('./components/zoe/ZoeIntro'));
@@ -49,6 +50,7 @@ export const App: React.FC = () => {
     return window.innerWidth >= 768;
   });
   const { recordZoeInteraction } = useStore();
+  const auth = useAuth();
   const [isBadgesModalOpen, setIsBadgesModalOpen] = useState(false);
   const [zoeRequest, setZoeRequest] = useState<ZoeRequest | null>(null);
   const [introOpen, setIntroOpen] = useState(false);
@@ -167,6 +169,7 @@ export const App: React.FC = () => {
         onOpenBadges={() => setIsBadgesModalOpen(true)}
       />
 
+      <SessionKeeper />
       {/* Main Dynamic View Content (Fluid Full-Width Layout) */}
       <main
         className={
@@ -183,12 +186,15 @@ export const App: React.FC = () => {
             onOpenBadges={() => setIsBadgesModalOpen(true)}
           />
         )}
-        {currentTool === 'radar' && <RadarView onNavigate={setCurrentTool} />}
-        {currentTool === 'estudio' && <EstudioTerritorialView onNavigate={setCurrentTool} />}
-        {currentTool === 'ideacion' && <IdeacionEstrategicaView onNavigate={setCurrentTool} />}
-        {currentTool === 'arbol' && <ArbolInnovacionView onNavigate={setCurrentTool} />}
-        {currentTool === 'prototipado' && <PrototipadoView onNavigate={setCurrentTool} />}
-        {currentTool === 'banco' && <BancoInnovacionView onNavigate={setCurrentTool} />}
+        {/* Las herramientas piden ingreso con la cuenta institucional; el Contenedor, además, rol de administrador. */}
+        {currentTool !== 'portal' && !auth.signedIn && <LoginScreen />}
+        {auth.signedIn && currentTool === 'radar' && <RadarView onNavigate={setCurrentTool} />}
+        {auth.signedIn && currentTool === 'estudio' && <EstudioTerritorialView onNavigate={setCurrentTool} />}
+        {auth.signedIn && currentTool === 'ideacion' && <IdeacionEstrategicaView onNavigate={setCurrentTool} />}
+        {auth.signedIn && currentTool === 'arbol' && <ArbolInnovacionView onNavigate={setCurrentTool} />}
+        {auth.signedIn && currentTool === 'prototipado' && <PrototipadoView onNavigate={setCurrentTool} />}
+        {auth.signedIn && currentTool === 'banco' && auth.role === 'admin' && <BancoInnovacionView onNavigate={setCurrentTool} />}
+        {auth.signedIn && currentTool === 'banco' && auth.role !== 'admin' && <AdminOnly onBack={() => setCurrentTool('portal')} />}
       </main>
 
       {/* ZOE: Alma de Innovación 3D - Presencia Libre por su Casa */}

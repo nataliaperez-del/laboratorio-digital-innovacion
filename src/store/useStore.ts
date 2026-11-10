@@ -87,6 +87,15 @@ export type DownloadFormat = 'word' | 'pdf';
  * Respuesta a las tres preguntas de satisfacción que se hacen antes de entregar un documento
  * (`src/lib/satisfaction.ts`). Se guarda sin datos personales: solo el documento y las notas.
  */
+/** Sesión institucional activa (Google). Solo la identidad: ningún token se guarda. */
+export interface InstitutionalSession {
+  email: string;
+  name: string;
+  picture?: string;
+  /** ms epoch del ingreso. */
+  loggedInAt: number;
+}
+
 export interface SurveyResponse {
   id: string;
   /** ISO 8601. */
@@ -228,6 +237,16 @@ export interface AppState {
   // ── Gamificación e Insignias de Innovación ──
   zoeInteractions: number;
   recordZoeInteraction: () => void;
+
+  // ── Sesión institucional (solo identidad; el rol sale de la lista de administradores) ──
+  session: InstitutionalSession | null;
+  setSession: (session: InstitutionalSession | null) => void;
+  /** Mensaje para la pantalla de ingreso (por ejemplo, «cerró por inactividad»). */
+  sessionNotice: string | null;
+  setSessionNotice: (msg: string | null) => void;
+  /** Última actividad (ms): el vigilante cierra la sesión pasado el límite. */
+  lastActivityAt: number;
+  touchActivity: () => void;
   acknowledgedBadges: string[];
   acknowledgeBadge: (badgeId: string) => void;
 
@@ -369,6 +388,12 @@ export const useStore = create<AppState>()(
       recordDownload: (download) => set((state) => ({ downloads: [download, ...(state.downloads ?? [])].slice(0, MAX_LOG) })),
       zoeInteractions: 0,
       recordZoeInteraction: () => set((state) => ({ zoeInteractions: (state.zoeInteractions || 0) + 1 })),
+      session: null,
+      setSession: (session) => set({ session, lastActivityAt: Date.now() }),
+      sessionNotice: null,
+      setSessionNotice: (msg) => set({ sessionNotice: msg }),
+      lastActivityAt: Date.now(),
+      touchActivity: () => set({ lastActivityAt: Date.now() }),
       acknowledgedBadges: [],
       acknowledgeBadge: (badgeId) =>
         set((state) => ({
@@ -455,6 +480,8 @@ export const useStore = create<AppState>()(
        * localStorage (hasta ~900k caracteres) y se recarga fácil.
        */
       partialize: (state) => ({
+        session: state.session,
+        lastActivityAt: state.lastActivityAt,
         prompt0Data: state.prompt0Data,
         containerData: state.containerData,
         contenedor2Sections: state.contenedor2Sections,

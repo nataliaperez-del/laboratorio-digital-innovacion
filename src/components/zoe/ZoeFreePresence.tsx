@@ -4,6 +4,7 @@ import type { ZoeSoulState, ZoeTrick } from './ZoeCanvas3D';
 import { splitSentences, useZoeVoice, type ZoeListenFailure } from './useZoeVoice';
 import { doghouseDoor, ZoeDoghouse } from './ZoeDoghouse';
 import { ZoeChat, type ZoeChatMessage } from './ZoeChat';
+import { splitBarks } from '@/lib/zoeBark';
 import type { ToolId } from '../layout/Header';
 import { askZoe, currentWork } from '@/services/zoeAi';
 import {
@@ -560,10 +561,11 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
       new Promise<void>((resolve) => {
         setBehavior('speaking');
         setHeard(null);
-        setCaption(splitSentences(text)[0] ?? text);
+        const written = splitBarks(text).rest || '¡Guau!';
+        setCaption(splitSentences(written)[0] ?? written);
         if (chatOpenRef.current) {
           // En el chat la respuesta queda escrita; la voz es opcional.
-          logChat('zoe', text);
+          logChat('zoe', written);
           if (!chatVoiceRef.current) {
             window.setTimeout(resolve, Math.min(3500, 500 + text.length * 20));
             return;
@@ -975,7 +977,7 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
       setCaption(null);
       const filler = window.setTimeout(() => {
         const line = pickOne(FILLERS);
-        setCaption(line);
+        setCaption(splitBarks(line).rest || line);
         if (!chatOpenRef.current || chatVoiceRef.current) voice.speak(line);
       }, FILLER_AFTER_MS);
       try {

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ArrowRight, Layers, BrainCircuit, Trees, Rocket, Sparkles, FolderArchive, Trophy, Compass } from 'lucide-react';
 import { ToolId } from '../layout/Header';
 import { MODULE_LABELS } from '@/lib/moduleLabels';
+import { useAuth } from '@/components/auth/AuthGate';
 
 interface PortalCatalogProps {
   onSelectTool: (tool: ToolId) => void;
@@ -42,7 +43,8 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
     }
   }, [slideIndex]);
 
-  const tools = [
+  const auth = useAuth();
+  const allTools = [
     {
       id: 'estudio' as ToolId,
       name: MODULE_LABELS.estudio.title,
@@ -79,6 +81,8 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
       color: '#A78BFA',
     },
   ];
+  // El Contenedor de resultados es solo del administrador.
+  const tools = allTools.filter((t) => t.id !== 'banco' || auth.role === 'admin');
 
   return (
     <div className="relative w-full h-full flex-1 flex items-center justify-center overflow-hidden">

@@ -5,6 +5,7 @@ import { useStore } from '@/store/useStore';
 import { evaluateGamification, INNOVATION_BADGES } from '@/lib/gamification';
 import { MODULE_LABELS } from '@/lib/moduleLabels';
 import { AiStatusDot } from './AiStatusDot';
+import { endSession, useAuth } from '@/components/auth/AuthGate';
 
 /** Identificador de cada pantalla del Laboratorio. */
 export type ToolId = 'portal' | 'radar' | 'estudio' | 'ideacion' | 'arbol' | 'prototipado' | 'banco';
@@ -25,6 +26,7 @@ interface HeaderProps {
 /** Cabecera: navegación entre herramientas, insignias, panel de IA, ZOE y tema claro/oscuro. */
 export const Header: React.FC<HeaderProps> = ({ currentTool, onSelectTool, theme, onToggleTheme, isZoeOpen, onToggleZoe, zoeState, onOpenBadges }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const auth = useAuth();
   const menuRef = useRef<HTMLDivElement>(null);
 
   const { containerData, savedStudies, themeProposalMarkdown, savedIdeations, treeGraph, savedTrees, prototypes, zoeInteractions } = useStore();
@@ -53,7 +55,7 @@ export const Header: React.FC<HeaderProps> = ({ currentTool, onSelectTool, theme
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isMenuOpen]);
 
-  const navTools = [
+  const allNavTools = [
     { id: 'portal' as ToolId, name: 'Inicio', icon: Home, color: '#27DCFF' },
     { id: 'estudio' as ToolId, name: MODULE_LABELS.estudio.title, icon: Layers, color: '#A8C63C' },
     { id: 'ideacion' as ToolId, name: MODULE_LABELS.ideacion.title, icon: BrainCircuit, color: '#F29F05' },
@@ -61,6 +63,8 @@ export const Header: React.FC<HeaderProps> = ({ currentTool, onSelectTool, theme
     { id: 'prototipado' as ToolId, name: MODULE_LABELS.prototipado.title, icon: Rocket, color: '#E024A5' },
     { id: 'banco' as ToolId, name: MODULE_LABELS.banco.short!, icon: FolderArchive, color: '#A78BFA' },
   ];
+  // El Contenedor de resultados es solo del administrador.
+  const navTools = allNavTools.filter((t) => t.id !== 'banco' || auth.role === 'admin');
 
   return (
     <header className="relative z-40 w-full box-border px-4 sm:px-6 md:px-8 xl:px-12 2xl:px-16 pt-5 pb-3">
@@ -206,6 +210,29 @@ export const Header: React.FC<HeaderProps> = ({ currentTool, onSelectTool, theme
                   </div>
                   <span className="text-[10px] m text-[#5EC2DD] px-2 py-0.5 rounded-full bg-white/5 border border-white/10">InnovaHub360</span>
                 </div>
+
+                {/* Sesión institucional */}
+                {auth.signedIn && auth.email && (
+                  <div className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-white/5 border border-white/10">
+                    <div className="min-w-0">
+                      <span className="text-xs font-semibold text-white/90 block truncate">{auth.name}</span>
+                      <span className="text-[10px] text-brand-textMuted block truncate">
+                        {auth.email} · {auth.role === 'admin' ? 'Administrador' : 'Usuario'}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        endSession();
+                        onSelectTool('portal');
+                      }}
+                      className="text-[11px] font-semibold text-[#5EC2DD] px-2.5 py-1 rounded-lg border border-white/15 hover:bg-white/10 cursor-pointer"
+                    >
+                      Cerrar sesión
+                    </button>
+                  </div>
+                )}
 
                 {/* 0. Insignias de Innovación */}
                 <div className="space-y-1.5 p-2.5 rounded-xl bg-white/5 border border-white/10">
