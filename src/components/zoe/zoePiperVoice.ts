@@ -47,7 +47,7 @@ const OLD_VOICE_FILES = ['es_MX-claude-high.onnx', 'es_MX-claude-high.onnx.json'
 const ONNX_WASM = 'https://cdnjs.cloudflare.com/ajax/libs/onnxruntime-web/1.18.0/';
 const PHONEMIZER_WASM = 'https://cdn.jsdelivr.net/npm/@diffusionstudio/piper-wasm@1.0.0/build/piper_phonemize';
 /** Marca de la configuración ajustada: si cambia el ajuste, se rehace. */
-const TUNING = 'grave-v3';
+const TUNING = 'raven-v3-natural';
 
 interface VoiceConfig {
   zoe?: string;
@@ -422,33 +422,14 @@ export async function synthesizeZoe(text: string): Promise<AudioBuffer> {
   return buffer;
 }
 
-let output: AudioNode | null = null;
-
 /**
- * Salida de la voz: un ecualizador suave que acerca su espectro al de la referencia (−4 dB bajo
- * 150 Hz, que retumbaban, y +3 dB de presencia hacia 1,8 kHz: la diferencia promedio por bandas
- * baja de 3,5 a 2,5 dB) y un compresor suave que iguala lo fuerte y lo débil.
+ * Salida de la voz: directa, sin ecualizar ni comprimir. Medido contra los audios reales de ZOE, el
+ * modelo ya coincide en cada banda de frecuencia (±1,3 dB) y en cuánto varía el tono (4,7 contra
+ * 4,8 semitonos); el ecualizador anterior (−4 dB graves, +3 dB a 1,8 kHz) se hizo para la voz de
+ * Sharvard y ahora la alejaba de la referencia.
  */
 function voiceOutput(ctx: AudioContext): AudioNode {
-  if (output?.context === ctx) return output;
-  const body = ctx.createBiquadFilter();
-  body.type = 'lowshelf';
-  body.frequency.value = 150;
-  body.gain.value = -4;
-  const presence = ctx.createBiquadFilter();
-  presence.type = 'peaking';
-  presence.frequency.value = 1800;
-  presence.Q.value = 0.7;
-  presence.gain.value = 3;
-  const compressor = ctx.createDynamicsCompressor();
-  compressor.threshold.value = -18;
-  compressor.knee.value = 12;
-  compressor.ratio.value = 3;
-  compressor.attack.value = 0.003;
-  compressor.release.value = 0.25;
-  body.connect(presence).connect(compressor).connect(ctx.destination);
-  output = body;
-  return output;
+  return ctx.destination;
 }
 
 /** Reproduce el audio a su velocidad (el tono ya viene ajustado); devuelve con qué detenerlo. */
