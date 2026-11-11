@@ -1,8 +1,10 @@
 import { applyTone } from './zoeTone';
 
 /**
- * Voz propia de ZOE: Piper con la voz masculina de «es_ES-sharvard-medium» (hablante «M»; corpus
- * Sharvard de la Universidad de Edimburgo, licencia CC BY 3.0), ejecutada en el navegador con ONNX.
+ * Voz propia de ZOE: modelo Piper afinado con el timbre de ZOE (`zoe-raven-v2`, entrenado desde la
+ * voz base «es_ES-sharvard-medium», corpus Sharvard de la Universidad de Edimburgo, CC BY 3.0),
+ * ejecutado en el navegador con ONNX y entregado como recurso de la aplicación.
+ * Lo que sigue describe la voz base anterior y el motor, que no cambió.
  * Es la voz Piper en español más parecida a la muestra de referencia que eligió la usuaria
  * (`muestras-voz-zoe/referencia-voice-preview.mp3`): mismo tamaño de voz (espaciado de formantes a
  * un 1–2 % del de la referencia) y el espectro más cercano.
@@ -25,8 +27,14 @@ import { applyTone } from './zoeTone';
  * El modelo pesa 77 MB: se descarga una vez, cuando el navegador está desocupado, y queda guardado.
  * Mientras tanto, o si algo falla, ZOE habla con la voz del sistema.
  */
-const VOICE_FILE = 'es_ES-sharvard-medium.onnx';
-const MODEL_URL = `https://huggingface.co/diffusionstudio/piper-voices/resolve/main/es/es_ES/sharvard/medium/${VOICE_FILE}`;
+const VOICE_FILE = 'zoe-raven-v2.onnx';
+/** La voz va con la aplicación (`public/assets/zoe/voz-propia/`): no depende de ningún servicio externo. */
+const MODEL_URL = `/assets/zoe/voz-propia/${VOICE_FILE}`;
+/**
+ * La voz propia ya viene afinada con el timbre de ZOE: no se le corrige el tono (la corrección de
+ * `zoeTone.ts` era para la voz masculina de Sharvard y le quitaría el timbre).
+ */
+const ADJUST_TONE = false;
 /** Frecuencia de muestreo del modelo: el audio se reproduce a esta misma, sin interpolar. */
 const VOICE_SAMPLE_RATE = 22050;
 /** Hablante masculino del modelo (tiene dos: «M» y «F»). */
@@ -34,7 +42,7 @@ const SPEAKER = 'M';
 /** Fonética latinoamericana de espeak. */
 const ESPEAK_VOICE = 'es-419';
 /** Voces anteriores que pueden haber quedado guardadas en el navegador: se borran para liberar espacio. */
-const OLD_VOICE_FILES = ['es_MX-claude-high.onnx', 'es_MX-claude-high.onnx.json'];
+const OLD_VOICE_FILES = ['es_MX-claude-high.onnx', 'es_MX-claude-high.onnx.json', 'es_ES-sharvard-medium.onnx', 'es_ES-sharvard-medium.onnx.json'];
 const ONNX_WASM = 'https://cdnjs.cloudflare.com/ajax/libs/onnxruntime-web/1.18.0/';
 const PHONEMIZER_WASM = 'https://cdn.jsdelivr.net/npm/@diffusionstudio/piper-wasm@1.0.0/build/piper_phonemize';
 /** Marca de la configuración ajustada: si cambia el ajuste, se rehace. */
@@ -393,7 +401,7 @@ export async function synthesizeZoe(text: string): Promise<AudioBuffer> {
   const turn = queue.then(async () => {
     const pieces: Float32Array[] = [];
     for (const ids of voice.phonemize(speechText(text))) {
-      const piece = shapeSentence(applyTone(await voice.speak(ids), voice.sampleRate), voice.sampleRate);
+      const piece = shapeSentence(ADJUST_TONE ? applyTone(await voice.speak(ids), voice.sampleRate) : await voice.speak(ids), voice.sampleRate);
       if (piece.length) pieces.push(piece);
     }
     return pieces;
