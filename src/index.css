@@ -41,6 +41,9 @@
   }
 
   html {
+    /* El fondo también en <html>: el del <body> hace una transición al cargar y, durante ese instante, deja ver el
+       color de fondo del navegador (oscuro) detrás del texto del tema claro. */
+    background-color: var(--bg-page);
     overflow-y: scroll;
     scrollbar-gutter: stable;
   }
@@ -141,59 +144,77 @@
   scrollbar-width: none;
 }
 
-/* Adaptación de Textos y Contraste WCAG 2.1 AA en Modo Claro */
-[data-theme="light"] h1,
-[data-theme="light"] h2,
-[data-theme="light"] h3,
-[data-theme="light"] h4,
-[data-theme="light"] .h2 {
-  color: #042F3C !important;
-}
+/* Adaptación de textos y contraste en modo claro (WCAG 2.1 AA).
+   El código escribe los textos pensando en fondo oscuro (text-white, text-white/60, tonos claros de marca);
+   en modo claro se oscurecen aquí. Lo que es oscuro en ambos temas (tooltips, galería de insignias,
+   barra de diapositivas…) lleva la clase `on-dark` y conserva sus colores claros. */
+[data-theme="light"] :is(h1, h2, h3, h4, .h2):not(.on-dark, .on-dark *) { color: #042F3C !important; }
+[data-theme="light"] :is(p.bd, .bd):not(.on-dark, .on-dark *) { color: #2B3A45 !important; }
+[data-theme="light"] .text-white:not(.on-dark, .on-dark *) { color: #042F3C !important; }
+/* Blanco con transparencia: de más a menos fuerte, para no dejar texto blanco sobre fondo claro. */
+[data-theme="light"] [class*="text-white/"]:not(.on-dark, .on-dark *) { color: rgba(4, 47, 60, 0.82) !important; }
+[data-theme="light"] :is([class*="text-white/2"], [class*="text-white/3"], [class*="text-white/4"], [class*="text-white/5"]):not(.on-dark, .on-dark *) { color: rgba(4, 47, 60, 0.55) !important; }
+[data-theme="light"] [class*="hover:text-white"]:hover:not(.on-dark, .on-dark *) { color: #042F3C !important; }
 
-[data-theme="light"] p.bd,
-[data-theme="light"] .bd {
-  color: #2B3A45 !important;
-}
+/* Tonos claros de marca, hechos para fondo oscuro: en claro pasan a su versión oscura (contraste ≥ 4.5). */
+[data-theme="light"] :is(.text-\[\#5EC2DD\], .text-\[\#27DCFF\], .text-\[\#00F5FF\], .text-\[\#9FD4E4\], .text-\[\#6FD3EA\]):not(.on-dark, .on-dark *) { color: #035E73 !important; }
+[data-theme="light"] :is(.text-\[\#A8C63C\], .text-\[\#B8D95A\]):not(.on-dark, .on-dark *) { color: #4F6504 !important; }
+[data-theme="light"] :is(.text-\[\#FFD700\], .text-\[\#F3C26B\], .text-\[\#FFC107\]):not(.on-dark, .on-dark *) { color: #7A5200 !important; }
+[data-theme="light"] :is(.text-\[\#A78BFA\], .text-\[\#A98FD6\], .text-\[\#C4B5FD\]):not(.on-dark, .on-dark *) { color: #4A3480 !important; }
+[data-theme="light"] :is(.text-\[\#CFE0E6\], .text-\[\#B7CBD3\], .text-brand-textSecondary):not(.on-dark, .on-dark *) { color: #2B3A45 !important; }
+[data-theme="light"] :is(.text-\[\#A6C0CA\], .text-\[\#8FB6C4\], .text-brand-textMuted):not(.on-dark, .on-dark *) { color: #4B5A66 !important; }
 
-[data-theme="light"] .text-white {
-  color: #042F3C !important;
-}
-
-[data-theme="light"] .text-\[\#CFE0E6\],
-[data-theme="light"] .text-\[\#B7CBD3\] {
-  color: #2B3A45 !important;
-}
-
-[data-theme="light"] .text-brand-textSecondary {
-  color: #2B3A45 !important;
-}
-
-[data-theme="light"] .text-brand-textMuted {
-  color: #5B6875 !important;
-}
-
-[data-theme="light"] .border-white\/10,
-[data-theme="light"] .border-white\/15,
-[data-theme="light"] .border-white\/20,
-[data-theme="light"] .border-white\/25,
-[data-theme="light"] .border-white\/30 {
+[data-theme="light"] :is(.border-white\/10, .border-white\/15, .border-white\/20, .border-white\/25, .border-white\/30):not(.on-dark, .on-dark *) {
   border-color: rgba(4, 47, 60, 0.14) !important;
 }
 
-[data-theme="light"] .bg-white\/5,
-[data-theme="light"] .bg-white\/10 {
+[data-theme="light"] :is(.bg-white\/5, .bg-white\/10):not(.on-dark, .on-dark *) {
   background-color: rgba(4, 47, 60, 0.05) !important;
 }
 
-[data-theme="light"] .bg-white\/15,
-[data-theme="light"] .bg-white\/20 {
+[data-theme="light"] :is(.bg-white\/15, .bg-white\/20):not(.on-dark, .on-dark *) {
   background-color: rgba(4, 47, 60, 0.10) !important;
+}
+/* Fondos de blanco o negro casi transparente (bg-white/[0.04], bg-black/40…) sobre tarjetas claras. */
+[data-theme="light"] :is([class*="bg-white/["], [class*="bg-black/"]):not(.on-dark, .on-dark *) {
+  background-color: rgba(4, 47, 60, 0.06) !important;
 }
 
 /* Respeto de botones y texto en botones en modo claro */
 [data-theme="light"] .metal span,
 [data-theme="light"] .metal * {
   color: #FFFFFF !important;
+}
+
+/* En celulares el panel de bienvenida se desplaza por dentro y no se difumina por los bordes. */
+@media (max-width: 767px) {
+  .portal-panel { -webkit-mask-image: none !important; mask-image: none !important; -webkit-overflow-scrolling: touch; }
+}
+
+/* Colores que cambian al señalar (también al tocar en el celular): en claro, versión oscura. */
+[data-theme="light"] .group:hover :is(.group-hover\:text-\[\#5EC2DD\], .group-hover\:text-\[\#27DCFF\]),
+[data-theme="light"] :is(.hover\:text-\[\#5EC2DD\], .hover\:text-\[\#27DCFF\]):hover {
+  color: #035E73 !important;
+}
+
+/* Subtítulo de cada herramienta: el color de la marca de noche; de día se oscurece hasta leerse sobre blanco. */
+.tool-subtitle { color: var(--tone, #fff); opacity: 0.9; }
+[data-theme="light"] .tool-subtitle { color: color-mix(in srgb, var(--tone) 48%, #042F3C); opacity: 1; }
+
+/* Zonas oscuras en ambos temas: recuperan los colores del tema oscuro aunque la página esté en claro. */
+[data-theme="light"] .on-dark {
+  --text-primary: #EAF4F7;
+  --text-secondary: #B7CBD3;
+  --text-muted: #8FB6C4;
+  --brand-teal-text: #5EC2DD;
+  --brand-amber-text: #F3C26B;
+  --brand-purple-text: #A98FD6;
+  color: #EAF4F7;
+}
+
+/* Panel de bienvenida del portal: vidrio oscuro de noche, vidrio claro de día. */
+[data-theme="light"] .portal-panel {
+  background: radial-gradient(ellipse 95% 90% at 50% 50%, rgba(255, 255, 255, 0.84) 0%, rgba(255, 255, 255, 0.62) 58%, rgba(255, 255, 255, 0.22) 86%, transparent 100%) !important;
 }
 
 /* Halos en Modo Claro */
@@ -204,28 +225,27 @@
 
 /* Patrón de Malla en Modo Claro */
 [data-theme="light"] #vmesh path,
+[data-theme="light"] #vmesh2 path,
 [data-theme="light"] #bannerGrid path {
-  stroke: #042F3C;
-  stroke-opacity: 0.10;
+  stroke: #035E73;
+  stroke-opacity: 0.22;
 }
 
 [data-theme="light"] #vmesh circle,
+[data-theme="light"] #vmesh2 circle,
 [data-theme="light"] #bannerGrid circle {
-  fill: #042F3C;
-  fill-opacity: 0.16;
+  fill: #035E73;
+  fill-opacity: 0.3;
 }
 
 /* Controles de Formulario e Inputs en Modo Claro */
-[data-theme="light"] input,
-[data-theme="light"] textarea,
-[data-theme="light"] select {
+[data-theme="light"] :is(input, textarea, select):not(.on-dark *) {
   background-color: rgba(255, 255, 255, 0.95) !important;
   color: #042F3C !important;
   border-color: rgba(4, 47, 60, 0.20) !important;
 }
 
-[data-theme="light"] input::placeholder,
-[data-theme="light"] textarea::placeholder {
+[data-theme="light"] :is(input, textarea):not(.on-dark *)::placeholder {
   color: #5B6875 !important;
 }
 
@@ -247,8 +267,34 @@
   66% { transform: translate(-70px,50px) scale(.92); }
 }
 
+/* Malla que flota. La capa A mide una baldosa (240 px) de más por lado y se desliza esa distancia: bucle
+   sin saltos. La capa B usa baldosas de 384 px (240 × 1.6) y va en sentido contrario. */
+.mesh-float {
+  position: absolute;
+  inset: 0;
+  animation: mesh-bob 11s ease-in-out infinite;
+  will-change: transform;
+}
+.mesh-float-b { animation-duration: 15s; animation-delay: -5s; }
+.mesh-layer { position: absolute; will-change: transform; }
+.mesh-layer svg { display: block; width: 100%; height: 100%; }
+.mesh-a { inset: -240px; opacity: 0.55; animation: mesh-scroll-a 70s linear infinite; }
+.mesh-b { inset: -384px; opacity: 0.45; animation: mesh-scroll-b 110s linear infinite; }
+
+@keyframes mesh-scroll-a { to { transform: translate3d(-240px, -240px, 0); } }
+@keyframes mesh-scroll-b { from { transform: translate3d(-384px, 0, 0); } to { transform: translate3d(0, -384px, 0); } }
+@keyframes mesh-bob {
+  0%, 100% { transform: translate3d(0, -14px, 0); }
+  50% { transform: translate3d(0, 14px, 0); }
+}
+
+/* Quien pide menos movimiento lo sigue viendo, pero muy lento y suave: nada de saltos ni barridos. */
 @media (prefers-reduced-motion: reduce) {
-  .halo, .sweep, .pulsa { animation: none !important; }
+  .sweep, .pulsa { animation: none !important; }
+  .halo { animation-duration: 120s !important; }
+  .mesh-float { animation-duration: 40s !important; }
+  .mesh-a { animation-duration: 280s !important; }
+  .mesh-b { animation-duration: 420s !important; }
 }
 
 /* Radar SVG y Animaciones */
@@ -477,6 +523,8 @@ button.lab-card:hover { border-color: var(--brand-teal-text); }
 .lab-credits { position: fixed; right: var(--zoe-house-room); bottom: 10px; z-index: 30; display: flex; align-items: center; gap: 12px; pointer-events: none; filter: drop-shadow(0 1px 3px rgba(0, 0, 0, .75)); }
 [data-theme="light"] .lab-credits { filter: drop-shadow(0 0 3px rgba(255, 255, 255, .95)); }
 .lab-credits img { pointer-events: auto; }
+/* Los logos traen texto oscuro: sobre el fondo de noche se pierden, así que van sobre una placa clara. */
+:root:not([data-theme="light"]) .lab-credits img { box-sizing: content-box; padding: 3px 8px; border-radius: 9px; background: rgba(255, 255, 255, 0.9); }
 .lab-credits-unad { height: 40px; width: auto; object-fit: contain; }
 .lab-credits-viem { height: 34px; width: auto; object-fit: contain; }
 .lab-credits-names { margin: 0; text-align: right; font-size: 8.5px; font-style: italic; font-weight: 300; line-height: 1.35; color: var(--text-secondary); white-space: nowrap; }
@@ -484,6 +532,11 @@ button.lab-card:hover { border-color: var(--brand-teal-text); }
 @media (max-width: 767px) {
   /* En celulares la casita mide 70 px con 12 px de margen. */
   :root { --zoe-house-room: 92px; }
+}
+@media (max-width: 767px) {
+  /* En celulares la firma va al final de la página, no flotando sobre el contenido: así no tapa campos ni
+     texto al desplazarse. Se deja libre el lado de la casita de ZOE. */
+  .lab-credits { position: static; justify-content: center; margin-top: 6px; padding: 8px 8px calc(10px + env(safe-area-inset-bottom)) 8px; padding-right: var(--zoe-house-room); pointer-events: auto; filter: none; }
 }
 @media (max-width: 639px) {
   .lab-credits { bottom: 8px; gap: 8px; }
@@ -694,3 +747,17 @@ button.viz-hbar-row { cursor: pointer; }
 .login-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 16px; border-radius: 999px; font-size: 14px; font-weight: 700; color: #04222B; background: #27DCFF; cursor: pointer; }
 .login-btn:disabled { opacity: .6; cursor: default; }
 .login-footnote { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
+
+/* ═══════════ Celulares: ZOE y su chat ═══════════ */
+.zoe-chat { bottom: calc(16px + env(safe-area-inset-bottom)); max-height: min(70vh, 520px); max-height: min(70dvh, 520px); }
+@media (max-width: 480px) {
+  /* El chat ocupa casi todo el ancho y sube sobre la casita y la firma; con el teclado abierto se acorta. */
+  .zoe-chat { left: 8px; right: 8px; width: auto; bottom: calc(8px + env(safe-area-inset-bottom)); max-height: min(60dvh, 460px); }
+  .zoe-caption { max-height: 34dvh; font-size: 12.5px; }
+}
+@media (max-height: 520px) {
+  /* Celular en horizontal: el chat se pone a un lado y el globo de ZOE es más bajo. */
+  .zoe-chat { left: auto; right: 8px; width: min(340px, 52vw); bottom: 8px; max-height: calc(100dvh - 72px); }
+  .zoe-caption { max-height: 44dvh; }
+}
+@media (max-height: 420px) { .lab-credits { display: none; } }

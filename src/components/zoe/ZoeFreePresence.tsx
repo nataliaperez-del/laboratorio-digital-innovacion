@@ -57,7 +57,23 @@ import MASTER_DOCUMENT from '@/content/zoe/documento-maestro.md?raw';
 const ZoeCanvas3D = lazy(() => import('./ZoeCanvas3D'));
 
 /** Tamaño de ZOE en pantalla; en celulares se reduce para dejarle el espacio al contenido. */
-const STAGE = typeof window !== 'undefined' && window.innerWidth < 768 ? { width: 170, height: 190 } : { width: 260, height: 290 };
+const stageSize = () => {
+  if (typeof window === 'undefined') return { width: 260, height: 290 };
+  // Celular en horizontal: la pantalla es baja, ZOE se encoge para no tapar todo.
+  if (window.innerHeight < 520) return { width: 128, height: 144 };
+  if (window.innerWidth < 380) return { width: 150, height: 168 };
+  if (window.innerWidth < 768) return { width: 170, height: 190 };
+  return { width: 260, height: 290 };
+};
+/** Se recalcula en cada uso: si se gira el celular o se cambia el tamaño de la ventana, ZOE se ajusta. */
+const STAGE = {
+  get width() {
+    return stageSize().width;
+  },
+  get height() {
+    return stageSize().height;
+  },
+};
 const POSITION_KEY = 'innovahub_zoe_pos_v2';
 /** Alto de la franja de la firma y la casita, abajo a la derecha. */
 const CORNER_HEIGHT = 64;
@@ -177,11 +193,18 @@ function initialPosition() {
   return clampPosition(window.innerWidth, window.innerHeight);
 }
 
-/** Corrige el globo de subtítulos cuando el escenario se sale de la pantalla (al llegar a la casita). */
-function captionInside(x: number): React.CSSProperties | undefined {
-  if (x < window.innerWidth / 2) return x < 8 ? { left: 8 - x } : undefined;
-  const overflow = x + STAGE.width + 44 - (window.innerWidth - 8);
-  return overflow > 0 ? { right: overflow } : undefined;
+/**
+ * Coloca el globo de subtítulos dentro de la pantalla. Prefiere alinearlo con el borde de ZOE que queda
+ * hacia el centro, pero siempre lo mantiene entero a la vista: en un celular, 320 px de globo no caben
+ * a un lado de ZOE, así que se corre lo necesario (8 px de margen).
+ */
+function captionInside(x: number): React.CSSProperties {
+  const viewport = window.innerWidth;
+  const width = Math.min(320, viewport - 24);
+  const stageWidth = STAGE.width + 44;
+  const wanted = x < viewport / 2 ? x : x + stageWidth - width;
+  const left = Math.max(8, Math.min(viewport - 8 - width, wanted));
+  return { left: left - x, right: 'auto', width };
 }
 
 /** Posición del escenario con las patas de ZOE frente a la puerta de su casita. */

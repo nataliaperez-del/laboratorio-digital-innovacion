@@ -86,12 +86,12 @@ export const Header: React.FC<HeaderProps> = ({ currentTool, onSelectTool, theme
         </symbol>
       </svg>
 
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-x-3 gap-y-2 sm:gap-4">
         {/* Brand Lockup Oficial InnovaHub360 */}
         <button
           type="button"
           onClick={() => onSelectTool('portal')}
-          className="lk cursor-pointer hover:opacity-90 transition-opacity flex items-center gap-3.5"
+          className="lk cursor-pointer hover:opacity-90 transition-opacity flex items-center gap-3.5 max-sm:order-1"
         >
           <svg width="42" height="41" aria-hidden="true" className="shrink-0 drop-shadow-md">
             <use href="#mkFull" width="42" height="41"></use>
@@ -117,12 +117,14 @@ export const Header: React.FC<HeaderProps> = ({ currentTool, onSelectTool, theme
         {/* =========================================================================
             BLOQUE JUSTIFICADO A LA DERECHA: ICONOS CON TOOLTIPS + MENÚ HAMBURGUESA
             ========================================================================= */}
-        <div className="flex items-center gap-2 sm:gap-2.5">
+        <div className="contents sm:flex sm:items-center sm:gap-2.5">
           {/* Señal de la IA, antes de la casita de Inicio: verde conectada, rojo sin conexión. */}
-          <AiStatusDot />
+          <div className="flex items-center max-sm:order-2 max-sm:ml-auto">
+            <AiStatusDot />
+          </div>
 
           {/* Tira compacta de sólo iconos con Tooltip Flotante */}
-          <nav className="flex items-center gap-1 sm:gap-1.5 p-1 sm:p-1.5 g2 rounded-full border border-white/10">
+          <nav className="flex items-center gap-1 sm:gap-1.5 p-1 sm:p-1.5 g2 rounded-full border border-white/10 max-sm:order-4 max-sm:w-full max-sm:justify-between">
             {navTools.map((tool) => {
               const Icon = tool.icon;
               const isActive = currentTool === tool.id;
@@ -150,7 +152,7 @@ export const Header: React.FC<HeaderProps> = ({ currentTool, onSelectTool, theme
 
                   {/* Tooltip Flotante que aparece al señalar (hover) con el color característico */}
                   <div
-                    className="absolute top-full mt-2.5 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-xl bg-[#04222B]/95 text-white text-[11px] font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 shadow-[0_8px_20px_rgba(0,0,0,0.6)] z-50 flex items-center gap-1.5 transform group-hover:translate-y-0 translate-y-1"
+                    className="on-dark absolute top-full mt-2.5 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-xl bg-[#04222B]/95 text-white text-[11px] font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 shadow-[0_8px_20px_rgba(0,0,0,0.6)] z-50 flex items-center gap-1.5 transform group-hover:translate-y-0 translate-y-1"
                     style={{ border: `1px solid ${tool.color}60` }}
                   >
                     <span className="w-1.5 h-1.5 rounded-full inline-block shadow-[0_0_6px]" style={{ backgroundColor: tool.color, color: tool.color }} />
@@ -171,7 +173,7 @@ export const Header: React.FC<HeaderProps> = ({ currentTool, onSelectTool, theme
                 <Trophy className="w-4 h-4 sm:w-4.5 sm:h-4.5 transition-transform group-hover:scale-110" style={{ color: '#FFD700' }} />
               </button>
               <div
-                className="absolute top-full mt-2.5 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-xl bg-[#04222B]/95 text-white text-[11px] font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 shadow-[0_8px_20px_rgba(0,0,0,0.6)] z-50 flex items-center gap-1.5 transform group-hover:translate-y-0 translate-y-1"
+                className="on-dark absolute top-full mt-2.5 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-xl bg-[#04222B]/95 text-white text-[11px] font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 shadow-[0_8px_20px_rgba(0,0,0,0.6)] z-50 flex items-center gap-1.5 transform group-hover:translate-y-0 translate-y-1"
                 style={{ border: '1px solid #FFD70060' }}
               >
                 <span className="w-1.5 h-1.5 rounded-full inline-block shadow-[0_0_6px]" style={{ backgroundColor: '#FFD700', color: '#FFD700' }} />
@@ -183,7 +185,7 @@ export const Header: React.FC<HeaderProps> = ({ currentTool, onSelectTool, theme
           </nav>
 
           {/* Botón y Menú Hamburguesa Superior Derecho */}
-          <div className="relative" ref={menuRef}>
+          <div className="relative max-sm:order-3" ref={menuRef}>
             <button
               type="button"
               onClick={() => setIsMenuOpen((prev) => !prev)}
@@ -201,7 +203,7 @@ export const Header: React.FC<HeaderProps> = ({ currentTool, onSelectTool, theme
 
             {/* Menú Desplegable Flotante Elegante Glassmorphism Perfectamente Diagramado */}
             {isMenuOpen && (
-              <div className="absolute right-0 top-full mt-3 w-80 g2 rounded-2xl border border-white/20 shadow-[0_16px_40px_rgba(0,0,0,0.65)] backdrop-blur-2xl p-4 z-50 animate-in fade-in slide-in-from-top-2 duration-150 space-y-3.5">
+              <div className="absolute right-0 top-full mt-3 w-[min(20rem,calc(100vw-24px))] g2 rounded-2xl border border-white/20 shadow-[0_16px_40px_rgba(0,0,0,0.65)] backdrop-blur-2xl p-4 z-50 animate-in fade-in slide-in-from-top-2 duration-150 space-y-3.5">
                 {/* Cabecera del Panel */}
                 <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
                   <div className="flex items-center gap-2">

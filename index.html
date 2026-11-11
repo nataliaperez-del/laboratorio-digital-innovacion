@@ -2,7 +2,15 @@
 <html lang="es" data-theme="dark">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#04222B" />
+    <!-- El tema guardado se aplica antes de pintar: sin destello oscuro para quien usa el modo claro. -->
+    <script>
+      try {
+        var t = localStorage.getItem('innovahub_theme');
+        if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    </script>
     <title>Laboratorio de Innovación en Línea · Observatorio InnovaHub360</title>
     <link rel="icon" type="image/svg+xml" href="/assets/logo-innovahub360.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />

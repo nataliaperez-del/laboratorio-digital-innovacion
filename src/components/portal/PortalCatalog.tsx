@@ -96,7 +96,7 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
         }`}
       >
         <section
-          className="relative w-full h-full flex flex-col justify-between p-6 sm:p-10 md:p-12 overflow-hidden"
+          className="portal-panel relative w-full h-full flex flex-col justify-between p-5 pb-28 sm:p-10 sm:pb-24 md:p-12 md:pb-12 overflow-y-auto overflow-x-hidden md:overflow-hidden"
           style={{
             // Fondo de vidrio holográfico con bordes que se desvanecen gradualmente en transparencia
             background:
@@ -253,7 +253,7 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
           CONTROLES DE PAGINACIÓN: ÚNICAMENTE LOS PUNTOS PARA AVANZAR Y RETROCEDER
           Alternan con animación cada 20 segundos o al hacer clic
           ========================================================================= */}
-      <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-black/45 backdrop-blur-md border border-white/10 shadow-[0_4px_16px_rgba(0,0,0,0.5)]">
+      <div className="on-dark absolute bottom-2.5 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-black/45 backdrop-blur-md border border-white/10 shadow-[0_4px_16px_rgba(0,0,0,0.5)]">
         <button
           type="button"
           onClick={() => setSlideIndex(0)}

@@ -40,7 +40,10 @@ export const ToolHeader: React.FC<{
         {title}
       </h1>
       {subtitle && (
-        <p className="sy text-base md:text-lg font-semibold tracking-wide mt-0.5 opacity-80" style={{ color: titleColor || '#FFFFFF' }}>
+        <p
+          className="tool-subtitle sy text-base md:text-lg font-semibold tracking-wide mt-0.5"
+          style={{ '--tone': titleColor || '#FFFFFF' } as React.CSSProperties}
+        >
           {subtitle}
         </p>
       )}

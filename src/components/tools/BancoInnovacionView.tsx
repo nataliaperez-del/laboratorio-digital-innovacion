@@ -173,7 +173,7 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
                   ? {
                       backgroundColor: `${t.color}25`,
                       borderColor: t.color,
-                      color: '#FFFFFF',
+                      color: 'var(--text-primary)',
                       boxShadow: `0 0 16px ${t.color}40`,
                     }
                   : undefined

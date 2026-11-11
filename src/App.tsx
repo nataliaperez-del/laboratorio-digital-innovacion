@@ -81,7 +81,7 @@ export const App: React.FC = () => {
     <div
       className={
         currentTool === 'portal'
-          ? 'relative h-screen w-full min-w-full overflow-hidden flex flex-col justify-between'
+          ? 'relative h-[100dvh] w-full min-w-full overflow-hidden flex flex-col justify-between'
           : 'relative min-h-screen w-full min-w-full overflow-x-hidden flex flex-col justify-between'
       }
     >
@@ -133,25 +133,52 @@ export const App: React.FC = () => {
           }}
         />
 
-        {/* SVG Vector Mesh Background Overlay */}
-        <svg width="100%" height="100%" aria-hidden="true" className="absolute inset-0 pointer-events-none w-full h-full opacity-40 z-0">
-          <defs>
-            <pattern id="vmesh" width="240" height="240" patternUnits="userSpaceOnUse">
-              <g stroke="#FFFFFF" strokeOpacity="0.16" strokeWidth="1" fill="none">
-                <path d="M0 120 L60 60 L120 0 M120 0 L180 70 L240 120 M240 120 L175 175 L120 240 M120 240 L70 180 L0 120" />
-                <path d="M60 60 L120 120 L180 70 M70 180 L120 120 L175 175 M60 60 L180 70 M70 180 L175 175" />
-              </g>
-              <g fill="#FFFFFF" fillOpacity="0.22">
-                <circle cx="60" cy="60" r="3.5" />
-                <circle cx="180" cy="70" r="3.5" />
-                <circle cx="70" cy="180" r="3.5" />
-                <circle cx="175" cy="175" r="3.5" />
-                <circle cx="120" cy="120" r="4.5" />
-              </g>
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#vmesh)" />
-        </svg>
+        {/* Malla vectorial que flota: dos capas del mismo patrón a distinta escala y sentido (profundidad).
+            Cada capa es más grande que la pantalla en una baldosa del patrón y se desliza exactamente esa
+            distancia: el bucle es invisible. La envoltura sube y baja con suavidad. Solo se animan
+            transformaciones (las resuelve la tarjeta gráfica, no repintan nada). */}
+        <div className="mesh-float" aria-hidden="true">
+          <div className="mesh-layer mesh-a">
+            <svg width="100%" height="100%" aria-hidden="true">
+              <defs>
+                <pattern id="vmesh" width="240" height="240" patternUnits="userSpaceOnUse">
+                  <g stroke="#FFFFFF" strokeOpacity="0.2" strokeWidth="1" fill="none">
+                    <path d="M0 120 L60 60 L120 0 M120 0 L180 70 L240 120 M240 120 L175 175 L120 240 M120 240 L70 180 L0 120" />
+                    <path d="M60 60 L120 120 L180 70 M70 180 L120 120 L175 175 M60 60 L180 70 M70 180 L175 175" />
+                  </g>
+                  <g fill="#FFFFFF" fillOpacity="0.3">
+                    <circle cx="60" cy="60" r="3.5" />
+                    <circle cx="180" cy="70" r="3.5" />
+                    <circle cx="70" cy="180" r="3.5" />
+                    <circle cx="175" cy="175" r="3.5" />
+                    <circle cx="120" cy="120" r="4.5" />
+                  </g>
+                </pattern>
+              </defs>
+              <rect width="100%" height="100%" fill="url(#vmesh)" />
+            </svg>
+          </div>
+        </div>
+        <div className="mesh-float mesh-float-b" aria-hidden="true">
+          <div className="mesh-layer mesh-b">
+            <svg width="100%" height="100%" aria-hidden="true">
+              <defs>
+                <pattern id="vmesh2" width="240" height="240" patternUnits="userSpaceOnUse" patternTransform="scale(1.6)">
+                  <g stroke="#FFFFFF" strokeOpacity="0.14" strokeWidth="1" fill="none">
+                    <path d="M0 120 L60 60 L120 0 M120 0 L180 70 L240 120 M240 120 L175 175 L120 240 M120 240 L70 180 L0 120" />
+                    <path d="M60 60 L120 120 L180 70 M70 180 L120 120 L175 175" />
+                  </g>
+                  <g fill="#FFFFFF" fillOpacity="0.22">
+                    <circle cx="60" cy="60" r="3" />
+                    <circle cx="180" cy="70" r="3" />
+                    <circle cx="120" cy="120" r="4" />
+                  </g>
+                </pattern>
+              </defs>
+              <rect width="100%" height="100%" fill="url(#vmesh2)" />
+            </svg>
+          </div>
+        </div>
       </div>
 
       {/* Header Glassmorphism */}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Trophy, X, CheckCircle2, Lock, ArrowRight, Sparkles, Award, Zap, Printer, FileCheck2, Calendar, Clock, Edit3, ShieldCheck } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { evaluateGamification, INNOVATION_BADGES } from '@/lib/gamification';
@@ -24,6 +24,16 @@ export const BadgesModal: React.FC<Props> = ({ isOpen, onClose, onNavigate }) =>
   const [recipientId, setRecipientId] = useState<string>('C.C. 1.085.241.978');
   const [teamName, setTeamName] = useState<string>('Equipo Innovador UNAD');
   const [isEditingRecipient, setIsEditingRecipient] = useState<boolean>(false);
+
+  // Escape cierra la vitrina, como en el resto de los diálogos.
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -85,12 +95,12 @@ export const BadgesModal: React.FC<Props> = ({ isOpen, onClose, onNavigate }) =>
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200"
+      className="on-dark fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200"
       role="dialog"
       aria-modal="true"
       aria-labelledby="badges-modal-title"
     >
-      <div className="relative w-full max-w-5xl max-h-[92vh] flex flex-col rounded-2xl border border-white/15 bg-[#030e16]/95 backdrop-blur-xl shadow-2xl overflow-hidden text-white">
+      <div className="relative w-full max-w-5xl max-h-[92dvh] flex flex-col rounded-2xl border border-white/15 bg-[#030e16]/95 backdrop-blur-xl shadow-2xl overflow-hidden text-white">
         {/* Header Superior del Modal */}
         <header className="px-5 sm:px-7 py-4 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
           <div className="flex items-center gap-3">
