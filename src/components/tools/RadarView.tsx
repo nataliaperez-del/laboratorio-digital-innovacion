@@ -124,7 +124,7 @@ export const RadarView: React.FC<Props> = ({ onNavigate }) => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
             <div className="lg:col-span-8 min-w-0">
               {view === 'radar' ? (
-                <div className="lab-tree-canvas p-3">
+                <div className="lab-tree-canvas radar-plate p-3">
                   <RadarScope
                     all={feed.senales}
                     visibleIds={visibleIds}
@@ -133,7 +133,7 @@ export const RadarView: React.FC<Props> = ({ onNavigate }) => {
                     colorOf={colorOf}
                     onSelect={(s) => setActiveId(s.id)}
                   />
-                  <div className="flex flex-wrap gap-4 px-2 pb-1 text-xs text-[#CFE6EE]">
+                  <div className="radar-legend flex flex-wrap gap-4 px-2 pb-1 text-xs text-[#CFE6EE]">
                     <span>Sector: área · Cerca del centro: más impacto · Tamaño: más adopción</span>
                     {Object.entries(PRIORITY_COLOR).map(([k, c]) => (
                       <span key={k} className="flex items-center gap-1.5">

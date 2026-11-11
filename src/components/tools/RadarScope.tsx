@@ -8,8 +8,48 @@ const AFTERGLOW_SECONDS = 3.4;
 const VIEW = 1000;
 const CENTER = VIEW / 2;
 const RADIUS = 392;
+/** Espacio a cada lado del círculo para los nombres de las áreas, que antes se cortaban en los bordes. */
+const MARGIN = 140;
 
 const toView = (unit: number) => CENTER + unit * RADIUS;
+
+/** Colores de la pantalla según el tema: de noche, cristal oscuro y haz cian; de día, cristal claro y haz azul petróleo. */
+const PALETTES = {
+  dark: {
+    glass: ['rgba(18, 92, 104, .62)', 'rgba(6, 46, 58, .72)', 'rgba(3, 22, 30, .92)'],
+    trail: '39, 220, 255',
+    beam: 'rgba(159, 232, 255, .95)',
+    beamGlow: '#27DCFF',
+    grid: '#9FE8FF',
+    gridBoost: 1,
+    blipEdge: '#04222B',
+    target: '#EFF6FF',
+    sectorMix: '#FFFFFF',
+  },
+  light: {
+    glass: ['rgba(255, 255, 255, .98)', 'rgba(231, 243, 248, .98)', 'rgba(203, 226, 235, .98)'],
+    trail: '3, 94, 115',
+    beam: 'rgba(3, 94, 115, .95)',
+    beamGlow: 'rgba(3, 94, 115, .55)',
+    grid: '#035E73',
+    gridBoost: 1.35,
+    blipEdge: '#FFFFFF',
+    target: '#042F3C',
+    sectorMix: '#042F3C',
+  },
+} as const;
+
+/** Tema de la página en uso; se actualiza cuando se cambia de claro a oscuro. */
+function useIsLight(): boolean {
+  const read = () => document.documentElement.getAttribute('data-theme') === 'light';
+  const [light, setLight] = useState(read);
+  useEffect(() => {
+    const observer = new MutationObserver(() => setLight(read()));
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    return () => observer.disconnect();
+  }, []);
+  return light;
+}
 
 interface Props {
   /** Todas las señales: sus posiciones no cambian al filtrar. */
@@ -28,6 +68,8 @@ interface Props {
  */
 export const RadarScope: React.FC<Props> = ({ all, visibleIds, activeId, relatedIds, colorOf, onSelect }) => {
   const { sectors, plots } = useMemo(() => layoutRadar(all), [all]);
+  const isLight = useIsLight();
+  const palette = PALETTES[isLight ? 'light' : 'dark'];
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const blipRefs = useRef(new Map<number, SVGGElement>());
   const [contact, setContact] = useState<{ id: number; bearing: number; range: number } | null>(null);
@@ -66,9 +108,9 @@ export const RadarScope: React.FC<Props> = ({ all, visibleIds, activeId, related
 
       // Pantalla.
       const glass = ctx.createRadialGradient(c, c, 0, c, c, r);
-      glass.addColorStop(0, 'rgba(18, 92, 104, .62)');
-      glass.addColorStop(0.72, 'rgba(6, 46, 58, .72)');
-      glass.addColorStop(1, 'rgba(3, 22, 30, .92)');
+      glass.addColorStop(0, palette.glass[0]);
+      glass.addColorStop(0.72, palette.glass[1]);
+      glass.addColorStop(1, palette.glass[2]);
       ctx.fillStyle = glass;
       ctx.beginPath();
       ctx.arc(c, c, r, 0, Math.PI * 2);
@@ -78,18 +120,18 @@ export const RadarScope: React.FC<Props> = ({ all, visibleIds, activeId, related
         // Estela del haz: un cono que se desvanece hacia atrás. 0 del canvas apunta al este.
         const heading = ((bearing - 90) * Math.PI) / 180;
         const trail = (ctx as CanvasRenderingContext2D).createConicGradient(heading, c, c);
-        trail.addColorStop(0, 'rgba(39, 220, 255, 0)');
-        trail.addColorStop(0.72, 'rgba(39, 220, 255, 0)');
-        trail.addColorStop(0.985, 'rgba(39, 220, 255, .3)');
-        trail.addColorStop(1, 'rgba(39, 220, 255, .46)');
+        trail.addColorStop(0, `rgba(${palette.trail}, 0)`);
+        trail.addColorStop(0.72, `rgba(${palette.trail}, 0)`);
+        trail.addColorStop(0.985, `rgba(${palette.trail}, .3)`);
+        trail.addColorStop(1, `rgba(${palette.trail}, .46)`);
         ctx.fillStyle = trail;
         ctx.beginPath();
         ctx.arc(c, c, r, 0, Math.PI * 2);
         ctx.fill();
         // El haz en sí.
-        ctx.strokeStyle = 'rgba(159, 232, 255, .95)';
+        ctx.strokeStyle = palette.beam;
         ctx.lineWidth = 2 * u;
-        ctx.shadowColor = '#27DCFF';
+        ctx.shadowColor = palette.beamGlow;
         ctx.shadowBlur = 16 * u;
         ctx.beginPath();
         ctx.moveTo(c, c);
@@ -133,7 +175,7 @@ export const RadarScope: React.FC<Props> = ({ all, visibleIds, activeId, related
     };
     // `colorOf` es estable: viene de una constante del módulo.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [plots, byId]);
+  }, [plots, byId, palette]);
 
   const active = activeId !== null ? plotOf.get(activeId) : undefined;
   const lastContact = contact ? byId.get(contact.id) : undefined;
@@ -144,7 +186,7 @@ export const RadarScope: React.FC<Props> = ({ all, visibleIds, activeId, related
       <div className="radar-scope-stage">
         <canvas ref={canvasRef} className="radar-scope-canvas" aria-hidden="true" />
         <svg
-          viewBox={`0 0 ${VIEW} ${VIEW}`}
+          viewBox={`${-MARGIN} 0 ${VIEW + 2 * MARGIN} ${VIEW}`}
           className="radar-scope-svg select-none"
           role="group"
           aria-label="Radar de señales del Observatorio. Cada sector es un área; cuanto más cerca del centro, mayor impacto territorial."
@@ -157,8 +199,8 @@ export const RadarScope: React.FC<Props> = ({ all, visibleIds, activeId, related
               cy={CENTER}
               r={RADIUS * f}
               fill="none"
-              stroke="#9FE8FF"
-              strokeOpacity={f === 1 ? 0.65 : 0.2}
+              stroke={palette.grid}
+              strokeOpacity={Math.min(1, (f === 1 ? 0.65 : 0.2) * palette.gridBoost)}
               strokeWidth={f === 1 ? 2 : 1}
             />
           ))}
@@ -166,7 +208,7 @@ export const RadarScope: React.FC<Props> = ({ all, visibleIds, activeId, related
             const major = i % 6 === 0;
             const a = polar(i * 5, 1);
             const b = polar(i * 5, major ? 1.035 : 1.018);
-            return <line key={i} x1={toView(a.x)} y1={toView(a.y)} x2={toView(b.x)} y2={toView(b.y)} stroke="#9FE8FF" strokeOpacity={major ? 0.7 : 0.3} />;
+            return <line key={i} x1={toView(a.x)} y1={toView(a.y)} x2={toView(b.x)} y2={toView(b.y)} stroke={palette.grid} strokeOpacity={Math.min(1, (major ? 0.7 : 0.3) * palette.gridBoost)} />;
           })}
           {sectors.map((sector) => {
             const edge = polar(sector.start, 1);
@@ -175,8 +217,8 @@ export const RadarScope: React.FC<Props> = ({ all, visibleIds, activeId, related
             const anchor = at.x > 0.12 ? 'start' : at.x < -0.12 ? 'end' : 'middle';
             return (
               <g key={sector.area}>
-                <line x1={CENTER} y1={CENTER} x2={toView(edge.x)} y2={toView(edge.y)} stroke="#9FE8FF" strokeOpacity="0.22" strokeDasharray="3 7" />
-                <text x={toView(at.x)} y={toView(at.y)} textAnchor={anchor} dominantBaseline="middle" fontSize="19" fontWeight="600" fill={sector.color}>
+                <line x1={CENTER} y1={CENTER} x2={toView(edge.x)} y2={toView(edge.y)} stroke={palette.grid} strokeOpacity={0.22 * palette.gridBoost} strokeDasharray="3 7" />
+                <text x={toView(at.x)} y={toView(at.y)} textAnchor={anchor} dominantBaseline="middle" fontSize="19" fontWeight="600" style={{ fill: `color-mix(in srgb, ${sector.color} ${isLight ? 52 : 58}%, ${palette.sectorMix})` }}>
                   {sector.area.length > 24 ? `${sector.area.slice(0, 23)}…` : sector.area}
                   <title>{sector.area}</title>
                 </text>
@@ -187,7 +229,7 @@ export const RadarScope: React.FC<Props> = ({ all, visibleIds, activeId, related
             { f: 0.25, t: 'Impacto alto' },
             { f: 0.75, t: 'Impacto bajo' },
           ].map(({ f, t }) => (
-            <text key={t} x={CENTER + 6} y={CENTER - RADIUS * f - 6} fontSize="14" fill="#9FE8FF" fillOpacity="0.72">
+            <text key={t} x={CENTER + 6} y={CENTER - RADIUS * f - 6} fontSize="14" fill={palette.grid} fillOpacity={isLight ? 0.9 : 0.72}>
               {t}
             </text>
           ))}
@@ -204,8 +246,8 @@ export const RadarScope: React.FC<Props> = ({ all, visibleIds, activeId, related
                   y1={toView(active.y)}
                   x2={toView(other.x)}
                   y2={toView(other.y)}
-                  stroke="#9FE8FF"
-                  strokeOpacity="0.45"
+                  stroke={palette.grid}
+                  strokeOpacity={0.45 * palette.gridBoost}
                   strokeDasharray="5 5"
                 />
               );
@@ -240,18 +282,18 @@ export const RadarScope: React.FC<Props> = ({ all, visibleIds, activeId, related
                 <title>{signal.nombre}</title>
                 <circle cx={toView(plot.x)} cy={toView(plot.y)} r={size + 12} fill="transparent" />
                 <circle cx={toView(plot.x)} cy={toView(plot.y)} r={size * 1.9} fill={colorOf(signal)} fillOpacity="0.22" />
-                <circle cx={toView(plot.x)} cy={toView(plot.y)} r={size} fill={colorOf(signal)} stroke="#04222B" strokeWidth="1.5" />
+                <circle cx={toView(plot.x)} cy={toView(plot.y)} r={size} fill={colorOf(signal)} stroke={palette.blipEdge} strokeWidth="1.5" />
               </g>
             );
           })}
 
           {/* Mira de la señal fijada: no se apaga con el barrido. */}
           {active && visibleIds.has(active.id) && (
-            <g pointerEvents="none" stroke="#EFF6FF" strokeWidth="2.5" fill="none" transform={`translate(${toView(active.x)} ${toView(active.y)})`}>
+            <g pointerEvents="none" stroke={palette.target} strokeWidth="2.5" fill="none" transform={`translate(${toView(active.x)} ${toView(active.y)})`}>
               <path d="M-27 -13 V-27 H-13 M13 -27 H27 V-13 M27 13 V27 H13 M-13 27 H-27 V13" />
             </g>
           )}
-          <circle cx={CENTER} cy={CENTER} r="5" fill="#9FE8FF" />
+          <circle cx={CENTER} cy={CENTER} r="5" fill={palette.grid} />
         </svg>
       </div>
 

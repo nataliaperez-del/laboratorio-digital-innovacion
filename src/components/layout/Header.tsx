@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { AiSettings } from '@/components/lab/AiSettings';
-import { Sparkles, Sun, Moon, Layers, Compass, Trees, BrainCircuit, Rocket, Menu, X, Home, FolderArchive, Trophy } from 'lucide-react';
+import { Sparkles, Sun, Moon, Layers, Compass, Trees, BrainCircuit, Rocket, Menu, X, Home, FolderArchive, Trophy, Radar } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { evaluateGamification, INNOVATION_BADGES } from '@/lib/gamification';
 import { MODULE_LABELS } from '@/lib/moduleLabels';
@@ -57,6 +57,7 @@ export const Header: React.FC<HeaderProps> = ({ currentTool, onSelectTool, theme
 
   const allNavTools = [
     { id: 'portal' as ToolId, name: 'Inicio', icon: Home, color: '#27DCFF' },
+    { id: 'radar' as ToolId, name: MODULE_LABELS.radar.title, icon: Radar, color: '#FF7A59' },
     { id: 'estudio' as ToolId, name: MODULE_LABELS.estudio.title, icon: Layers, color: '#A8C63C' },
     { id: 'ideacion' as ToolId, name: MODULE_LABELS.ideacion.title, icon: BrainCircuit, color: '#F29F05' },
     { id: 'arbol' as ToolId, name: MODULE_LABELS.arbol.title, icon: Trees, color: '#5EC2DD' },
@@ -152,7 +153,7 @@ export const Header: React.FC<HeaderProps> = ({ currentTool, onSelectTool, theme
 
                   {/* Tooltip Flotante que aparece al señalar (hover) con el color característico */}
                   <div
-                    className="on-dark absolute top-full mt-2.5 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-xl bg-[#04222B]/95 text-white text-[11px] font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 shadow-[0_8px_20px_rgba(0,0,0,0.6)] z-50 flex items-center gap-1.5 transform group-hover:translate-y-0 translate-y-1"
+                    className="hdr-tip absolute top-full mt-2.5 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-xl bg-[#04222B]/95 text-white text-[11px] font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 shadow-[0_8px_20px_rgba(0,0,0,0.6)] z-50 flex items-center gap-1.5 transform group-hover:translate-y-0 translate-y-1"
                     style={{ border: `1px solid ${tool.color}60` }}
                   >
                     <span className="w-1.5 h-1.5 rounded-full inline-block shadow-[0_0_6px]" style={{ backgroundColor: tool.color, color: tool.color }} />
@@ -173,7 +174,7 @@ export const Header: React.FC<HeaderProps> = ({ currentTool, onSelectTool, theme
                 <Trophy className="w-4 h-4 sm:w-4.5 sm:h-4.5 transition-transform group-hover:scale-110" style={{ color: '#FFD700' }} />
               </button>
               <div
-                className="on-dark absolute top-full mt-2.5 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-xl bg-[#04222B]/95 text-white text-[11px] font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 shadow-[0_8px_20px_rgba(0,0,0,0.6)] z-50 flex items-center gap-1.5 transform group-hover:translate-y-0 translate-y-1"
+                className="hdr-tip absolute top-full mt-2.5 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-xl bg-[#04222B]/95 text-white text-[11px] font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 shadow-[0_8px_20px_rgba(0,0,0,0.6)] z-50 flex items-center gap-1.5 transform group-hover:translate-y-0 translate-y-1"
                 style={{ border: '1px solid #FFD70060' }}
               >
                 <span className="w-1.5 h-1.5 rounded-full inline-block shadow-[0_0_6px]" style={{ backgroundColor: '#FFD700', color: '#FFD700' }} />
