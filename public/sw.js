@@ -38,6 +38,8 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
   if (isLive(url)) return;
   if (url.origin !== self.location.origin && !isFont(url)) return;
+  // El modelo de voz de ZOE (decenas de MB) ya queda guardado por la propia voz (OPFS); duplicarlo aquí la retrasa.
+  if (url.pathname.endsWith('.onnx')) return;
   // Videos y audios llegan por partes: el navegador los maneja mejor solo.
   if (request.destination === 'video' || request.destination === 'audio') return;
 

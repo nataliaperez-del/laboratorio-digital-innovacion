@@ -27,7 +27,8 @@ import { applyTone } from './zoeTone';
  * El modelo pesa 77 MB: se descarga una vez, cuando el navegador está desocupado, y queda guardado.
  * Mientras tanto, o si algo falla, ZOE habla con la voz del sistema.
  */
-const VOICE_FILE = 'zoe-raven-v2.onnx';
+/** Pesos guardados en float16 (32 MB en vez de 63): la descarga es la mitad y el audio es el mismo (correlación 0,9999). */
+const VOICE_FILE = 'zoe-raven-v2-ligera.onnx';
 /** La voz va con la aplicación (`public/assets/zoe/voz-propia/`): no depende de ningún servicio externo. */
 const MODEL_URL = `/assets/zoe/voz-propia/${VOICE_FILE}`;
 /**
@@ -42,7 +43,7 @@ const SPEAKER = 'M';
 /** Fonética latinoamericana de espeak. */
 const ESPEAK_VOICE = 'es-419';
 /** Voces anteriores que pueden haber quedado guardadas en el navegador: se borran para liberar espacio. */
-const OLD_VOICE_FILES = ['es_MX-claude-high.onnx', 'es_MX-claude-high.onnx.json', 'es_ES-sharvard-medium.onnx', 'es_ES-sharvard-medium.onnx.json'];
+const OLD_VOICE_FILES = ['es_MX-claude-high.onnx', 'es_MX-claude-high.onnx.json', 'es_ES-sharvard-medium.onnx', 'es_ES-sharvard-medium.onnx.json', 'zoe-raven-v2.onnx', 'zoe-raven-v2.onnx.json'];
 const ONNX_WASM = 'https://cdnjs.cloudflare.com/ajax/libs/onnxruntime-web/1.18.0/';
 const PHONEMIZER_WASM = 'https://cdn.jsdelivr.net/npm/@diffusionstudio/piper-wasm@1.0.0/build/piper_phonemize';
 /** Marca de la configuración ajustada: si cambia el ajuste, se rehace. */
