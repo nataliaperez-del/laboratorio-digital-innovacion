@@ -539,8 +539,7 @@ button.lab-card:hover { border-color: var(--brand-teal-text); }
 .lab-credits { position: fixed; right: var(--zoe-house-room); bottom: 10px; z-index: 30; display: flex; align-items: center; gap: 12px; pointer-events: none; filter: drop-shadow(0 1px 3px rgba(0, 0, 0, .75)); }
 [data-theme="light"] .lab-credits { filter: drop-shadow(0 0 3px rgba(255, 255, 255, .95)); }
 .lab-credits img { pointer-events: auto; }
-/* Los logos traen texto oscuro: sobre el fondo de noche se leen con un halo claro pegado a las letras, sin recuadro. */
-:root:not([data-theme="light"]) .lab-credits img { filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 2.5px rgba(255, 255, 255, 0.85)) drop-shadow(0 0 7px rgba(255, 255, 255, 0.35)); }
+/* Los logos son PNG listos para cada tema (unad_emblema_dark/light, viem_logo_dark/light): sin halos ni placas. */
 .lab-credits-unad { height: 40px; width: auto; object-fit: contain; }
 .lab-credits-viem { height: 34px; width: auto; object-fit: contain; }
 .lab-credits-names { margin: 0; text-align: right; font-size: 8.5px; font-style: italic; font-weight: 300; line-height: 1.35; color: var(--text-secondary); white-space: nowrap; }

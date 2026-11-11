@@ -260,13 +260,13 @@ export const App: React.FC = () => {
           Camilo Esteban Lozano
         </p>
         <img
-          src="/assets/unad_acreditada.png"
+          src={`/assets/unad_emblema_${theme}.png`}
           alt="Universidad Nacional Abierta y a Distancia · Acreditada en Alta Calidad"
           title="UNAD · Acreditada en Alta Calidad"
           className="lab-credits-unad"
         />
         <img
-          src="/assets/viem_logo.png"
+          src={`/assets/viem_logo_${theme}.png`}
           alt="VIEM · Vicerrectoría de Innovación y Emprendimiento"
           title="Vicerrectoría de Innovación y Emprendimiento (VIEM)"
           className="lab-credits-viem"
