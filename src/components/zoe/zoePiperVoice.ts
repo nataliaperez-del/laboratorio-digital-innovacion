@@ -1,7 +1,7 @@
 import { applyTone } from './zoeTone';
 
 /**
- * Voz propia de ZOE: modelo Piper afinado con el timbre de ZOE (`zoe-raven-v2`, entrenado desde la
+ * Voz propia de ZOE: modelo Piper afinado con el timbre de ZOE (`zoe-raven-v3`, época 445 de 500; entrenado desde la
  * voz base «es_ES-sharvard-medium», corpus Sharvard de la Universidad de Edimburgo, CC BY 3.0),
  * ejecutado en el navegador con ONNX y entregado como recurso de la aplicación.
  * Lo que sigue describe la voz base anterior y el motor, que no cambió.
@@ -28,7 +28,7 @@ import { applyTone } from './zoeTone';
  * Mientras tanto, o si algo falla, ZOE habla con la voz del sistema.
  */
 /** Pesos guardados en float16 (32 MB en vez de 63): la descarga es la mitad y el audio es el mismo (correlación 0,9999). */
-const VOICE_FILE = 'zoe-raven-v2-ligera.onnx';
+const VOICE_FILE = 'zoe-raven-v3.onnx';
 /** La voz va con la aplicación (`public/assets/zoe/voz-propia/`): no depende de ningún servicio externo. */
 const MODEL_URL = `/assets/zoe/voz-propia/${VOICE_FILE}`;
 /**
@@ -43,7 +43,7 @@ const SPEAKER = 'M';
 /** Fonética latinoamericana de espeak. */
 const ESPEAK_VOICE = 'es-419';
 /** Voces anteriores que pueden haber quedado guardadas en el navegador: se borran para liberar espacio. */
-const OLD_VOICE_FILES = ['es_MX-claude-high.onnx', 'es_MX-claude-high.onnx.json', 'es_ES-sharvard-medium.onnx', 'es_ES-sharvard-medium.onnx.json', 'zoe-raven-v2.onnx', 'zoe-raven-v2.onnx.json'];
+const OLD_VOICE_FILES = ['es_MX-claude-high.onnx', 'es_MX-claude-high.onnx.json', 'es_ES-sharvard-medium.onnx', 'es_ES-sharvard-medium.onnx.json', 'zoe-raven-v2.onnx', 'zoe-raven-v2.onnx.json', 'zoe-raven-v2-ligera.onnx', 'zoe-raven-v2-ligera.onnx.json'];
 const ONNX_WASM = 'https://cdnjs.cloudflare.com/ajax/libs/onnxruntime-web/1.18.0/';
 const PHONEMIZER_WASM = 'https://cdn.jsdelivr.net/npm/@diffusionstudio/piper-wasm@1.0.0/build/piper_phonemize';
 /** Marca de la configuración ajustada: si cambia el ajuste, se rehace. */
