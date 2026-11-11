@@ -95,12 +95,12 @@ export const BadgesModal: React.FC<Props> = ({ isOpen, onClose, onNavigate }) =>
 
   return (
     <div
-      className="on-dark fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200"
+      className="badges-overlay fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200"
       role="dialog"
       aria-modal="true"
       aria-labelledby="badges-modal-title"
     >
-      <div className="relative w-full max-w-5xl max-h-[92dvh] flex flex-col rounded-2xl border border-white/15 bg-[#030e16]/95 backdrop-blur-xl shadow-2xl overflow-hidden text-white">
+      <div className="badges-panel relative w-full max-w-5xl max-h-[92dvh] flex flex-col rounded-2xl border border-white/15 bg-[#030e16]/95 backdrop-blur-xl shadow-2xl overflow-hidden text-white">
         {/* Header Superior del Modal */}
         <header className="px-5 sm:px-7 py-4 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
           <div className="flex items-center gap-3">
@@ -171,7 +171,7 @@ export const BadgesModal: React.FC<Props> = ({ isOpen, onClose, onNavigate }) =>
           {activeTab === 'vitrina' ? (
             <>
               {/* Tarjeta de Rango y Progreso General */}
-              <div className="p-5 rounded-2xl border border-white/15 bg-gradient-to-r from-[#031d28]/70 via-[#052b38]/50 to-[#02141d]/70 backdrop-blur-md flex flex-col md:flex-row items-center justify-between gap-5 shadow-[0_0_25px_rgba(0,245,255,0.08)]">
+              <div className="badges-rank p-5 rounded-2xl border border-white/15 bg-gradient-to-r from-[#031d28]/70 via-[#052b38]/50 to-[#02141d]/70 backdrop-blur-md flex flex-col md:flex-row items-center justify-between gap-5 shadow-[0_0_25px_rgba(0,245,255,0.08)]">
                 <div className="flex items-center gap-4">
                   <div className="shrink-0 p-1 rounded-2xl bg-black/40 border border-[#00F5FF]/30 shadow-[0_0_18px_rgba(0,245,255,0.2)]">
                     <BadgeGraphicRenderer badgeId={selectedBadgeId} size={74} isUnlocked={true} />
@@ -381,7 +381,7 @@ export const BadgesModal: React.FC<Props> = ({ isOpen, onClose, onNavigate }) =>
 
               {/* Maquetación del Certificado Fiel al Referente Institucional */}
               <div
-                className="w-full p-6 sm:p-10 rounded-2xl border-2 relative overflow-hidden shadow-2xl flex flex-col justify-between"
+                className="on-dark w-full p-6 sm:p-10 rounded-2xl border-2 relative overflow-hidden shadow-2xl flex flex-col justify-between"
                 style={{
                   background: 'radial-gradient(ellipse at 75% 50%, #06313D 0%, #031D26 45%, #011218 100%)',
                   borderColor: 'rgba(0, 245, 255, 0.45)',

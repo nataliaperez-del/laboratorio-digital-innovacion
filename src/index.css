@@ -157,9 +157,9 @@
 [data-theme="light"] [class*="hover:text-white"]:hover:not(.on-dark, .on-dark *) { color: #042F3C !important; }
 
 /* Tonos claros de marca, hechos para fondo oscuro: en claro pasan a su versión oscura (contraste ≥ 4.5). */
-[data-theme="light"] :is(.text-\[\#5EC2DD\], .text-\[\#27DCFF\], .text-\[\#00F5FF\], .text-\[\#9FD4E4\], .text-\[\#6FD3EA\]):not(.on-dark, .on-dark *) { color: #035E73 !important; }
+[data-theme="light"] :is(.text-\[\#5EC2DD\], .text-\[\#27DCFF\], .text-\[\#00F5FF\], .text-\[\#9FD4E4\], .text-\[\#6FD3EA\], .text-\[\#A5F3FC\]):not(.on-dark, .on-dark *) { color: #035E73 !important; }
 [data-theme="light"] :is(.text-\[\#A8C63C\], .text-\[\#B8D95A\]):not(.on-dark, .on-dark *) { color: #4F6504 !important; }
-[data-theme="light"] :is(.text-\[\#FFD700\], .text-\[\#F3C26B\], .text-\[\#FFC107\]):not(.on-dark, .on-dark *) { color: #7A5200 !important; }
+[data-theme="light"] :is(.text-\[\#FFD700\], .text-\[\#F3C26B\], .text-\[\#FFC107\], .text-\[\#FFD23F\]):not(.on-dark, .on-dark *) { color: #7A5200 !important; }
 [data-theme="light"] :is(.text-\[\#A78BFA\], .text-\[\#A98FD6\], .text-\[\#C4B5FD\]):not(.on-dark, .on-dark *) { color: #4A3480 !important; }
 [data-theme="light"] :is(.text-\[\#CFE0E6\], .text-\[\#B7CBD3\], .text-brand-textSecondary):not(.on-dark, .on-dark *) { color: #2B3A45 !important; }
 [data-theme="light"] :is(.text-\[\#A6C0CA\], .text-\[\#8FB6C4\], .text-brand-textMuted):not(.on-dark, .on-dark *) { color: #4B5A66 !important; }
@@ -200,6 +200,12 @@
 /* Subtítulo de cada herramienta: el color de la marca de noche; de día se oscurece hasta leerse sobre blanco. */
 .tool-subtitle { color: var(--tone, #fff); opacity: 0.9; }
 [data-theme="light"] .tool-subtitle { color: color-mix(in srgb, var(--tone) 48%, #042F3C); opacity: 1; }
+
+/* Vitrina de insignias: oscura de noche, clara de día (las insignias traen su propia placa oscura). */
+[data-theme="light"] div.badges-overlay.badges-overlay { background-color: rgba(205, 220, 228, 0.78) !important; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+[data-theme="light"] div.badges-panel.badges-panel { background: rgba(255, 255, 255, 0.98) !important; border-color: rgba(4, 47, 60, 0.16) !important; box-shadow: 0 24px 70px rgba(4, 47, 60, 0.3) !important; }
+
+[data-theme="light"] div.badges-rank.badges-rank { background: linear-gradient(90deg, rgba(3, 94, 115, 0.11), rgba(3, 94, 115, 0.04)) !important; border-color: rgba(4, 47, 60, 0.16) !important; box-shadow: none !important; }
 
 /* Zonas oscuras en ambos temas: recuperan los colores del tema oscuro aunque la página esté en claro. */
 [data-theme="light"] .on-dark {
@@ -523,8 +529,8 @@ button.lab-card:hover { border-color: var(--brand-teal-text); }
 .lab-credits { position: fixed; right: var(--zoe-house-room); bottom: 10px; z-index: 30; display: flex; align-items: center; gap: 12px; pointer-events: none; filter: drop-shadow(0 1px 3px rgba(0, 0, 0, .75)); }
 [data-theme="light"] .lab-credits { filter: drop-shadow(0 0 3px rgba(255, 255, 255, .95)); }
 .lab-credits img { pointer-events: auto; }
-/* Los logos traen texto oscuro: sobre el fondo de noche se pierden, así que van sobre una placa clara. */
-:root:not([data-theme="light"]) .lab-credits img { box-sizing: content-box; padding: 3px 8px; border-radius: 9px; background: rgba(255, 255, 255, 0.9); }
+/* Los logos traen texto oscuro: sobre el fondo de noche se leen con un halo claro pegado a las letras, sin recuadro. */
+:root:not([data-theme="light"]) .lab-credits img { filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 2.5px rgba(255, 255, 255, 0.85)) drop-shadow(0 0 7px rgba(255, 255, 255, 0.35)); }
 .lab-credits-unad { height: 40px; width: auto; object-fit: contain; }
 .lab-credits-viem { height: 34px; width: auto; object-fit: contain; }
 .lab-credits-names { margin: 0; text-align: right; font-size: 8.5px; font-style: italic; font-weight: 300; line-height: 1.35; color: var(--text-secondary); white-space: nowrap; }
