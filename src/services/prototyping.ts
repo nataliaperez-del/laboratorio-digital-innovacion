@@ -9,6 +9,7 @@ import { assertSafeInput } from '@/lib/ethicsGuard';
 import { LAB_SCOPE_RULES } from '@/prompts/labGuardrails';
 import { UNAD_ESCUELAS } from '@/constants/unadEscuelas';
 import { formatFichaCompact } from '@/services/ideation';
+import { radarPromptBlock } from '@/services/observatorio';
 
 /** Tipos de prototipo que ofrece el formulario de Prototipado. */
 export const PROTOTYPE_CATEGORIES = ['Prototipo Tecnológico', 'Servicio de Innovación', 'Proyecto Territorial', 'Transferencia Tecnológica'] as const;
@@ -82,7 +83,7 @@ export interface PrototypePlan {
   offline?: boolean;
 }
 
-function buildPrompt(brief: PrototypeBrief, fichaBlock: string): string {
+function buildPrompt(brief: PrototypeBrief, fichaBlock: string, observatoryBlock = ''): string {
   return `
 ${LAB_SCOPE_RULES}
 
@@ -96,7 +97,7 @@ MADUREZ OBJETIVO: ${brief.trl}
 ALCANCE DE VALIDACIÓN: ${brief.scope}
 TERRITORIO:
 ${fichaBlock}
-
+${observatoryBlock.trim() ? `\nTENDENCIAS DEL RADAR DEL OBSERVATORIO INNOVAHUB360 RELACIONADAS (dato real del Observatorio; tenlas en cuenta en la solución, los riesgos y los supuestos solo si son pertinentes, y nómbralas igual):\n${observatoryBlock.trim()}\n` : ''}
 ESCUELAS DE LA UNAD DISPONIBLES (usa estos nombres): ${UNAD_ESCUELAS.join('; ')}.
 
 REGLAS:
@@ -177,6 +178,8 @@ export async function generatePrototypePlan(brief: PrototypeBrief): Promise<Prot
   if (!brief.topic.trim()) throw new Error('Escribe la idea o elige un fruto del árbol para armar el plan.');
   assertSafeInput(brief.topic, brief.context);
   const { aiProvider, prompt0Data } = useStore.getState();
-  const raw = await callAI(buildPrompt(brief, formatFichaCompact(prompt0Data)), defaultCallOptions(aiProvider));
+  // El Radar revisa la idea; si ella misma viene del Radar, su señal ya está en el contexto.
+  const observatoryBlock = brief.origin.kind === 'observatorio' ? '' : await radarPromptBlock(`${brief.topic} ${brief.context.slice(0, 1500)}`, { tag: 'Prototipado' });
+  const raw = await callAI(buildPrompt(brief, formatFichaCompact(prompt0Data), observatoryBlock), defaultCallOptions(aiProvider));
   return normalizePrototypePlan(parseJsonResponse(raw), brief);
 }

@@ -9,7 +9,7 @@ import { useStore } from '@/store/useStore';
 import { getMaxThemeStepContainerChars, truncateContainerForDocument } from '@/lib/promptBudget';
 import { buildTreeFromMarkdown, parseTreeGraph, type TreeGraph } from '@/lib/innovationTreeGraph';
 import { formatFichaCompact } from '@/services/ideation';
-import { loadRadarFeed, relatedSignals } from '@/services/observatorio';
+import { radarPromptBlock } from '@/services/observatorio';
 import {
   assembleParts,
   buildInnovationTreePartPrompt,
@@ -59,15 +59,7 @@ async function prepareContext(request: InnovationTreeRequest): Promise<TreeConte
   const explanation = truncateContainerForDocument(request.themeExplanation ?? '', Math.floor(maxC / 2));
 
   // Las señales del Observatorio enriquecen el árbol pero nunca lo bloquean si el Radar no responde.
-  let observatoryBlock = '';
-  try {
-    const feed = await loadRadarFeed();
-    observatoryBlock = relatedSignals(feed.senales, `${themeName} ${request.themeExplanation ?? ''}`)
-      .map((s) => `- ${s.nombre} (${s.area}; prioridad ${s.prioridad}; ${s.accion}): ${s.descripcion}`)
-      .join('\n');
-  } catch (e) {
-    console.info('[Árbol] Radar del Observatorio no disponible; se continúa sin sus señales.', e);
-  }
+  const observatoryBlock = await radarPromptBlock(`${themeName} ${request.themeExplanation ?? ''}`, { tag: 'Árbol' });
 
   return {
     inputs: {

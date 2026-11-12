@@ -122,6 +122,8 @@ export interface VocationPromptInputs {
   fichaBlock: string;
   /** Tema declarado en la Ficha Base: hipótesis ya contrastada por el estudio; vacío si no hay. */
   focusHypothesis: string;
+  /** Tendencias del Radar del Observatorio afines al insumo; vacío si no hay o el Radar no respondió. */
+  observatoryBlock?: string;
   institutionalVocacionPromptText: string;
 }
 
@@ -144,6 +146,7 @@ function sourceFrame(source: InputSource): string {
 
 function vocationSharedContext(inputs: VocationPromptInputs): string {
   const { source, fodaMatrix, contenedor1, fichaBlock, focusHypothesis, institutionalVocacionPromptText } = inputs;
+  const observatoryBlock = inputs.observatoryBlock?.trim() ?? '';
   return `
 ${LAB_SCOPE_RULES}
 
@@ -174,6 +177,13 @@ ${fodaMatrix.trim()}
 **Insumo${source.kind === 'estudio' ? ' — Estudio Territorial' : ''}** (no inventes lo que no conste):
 ${source.text}
 
+${
+  observatoryBlock
+    ? `**Tendencias del Radar del Observatorio InnovaHub360** (dato real del Observatorio, de alcance nacional o global; no es evidencia del territorio). Contrástalas con el insumo: si alguna refuerza una oportunidad o una opción de tema, nómbrala igual y atribúyela al «Radar del Observatorio». No las fuerces si no son pertinentes; por sí solas no originan la vocación:
+${observatoryBlock}
+`
+    : ''
+}
 ${
   contenedor1.trim()
     ? `**Marco institucional de la UNAD** (solo para el paso de verificación de alineación; no origina la vocación):

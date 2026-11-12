@@ -1,9 +1,9 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { findOutOfScopeTerms } from '@/prompts/labGuardrails';
 import { parseThemeProposal } from '@/lib/themeProposal';
-import { reviewVocationPart } from '@/prompts/themeAndInnovationPrompts';
+import { buildThemeVocationPartPrompt, reviewVocationPart } from '@/prompts/themeAndInnovationPrompts';
 import { parseAlerts, parseFoda, parseInsightCards, parsePillars } from '@/lib/territorialInsights';
-import { normalizeRadarSignal, relatedSignals } from '@/services/observatorio';
+import { normalizeRadarSignal, radarPromptBlock, radarTrends, relatedSignals, signalsPromptBlock } from '@/services/observatorio';
 import { normalizePrototypePlan, type PrototypeBrief } from '@/services/prototyping';
 import { buildDocumentPlan } from '@/lib/documentPlan';
 import { prototypeMarkdown } from '@/lib/labReports';
@@ -145,6 +145,45 @@ describe('Observatorio', () => {
   it('relaciona señales por palabras del tema', () => {
     expect(relatedSignals([signal], 'analítica para aprendizaje en línea')).toHaveLength(1);
     expect(relatedSignals([signal], 'bioinsumos cafeteros')).toHaveLength(0);
+  });
+
+  it('da tendencias a toda herramienta: primero las afines y luego las de mayor impacto', () => {
+    const otras = [
+      normalizeRadarSignal({ id: 2, nombre: 'Bioeconomía rural', descripcion_corta: 'Cadenas de valor', impacto_territorial: 0.95, area_nombre: 'Innovación territorial' }),
+      normalizeRadarSignal({ id: 3, nombre: 'Gemelos digitales', descripcion_corta: 'Simulación', impacto_territorial: 0.4, area_nombre: 'Tecnologías emergentes' }),
+    ];
+    const trends = radarTrends([otras[1], signal, otras[0]], 'analítica de aprendizaje', 2);
+    expect(trends.map((t) => [t.signal.id, t.related])).toEqual([
+      [1, true],
+      [2, false],
+    ]);
+    // Sin coincidencias no queda vacío: muestra lo que más impacta.
+    expect(radarTrends([otras[1], otras[0]], 'café', 1)[0].signal.id).toBe(2);
+    expect(radarTrends([], 'café')).toEqual([]);
+  });
+
+  it('escribe las señales para el prompt, una por línea', () => {
+    expect(signalsPromptBlock([signal])).toMatch(/^- Analítica de aprendizaje \(Innovación educativa; /);
+    expect(signalsPromptBlock([])).toBe('');
+  });
+
+  it('si el Radar no responde, la herramienta sigue sin sus señales', async () => {
+    vi.stubGlobal('fetch', () => Promise.reject(new Error('sin red')));
+    await expect(radarPromptBlock('cualquier tema', { fill: true })).resolves.toBe('');
+    vi.unstubAllGlobals();
+  });
+
+  it('la Ideación recibe las tendencias del Radar sin que nadie las elija', () => {
+    const base = {
+      source: { kind: 'texto' as const, label: 'Café', text: 'Residuos de café' },
+      fodaMatrix: '',
+      contenedor1: 'Marco',
+      fichaBlock: '',
+      focusHypothesis: '',
+      institutionalVocacionPromptText: 'Plantilla',
+    };
+    expect(buildThemeVocationPartPrompt({ ...base, observatoryBlock: '- Bioeconomía rural' }, 0, '')).toContain('Tendencias del Radar del Observatorio InnovaHub360');
+    expect(buildThemeVocationPartPrompt(base, 0, '')).not.toContain('Tendencias del Radar');
   });
 });
 

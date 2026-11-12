@@ -121,15 +121,59 @@ export function signalAsInput(signal: RadarSignal): string {
 
 /** Señales cuyo texto comparte palabras con el tema, las más afines primero. */
 export function relatedSignals(signals: readonly RadarSignal[], theme: string, limit = 6): RadarSignal[] {
-  const keywords = keywordsFromText(theme);
+  // «Innovación» está en casi todas las señales y áreas: no distingue una tendencia de otra.
+  const keywords = keywordsFromText(theme).filter((k) => !k.startsWith('INNOV'));
   if (!keywords.length) return [];
   return signals
     .map((signal) => {
-      const haystack = keywordsFromText(`${signal.nombre} ${signal.descripcion} ${signal.area}`);
+      const haystack = keywordsFromText(`${signal.nombre} ${signal.descripcion}`);
       return { signal, hits: keywords.filter((k) => haystack.some((w) => w.startsWith(k.slice(0, 5)))).length };
     })
     .filter((x) => x.hits > 0)
     .sort((a, b) => b.hits - a.hits)
     .slice(0, limit)
     .map((x) => x.signal);
+}
+
+/** Una tendencia del Radar para una herramienta: `related` indica si comparte palabras con el tema. */
+export interface RadarTrend {
+  signal: RadarSignal;
+  related: boolean;
+}
+
+/**
+ * Tendencias que el Radar aporta a una herramienta: primero las relacionadas con el tema y, si
+ * faltan, las de mayor impacto territorial. Toda herramienta ve qué se está moviendo aunque el
+ * tema no coincida con ninguna señal.
+ */
+export function radarTrends(signals: readonly RadarSignal[], theme: string, limit = 6): RadarTrend[] {
+  const related = relatedSignals(signals, theme, limit);
+  const ids = new Set(related.map((s) => s.id));
+  const general = signals
+    .filter((s) => !ids.has(s.id))
+    .sort((a, b) => b.impacto - a.impacto || b.adopcion - a.adopcion)
+    .slice(0, Math.max(0, limit - related.length));
+  return [...related.map((signal) => ({ signal, related: true })), ...general.map((signal) => ({ signal, related: false }))];
+}
+
+/** Señales en una línea cada una, para el prompt de una herramienta. */
+export function signalsPromptBlock(signals: readonly RadarSignal[]): string {
+  return signals.map((s) => `- ${s.nombre} (${s.area}; prioridad ${s.prioridad}; ${s.accion}): ${s.descripcion}`).join('\n');
+}
+
+/**
+ * Lo que el Radar aporta al prompt de una herramienta. Nunca bloquea: si el Radar no responde,
+ * devuelve vacío y la herramienta sigue sin sus señales.
+ * Con `fill` se añaden las tendencias de mayor impacto cuando pocas coinciden con el tema.
+ */
+export async function radarPromptBlock(theme: string, options: { limit?: number; fill?: boolean; tag?: string } = {}): Promise<string> {
+  try {
+    const feed = await loadRadarFeed();
+    const limit = options.limit ?? 6;
+    const signals = options.fill ? radarTrends(feed.senales, theme, limit).map((t) => t.signal) : relatedSignals(feed.senales, theme, limit);
+    return signalsPromptBlock(signals);
+  } catch (e) {
+    console.info(`[${options.tag ?? 'Radar'}] Radar del Observatorio no disponible; se continúa sin sus señales.`, e);
+    return '';
+  }
 }

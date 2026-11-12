@@ -25,6 +25,7 @@ import {
   OfflineNotice,
 } from '@/components/lab/common';
 import { ObservatorioPicker } from '@/components/lab/ObservatorioPicker';
+import { RadarTrends } from '@/components/lab/RadarTrends';
 import type { ToolId } from '@/components/layout/Header';
 
 const EVIDENCE_TEXT: Record<TreeNode['evidencia'], string> = {
@@ -430,6 +431,19 @@ export const ArbolInnovacionView: React.FC<Props> = ({ onNavigate }) => {
             }}
           />
         )}
+        {themeMode !== 'observatorio' && (
+          <RadarTrends
+            theme={`${theme} ${explanation.slice(0, 1500)}`}
+            note="Al construir el árbol, las afines entran como ramas con evidencia N1 del Observatorio."
+            pickLabel="Usar como tema del árbol"
+            onPick={(s) => {
+              setSignalId(s.id);
+              setTheme(s.nombre);
+              setExplanation(signalAsInput(s));
+            }}
+          />
+        )}
+
         <div className="flex flex-wrap items-center justify-between gap-3">
           <label className={`flex items-center gap-2 text-xs ${hasStudy ? 'text-white cursor-pointer' : 'text-brand-textMuted'}`}>
             <input type="checkbox" disabled={!hasStudy} checked={useStudy && hasStudy} onChange={(e) => setUseStudy(e.target.checked)} />

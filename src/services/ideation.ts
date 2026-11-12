@@ -9,6 +9,7 @@ import { assertSafeInput } from '@/lib/ethicsGuard';
 import { useStore, type Prompt0Data } from '@/store/useStore';
 import { getMaxThemeStepContainerChars, truncateAtBoundary, truncateContainerForDocument } from '@/lib/promptBudget';
 import { fichaIdentity } from '@/lib/fichaIdentity';
+import { radarPromptBlock } from '@/services/observatorio';
 import { extractContenedor2Section } from '@/prompts/contenedor2Sections';
 import {
   assembleParts,
@@ -65,13 +66,19 @@ async function prepareVocationContext(source: InputSource): Promise<VocationCont
   const { text, notice } = truncateContainerForDocument(source.text, Math.max(maxC - institucional.text.length, Math.floor(maxC * 0.5)));
 
   const isStudy = source.kind === 'estudio';
+  const focus = isStudy ? fichaIdentity(prompt0Data).focusText : '';
+  // El Radar revisa el tema: las tendencias afines entran al análisis aunque nadie las haya elegido.
+  // Si el insumo ya es una señal del Radar, no se repite.
+  const observatoryBlock =
+    source.kind === 'observatorio' ? '' : await radarPromptBlock(`${source.label} ${focus} ${source.text.slice(0, 2000)}`, { fill: isStudy, tag: 'Ideación' });
   return {
     inputs: {
       source: { ...source, text: text + notice },
       fodaMatrix: isStudy ? extractContenedor2Section(source.text, 'Matriz FODA territorial') : '',
       contenedor1: institucional.text + institucional.notice,
       fichaBlock: formatFichaCompact(prompt0Data),
-      focusHypothesis: isStudy ? fichaIdentity(prompt0Data).focusText : '',
+      focusHypothesis: focus,
+      observatoryBlock,
       institutionalVocacionPromptText: template,
     },
     // Con un tema o un archivo no hay diagnóstico detrás: la consulta web lo suple con fuentes citadas.

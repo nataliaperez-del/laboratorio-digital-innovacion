@@ -2,6 +2,7 @@
  * Estudio Territorial: el mismo diagnóstico de la app Fase 1 (metodología MDVT en doce puntos
  * de entrega, procedencia de fuentes, autoevaluación y regeneración por bloque).
  */
+import { radarPromptBlock } from '@/services/observatorio';
 import { beginGenerationFlow, callAI, GenerationCancelledError, getUnadGeminiMaxOutputTokens, leerNucleoTexto, stripOuterMarkdownFence } from '@/services/ai';
 import { useStore, type AIProvider, type Prompt0Data } from '@/store/useStore';
 import { getMaxC2TerritorialPromptDocCharsForContainer, getMaxCombinedSourceChars, truncateAtBoundary } from '@/lib/promptBudget';
@@ -86,6 +87,8 @@ async function prepareContenedor2Context(prompt0Data: Prompt0Data, institutional
   const territoryMatch = findTerritoryMatch(institutionalDriveBundle?.territories, prompt0Data.municipality || '');
   const territory = territoryMatch?.sources ?? null;
   const identity = fichaIdentity(prompt0Data);
+  // El Radar aporta las tendencias vigentes: las afines al tema previsto y, si faltan, las de mayor impacto territorial.
+  const radarBlock = await radarPromptBlock(`${identity.focusText} ${prompt0Data.municipality ?? ''} ${prompt0Data.department ?? ''}`, { fill: true, tag: 'Contenedor 2' });
 
   const c2Methodology = await leerNucleoTexto('CONTENEDOR_2', 'contenedor2_contexto_territorial');
   if (!c2Methodology?.trim()) {
@@ -202,6 +205,20 @@ Búsqueda por internet: la aplicación la solicita en cada llamada. Si el provee
 
 Puntos que **no** debes redactar: los puntos ${appWrittenPoints} los escribe la aplicación de forma automática y verificable. Si te toca otro punto, no los adelantes ni los dupliques.
 ${budgetNotice}
+${
+  radarBlock
+    ? `
+══════════════════════════════════════════════════
+TENDENCIAS DEL RADAR DEL OBSERVATORIO INNOVAHUB360
+══════════════════════════════════════════════════
+
+Señales vigentes del Radar (dato real del Observatorio, de alcance nacional o global). **No son evidencia del territorio ni fuente primaria.**
+${radarBlock}
+
+Uso: contrástalas con el diagnóstico solo donde la instrucción admite factores del entorno (oportunidades y amenazas de la matriz FODA y oportunidades estratégicas). Si una es pertinente, nómbrala igual y atribúyela a «Radar del Observatorio InnovaHub360». No las presentes como hechos del municipio y no las fuerces si no aplican.
+`
+    : ''
+}
 ══════════════════════════════════════════════════
 MATERIAL DE LAS FUENTES
 ══════════════════════════════════════════════════

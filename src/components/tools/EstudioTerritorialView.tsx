@@ -26,6 +26,7 @@ import {
   OfflineNotice,
 } from '@/components/lab/common';
 import type { ToolId } from '@/components/layout/Header';
+import { RadarTrends } from '@/components/lab/RadarTrends';
 
 const ZONAS_UNAD = [
   'Zona Amazonía Orinoquía (ZAO)',
@@ -651,6 +652,16 @@ export const EstudioTerritorialView: React.FC<Props> = ({ onNavigate }) => {
       </div>
 
       <GenerationProgress progress={progress} label="Bloque" />
+
+      <RadarTrends
+        theme={`${prompt0Data.labName ?? ''} ${prompt0Data.municipality ?? ''} ${prompt0Data.department ?? ''}`}
+        note={
+          hasStudy
+            ? 'Míralas junto a las oportunidades de la matriz FODA para escoger con cuál avanzar a la ideación.'
+            : 'Al generar, el estudio las contrasta en las oportunidades y amenazas de la matriz FODA.'
+        }
+        onOpenRadar={() => onNavigate('radar')}
+      />
 
       {hasStudy ? (
         <>

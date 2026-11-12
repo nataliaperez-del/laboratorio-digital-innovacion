@@ -31,6 +31,7 @@ import {
   type ProgressState,
 } from '@/components/lab/common';
 import { ObservatorioPicker } from '@/components/lab/ObservatorioPicker';
+import { RadarTrends } from '@/components/lab/RadarTrends';
 import type { ToolId } from '@/components/layout/Header';
 
 type OriginMode = 'idea' | 'arbol' | 'observatorio';
@@ -422,6 +423,19 @@ export const PrototipadoView: React.FC<Props> = ({ onNavigate }) => {
             </p>
           )}
         </div>
+
+        {mode !== 'observatorio' && (
+          <RadarTrends
+            theme={`${topic} ${context.slice(0, 1500)}`}
+            note="Al armar el plan, la IA tiene en cuenta las afines en la solución, los riesgos y los supuestos."
+            pickLabel="Prototipar esta tendencia"
+            onPick={(s) => {
+              setTopic(s.nombre);
+              setContext(signalAsInput(s));
+              setOrigin({ kind: 'observatorio', label: `Radar del Observatorio: ${s.nombre}` });
+            }}
+          />
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>

@@ -26,6 +26,7 @@ import {
   OfflineNotice,
 } from '@/components/lab/common';
 import { ObservatorioPicker } from '@/components/lab/ObservatorioPicker';
+import { RadarTrends } from '@/components/lab/RadarTrends';
 import type { ToolId } from '@/components/layout/Header';
 
 type InputMode = 'texto' | 'archivo' | 'estudio' | 'observatorio';
@@ -280,6 +281,25 @@ export const IdeacionEstrategicaView: React.FC<Props> = ({ onNavigate }) => {
           <p className="text-sm text-brand-textSecondary">
             Se usará el Estudio Territorial de <strong className="text-white">{prompt0Data.municipality}</strong>, con su matriz FODA como insumo principal.
           </p>
+        )}
+
+        {mode !== 'observatorio' && (
+          <RadarTrends
+            theme={
+              mode === 'texto'
+                ? text
+                : mode === 'archivo'
+                  ? `${file?.name ?? ''} ${file?.text.slice(0, 2000) ?? ''}`
+                  : `${prompt0Data.labName ?? ''} ${prompt0Data.municipality ?? ''} ${prompt0Data.department ?? ''}`
+            }
+            note="Al generar, la IA las contrasta con tu insumo y nombra las que refuercen una oportunidad."
+            pickLabel="Partir de esta tendencia"
+            onPick={(s) => {
+              setMode('observatorio');
+              setSignal(s);
+            }}
+            onOpenRadar={() => onNavigate('radar')}
+          />
         )}
 
         <div className="flex flex-wrap items-center justify-between gap-3">
