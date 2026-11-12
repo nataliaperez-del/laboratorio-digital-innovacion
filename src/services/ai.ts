@@ -105,6 +105,8 @@ export type CallAIOptions = {
   googleSearch?: boolean;
   /** Llamada independiente de la generación en curso: «Detener» no la afecta ni ella a «Detener». */
   detached?: boolean;
+  /** Presupuesto de razonamiento de Gemini: bajo = respuesta más rápida (conversación por voz). */
+  thinkingBudget?: number;
 };
 
 /** Si el modelo ignora la instrucción y envuelve todo en ```markdown ... ```, quita el fence exterior. */
@@ -132,6 +134,7 @@ interface ProviderRequest {
   prompt: string;
   maxOut?: number;
   googleSearch?: boolean;
+  thinkingBudget?: number;
   /** Señal del botón «Detener generación». */
   signal: AbortSignal;
   state: AppState;
@@ -140,13 +143,14 @@ interface ProviderRequest {
 type ProviderCall = (request: ProviderRequest) => Promise<CallAIResult>;
 
 /** IA institucional UNAD: pasa por el proxy del servidor, que pone las credenciales. */
-const callUnadGemini: ProviderCall = async ({ prompt, maxOut, googleSearch, signal, state }) => {
+const callUnadGemini: ProviderCall = async ({ prompt, maxOut, googleSearch, thinkingBudget, signal, state }) => {
   const r = await generateContentUnadGemini(prompt, {
     maxOutputTokens: maxOut,
     model: state.providerModels?.unadGemini,
     xApiKey: state.apiKeys.unadGemini,
     bearer: state.unadGeminiBearer,
     googleSearch,
+    thinkingBudget,
     signal,
   });
   return { text: r.text, truncated: r.finishReason === 'MAX_TOKENS' };
@@ -168,7 +172,7 @@ function abortableWait(ms: number, signal: AbortSignal): Promise<void> {
 }
 
 /** Gemini comercial, directo con el SDK de Google y la clave de la persona. */
-const callGeminiDirect: ProviderCall = async ({ prompt, maxOut, googleSearch, signal, state }) => {
+const callGeminiDirect: ProviderCall = async ({ prompt, maxOut, googleSearch, thinkingBudget, signal, state }) => {
   const aiClient = getGeminiAI(state.apiKeys.gemini);
   const geminiModel = (state.providerModels?.gemini || import.meta.env.VITE_GEMINI_MODEL || 'gemini-2.5-flash').trim();
   // El SDK no expone la señal de aborto: se corta con una carrera contra el botón «Detener».
@@ -188,7 +192,7 @@ const callGeminiDirect: ProviderCall = async ({ prompt, maxOut, googleSearch, si
           config: {
             maxOutputTokens: maxOut ?? 8192,
             // En modelos 2.5 el razonamiento descuenta de maxOutputTokens: sin límite corta la salida; con 0 el modelo degenera en prompts largos.
-            ...(/2\.5/.test(geminiModel) ? { thinkingConfig: { thinkingBudget: Math.min(1024, Math.floor((maxOut ?? 8192) / 2)) } } : {}),
+            ...(/2\.5/.test(geminiModel) ? { thinkingConfig: { thinkingBudget: Math.min(thinkingBudget ?? 1024, Math.floor((maxOut ?? 8192) / 2)) } } : {}),
             ...(googleSearch ? { tools: [{ googleSearch: {} }] } : {}),
           },
         }),
@@ -321,7 +325,7 @@ async function callAIOnce(prompt: string, options?: CallAIOptions, probing = fal
   try {
     const provider = PROVIDERS[aiProvider];
     if (!provider) throw new Error(`Unsupported AI Provider: ${aiProvider}`);
-    const result = await provider({ prompt, maxOut: options?.maxOutputTokens, googleSearch: options?.googleSearch, signal, state });
+    const result = await provider({ prompt, maxOut: options?.maxOutputTokens, googleSearch: options?.googleSearch, thinkingBudget: options?.thinkingBudget, signal, state });
     // Cada respuesta real confirma la conexión sin gastar una llamada aparte.
     if (!probing) reportAiOk();
     return result;

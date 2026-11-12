@@ -35,6 +35,8 @@ import {
 import { crisisReply, offlineAnswer } from '@/lib/zoeOffline';
 import { APOLOGY_REPLY, isApology, respectReply } from '@/lib/zoeRespect';
 import { assessHarmfulIntent, EthicsBlockedError } from '@/lib/ethicsGuard';
+import { formatDb, meterFraction, SENSITIVITIES, SENSITIVITY_LABEL } from '@/lib/zoeGate';
+import { isResumeRequest, remainingAfter } from '@/lib/zoeInterrupt';
 import {
   describeProgress,
   firstSentence,
@@ -596,7 +598,11 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
             return;
           }
         }
-        voice.speak(text, resolve, setCaption);
+        speechProgress.current = { full: written, said: [] };
+        voice.speak(text, resolve, (part) => {
+          speechProgress.current.said.push(part);
+          setCaption(part);
+        });
       }),
     [logChat, voice],
   );
@@ -613,7 +619,16 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
   const remember = useCallback((user: string | null, zoe: string) => {
     const turns: ZoeTurn[] = user ? [{ role: 'user', text: user }] : [];
     historyRef.current = [...historyRef.current, ...turns, { role: 'zoe' as const, text: zoe }].slice(-12);
+    if (user) turnRef.current = null;
   }, []);
+
+  /** Lo que ZOE alcanzó a decir de su respuesta actual: sirve para no perder el hilo si la interrumpen. */
+  const speechProgress = useRef<{ full: string; said: string[] }>({ full: '', said: [] });
+  /** La pregunta de la persona que aún no está en el historial (se anota al terminar de contestarla o al interrumpirla). */
+  const turnRef = useRef<string | null>(null);
+  /** Lo que faltaba por decir cuando la interrumpieron; «sigue» lo retoma sin pasar por la IA. */
+  const resumeRef = useRef('');
+  const dbRef = useRef<HTMLSpanElement>(null);
 
   /** Faltas de respeto seguidas en esta charla: 1.ª recuerdo amable, 2.ª firme, 3.ª pausa. */
   const disrespect = useRef(0);
@@ -918,6 +933,7 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
   const answer = useCallback(
     async (text: string) => {
       setHeard(text);
+      turnRef.current = text;
       // ¿Es la respuesta a «¿me confirmas que presione…?»? Si habla de otra cosa, se olvida la pregunta.
       const pending = pendingActions.current;
       pendingActions.current = null;
@@ -976,6 +992,17 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
         remember(text, harm.message);
         say(harm.message);
         return;
+      }
+
+      // Si la interrumpieron, «sigue» retoma justo donde se quedó; cualquier otra cosa es un tema nuevo.
+      if (resumeRef.current) {
+        const rest = resumeRef.current;
+        resumeRef.current = '';
+        if (isResumeRequest(text)) {
+          remember(text, rest);
+          say(rest);
+          return;
+        }
       }
 
       // En el recorrido: «sigamos», «repite», «atrás», «espera», «terminar».
@@ -1192,8 +1219,9 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
     setBehavior('listening');
     setHeard(null);
     setCaption(null);
-    voice.listen(onHeard, onListenFail, setHeard, (level) => {
-      if (levelRef.current) levelRef.current.style.transform = `scaleX(${Math.min(1, level * 9)})`;
+    voice.listen(onHeard, onListenFail, setHeard, (level, reading) => {
+      if (levelRef.current) levelRef.current.style.transform = `scaleX(${reading ? meterFraction(reading.db, reading.floorDb) : Math.min(1, level * 9)})`;
+      if (dbRef.current && reading) dbRef.current.textContent = `${formatDb(reading.db)}${reading.open ? ' · voz' : ''}`;
     });
   };
 
@@ -1219,11 +1247,39 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
     }
   }, [onListenFail, openChat, remember, say, startTalking, voice, wake]);
 
-  /** Tocarlo: empieza a conversar; si escucha, termina. Si está hablando no se le corta: termina la idea y luego escucha. */
+  /**
+   * Interrumpir a ZOE a mitad de una respuesta (con la voz o tocándola): se calla de inmediato, anota lo
+   * que alcanzó a decir y lo que faltaba para no perder el hilo, y se pone a escuchar.
+   */
+  const interruptRef = useRef<() => void>(() => undefined);
+  interruptRef.current = () => {
+    if (!talkingRef.current) return;
+    const { full, said } = speechProgress.current;
+    const saidText = said.join(' ').trim();
+    const remaining = remainingAfter(full, said);
+    voice.stopSpeaking();
+    resumeRef.current = remaining;
+    if (saidText || turnRef.current) {
+      remember(turnRef.current, `${saidText || '…'} [la persona te interrumpió${remaining ? `; faltaba decir: ${remaining}` : ''}]`);
+    }
+    speechProgress.current = { full: '', said: [] };
+    setCaption(null);
+    listenRef.current();
+  };
+
+  // Mientras ZOE habla por voz, vigila el micrófono: si la persona empieza a hablar, ZOE se calla y escucha.
+  useEffect(() => {
+    if (behavior !== 'speaking' || !talking || chatOpen || touring || voice.muted) return;
+    return voice.watchInterrupt(() => interruptRef.current());
+    // `voice` cambia en cada render; solo importan estas condiciones y la sensibilidad.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [behavior, talking, chatOpen, touring, voice.muted, voice.watchInterrupt]);
+
+  /** Tocarlo: empieza a conversar; si escucha, termina. Si está hablando, se calla y escucha. */
   const onTouchZoe = useCallback(() => {
     if (!talkingRef.current) void startConversation();
     else if (voice.listening) endConversation();
-    else if (behavior === 'speaking') setHeard('Termino la idea y te escucho.');
+    else if (behavior === 'speaking') interruptRef.current();
     else listenRef.current();
   }, [behavior, endConversation, startConversation, voice.listening]);
 
@@ -1520,6 +1576,22 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
             {voice.listening && (
               <span className="zoe-level-track" aria-hidden="true">
                 <span ref={levelRef} className="zoe-level" />
+              </span>
+            )}
+            {voice.canListen && talking && !chatOpen && (
+              // Compuerta de ruido: con más sensibilidad se capta una voz suave; con menos, solo una voz clara sobre el ruido.
+              <span className="zoe-mic-row">
+                <span ref={dbRef} className="zoe-db" aria-hidden="true">
+                  {voice.listening ? '…' : ''}
+                </span>
+                <button
+                  type="button"
+                  className="zoe-sens"
+                  onClick={() => voice.setSensitivity(SENSITIVITIES[(SENSITIVITIES.indexOf(voice.sensitivity) + 1) % SENSITIVITIES.length])}
+                  title="Sensibilidad del micrófono: alta capta voces suaves; baja ignora más el ruido de fondo"
+                >
+                  Sensibilidad: {SENSITIVITY_LABEL[voice.sensitivity]}
+                </button>
               </span>
             )}
             {touring && (

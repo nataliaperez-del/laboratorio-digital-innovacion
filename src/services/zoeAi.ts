@@ -25,7 +25,8 @@ Eres ZOE. Tu identidad, tu forma de hablar, lo que sabes del Laboratorio, tus fr
 ESTÁS EN UNA CONVERSACIÓN POR VOZ, en vivo. Lo que escribes se dice en voz alta y lo que recibes fue dictado, así que puede traer errores de transcripción: interpreta la intención.
 
 REGLAS DE ESTA CONVERSACIÓN:
-- Responde completo: nunca dejes una frase o una idea a medias. Si la explicación es larga, cuéntala por partes y termina ofreciendo profundizar.
+- Responde corto y natural, como en una charla: una a tres frases (unas 40 palabras) y listo. Solo si la persona pide detalle o una explicación, alarga la respuesta, y entonces cuéntala por partes. Nunca dejes una frase a medias.
+- Si el historial muestra que la persona te interrumpió, retoma con naturalidad desde lo nuevo que dijo; no repitas lo que ya dijiste y no te disculpes.
 - Usa las preguntas frecuentes como base, con tus propias palabras; no las recites igual cada vez.
 - Usa los chistes, las frases de cariño y las motivacionales con mesura: como mucho una por respuesta y solo si el momento lo pide. No repitas una que ya dijiste en esta conversación.
 - Sin listas, asteriscos, símbolos ni títulos: todo se escucha.
@@ -137,7 +138,7 @@ ${done.length ? `\nYA HICISTE, PARA ESTE MISMO PEDIDO: ${done.join('; ')}. Esta 
 Responde con el objeto JSON.`;
 
   // `detached`: conversar con ZOE no debe interferir con un informe que se esté generando.
-  const raw = await callAI(prompt, { maxOutputTokens: 4096, detached: true });
+  const raw = await callAI(prompt, { maxOutputTokens: 2048, detached: true, thinkingBudget: 128 });
   const reply = parseAgentReply(stripOuterMarkdownFence(raw));
   if (!reply.decir && !reply.acciones.length) throw new Error('La IA no devolvió texto.');
   return reply;

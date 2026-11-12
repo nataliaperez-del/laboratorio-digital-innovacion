@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createNoiseDetector, NOISY_LEVEL } from '@/lib/zoeNoise';
+import { BARGE_IN_EXTRA_DB, createNoiseGate, isNoisyRoom, isSensitivity, type GateReading, type Sensitivity } from '@/lib/zoeGate';
+import { seemsUnfinished } from '@/lib/zoeContext';
 import { playBark, splitBarks } from '@/lib/zoeBark';
 import { playRecorded } from '@/lib/zoeRecorded';
 import {
@@ -59,7 +61,16 @@ export type ZoeListenFailure = 'sin-permiso' | 'sin-microfono' | 'mic-mudo' | 's
 /** Espera a que la persona empiece a hablar; el reconocedor solo aguanta unos segundos y se reabre. */
 const LISTEN_WINDOW_MS = 12000;
 /** Silencio que da por terminada la frase: permite pausar a media oración sin que corte. */
-const END_OF_SPEECH_MS = 1700;
+const END_OF_SPEECH_MS = 1500;
+/** Con la compuerta de ruido: tras callar este tiempo se da por terminada la frase (más ágil que esperar al reconocedor). */
+const FAST_END_MS = 950;
+/** Para interrumpir a ZOE hace falta voz sostenida este tiempo (un golpe o una tos no cuentan). */
+const BARGE_IN_ATTACK_MS = 260;
+/** Al empezar una frase de ZOE se ignora el micrófono este tiempo: ahí se cuela más su propia voz. */
+const BARGE_IN_GRACE_MS = 700;
+const SENSITIVITY_KEY = 'innovahub_zoe_sensitivity';
+/** Audio del micrófono con las mejoras del navegador: cancelación de eco, supresión de ruido y ganancia. */
+const MIC_CONSTRAINTS: MediaStreamConstraints = { audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } };
 /** Por debajo de este volumen no entró sonido alguno: el problema es el micrófono, no la persona. */
 const SILENT_MIC_LEVEL = 0.002;
 /** Si la voz propia no tiene lista una frase en este tiempo, la dice la del sistema. */
@@ -74,25 +85,33 @@ export function recognitionLang(preferred: readonly string[]): string {
 }
 
 /** Volumen del micrófono mientras se escucha: da una señal visible y distingue un micrófono mudo. */
-async function openLevelMeter(onLevel?: (level: number) => void, onNoisy?: () => void) {
+async function openLevelMeter(
+  gate: ReturnType<typeof createNoiseGate>,
+  onLevel?: (level: number, reading: GateReading) => void,
+  onNoisy?: () => void,
+  onTick?: (reading: GateReading) => void,
+) {
   // En Android el reconocedor y otra captura de audio se estorban.
   if (/android/i.test(navigator.userAgent) || !navigator.mediaDevices) return null;
-  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  const stream = await navigator.mediaDevices.getUserMedia(MIC_CONSTRAINTS);
   const context = new AudioContext();
   const analyser = context.createAnalyser();
   analyser.fftSize = 512;
   context.createMediaStreamSource(stream).connect(analyser);
   const samples = new Float32Array(analyser.fftSize);
   const meter = { peak: 0, sum: 0, count: 0, noisy: false, close: () => undefined as void };
-  const isNoisy = createNoiseDetector();
+  // La sala cuenta como ruidosa si su piso de ruido (en dB) es alto de forma sostenida.
+  const isNoisy = createNoiseDetector(0.5);
   const timer = window.setInterval(() => {
     analyser.getFloatTimeDomainData(samples);
     const level = Math.sqrt(samples.reduce((sum, v) => sum + v * v, 0) / samples.length);
     meter.peak = Math.max(meter.peak, level);
     meter.sum += level;
     meter.count += 1;
-    onLevel?.(level);
-    if (!meter.noisy && isNoisy(level, 80)) {
+    const reading = gate.update(level, 80);
+    onLevel?.(level, reading);
+    onTick?.(reading);
+    if (!meter.noisy && isNoisy(isNoisyRoom(reading.floorDb) ? 1 : 0, 80)) {
       meter.noisy = true;
       onNoisy?.();
     }
@@ -114,7 +133,18 @@ export function useZoeVoice() {
       return false;
     }
   });
+  const [sensitivity, setSensitivityState] = useState<Sensitivity>(() => {
+    try {
+      const saved = localStorage.getItem(SENSITIVITY_KEY);
+      return isSensitivity(saved) ? saved : 'media';
+    } catch {
+      return 'media';
+    }
+  });
   const [listening, setListening] = useState(false);
+  /** La compuerta aprende el piso de ruido del lugar y lo conserva entre escuchas. */
+  const gateRef = useRef<ReturnType<typeof createNoiseGate> | null>(null);
+  if (!gateRef.current) gateRef.current = createNoiseGate({ sensitivity });
   const recognitionRef = useRef<{ abort: () => void } | null>(null);
   const listenSession = useRef(0);
   const speechRun = useRef(0);
@@ -146,6 +176,65 @@ export function useZoeVoice() {
     cutOwnVoice.current?.(false);
     if (canSpeak) window.speechSynthesis.cancel();
   }, [canSpeak]);
+
+  const setSensitivity = useCallback((next: Sensitivity) => {
+    setSensitivityState(next);
+    gateRef.current?.setSensitivity(next);
+    try {
+      localStorage.setItem(SENSITIVITY_KEY, next);
+    } catch {
+      /* Solo es una preferencia. */
+    }
+  }, []);
+
+  /**
+   * Mientras ZOE habla, vigila el micrófono: si la persona empieza a hablar (voz sostenida y claramente
+   * por encima del ruido y de la propia voz de ZOE), avisa para que se calle y escuche. Devuelve cómo parar.
+   */
+  const watchInterrupt = useCallback(
+    (onInterrupt: () => void) => {
+      if (/android/i.test(navigator.userAgent) || !navigator.mediaDevices || !window.isSecureContext) return () => undefined;
+      let closed = false;
+      let cleanup: (() => void) | undefined;
+      const startedAt = Date.now();
+      void navigator.mediaDevices
+        .getUserMedia(MIC_CONSTRAINTS)
+        .then((stream) => {
+          if (closed) {
+            stream.getTracks().forEach((t) => t.stop());
+            return;
+          }
+          const context = new AudioContext();
+          const analyser = context.createAnalyser();
+          analyser.fftSize = 512;
+          context.createMediaStreamSource(stream).connect(analyser);
+          const samples = new Float32Array(analyser.fftSize);
+          // Una compuerta aparte, más exigente: la propia voz de ZOE puede colarse por los parlantes.
+          const gate = createNoiseGate({ sensitivity, extraDb: BARGE_IN_EXTRA_DB, attackMs: BARGE_IN_ATTACK_MS, calibrationMs: 500 });
+          let fired = false;
+          const timer = window.setInterval(() => {
+            analyser.getFloatTimeDomainData(samples);
+            const rms = Math.sqrt(samples.reduce((sum, v) => sum + v * v, 0) / samples.length);
+            const reading = gate.update(rms, 80);
+            if (!fired && reading.open && Date.now() - startedAt > BARGE_IN_GRACE_MS) {
+              fired = true;
+              onInterrupt();
+            }
+          }, 80);
+          cleanup = () => {
+            window.clearInterval(timer);
+            stream.getTracks().forEach((t) => t.stop());
+            void context.close();
+          };
+        })
+        .catch(() => undefined); // Sin micrófono no hay interrupción por voz: queda tocar a ZOE.
+      return () => {
+        closed = true;
+        cleanup?.();
+      };
+    },
+    [sensitivity],
+  );
 
   const toggleMuted = useCallback(() => {
     setMuted((prev) => {
@@ -317,7 +406,7 @@ export function useZoeVoice() {
   const checkMic = useCallback(async (): Promise<ZoeListenFailure | null> => {
     if (!window.isSecureContext || !navigator.mediaDevices) return 'sin-https';
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia(MIC_CONSTRAINTS);
       stream.getTracks().forEach((track) => track.stop());
       return null;
     } catch (e) {
@@ -330,7 +419,7 @@ export function useZoeVoice() {
    * termina tras un silencio, no en la primera pausa. `onPartial` entrega lo que va entendiendo.
    */
   const listen = useCallback(
-    (onText: (text: string) => void, onFail: (reason: ZoeListenFailure) => void, onPartial?: (text: string) => void, onLevel?: (level: number) => void) => {
+    (onText: (text: string) => void, onFail: (reason: ZoeListenFailure) => void, onPartial?: (text: string) => void, onLevel?: (level: number, reading: GateReading) => void) => {
       stopSpeaking();
       recognitionRef.current?.abort();
       const session = ++listenSession.current;
@@ -340,6 +429,10 @@ export function useZoeVoice() {
       let failure: ZoeListenFailure | null = null;
       let endTimer: number | undefined;
       let meter: Awaited<ReturnType<typeof openLevelMeter>> = null;
+      /** Compuerta: cuándo se oyó voz de verdad por última vez, y si alguna vez se oyó en esta escucha. */
+      let lastVoiceAt = 0;
+      let voiceSeen = false;
+      let ignoredByGate = 0;
 
       /** Cierra la sesión: desde aquí, ningún evento tardío del reconocedor cuenta. */
       const close = () => {
@@ -377,13 +470,19 @@ export function useZoeVoice() {
         };
         recognition.onresult = (event: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => {
           if (!isCurrent()) return;
+          // Compuerta de ruido: si el micrófono nunca oyó una voz clara sobre el ruido, lo «entendido» es
+          // murmullo de fondo (otra persona lejos, un video…): se ignora en vez de contestarle.
+          if (meter && meter.count > 12 && !voiceSeen && !spoken && ignoredByGate < 4) {
+            ignoredByGate += 1;
+            return;
+          }
           spoken = Array.from(event.results, (result) => result[0]?.transcript ?? '')
             .join(' ')
             .replace(/\s+/g, ' ')
             .trim();
           onPartial?.(spoken);
           window.clearTimeout(endTimer);
-          endTimer = window.setTimeout(finish, END_OF_SPEECH_MS);
+          endTimer = window.setTimeout(finish, seemsUnfinished(spoken) ? END_OF_SPEECH_MS + 400 : END_OF_SPEECH_MS);
         };
         recognition.onerror = (event: { error?: string }) => {
           if (!isCurrent()) return;
@@ -417,7 +516,17 @@ export function useZoeVoice() {
       const onNoisy = () => {
         if (isCurrent() && !spoken && !failure) finish();
       };
-      void openLevelMeter(onLevel, onNoisy)
+      // Cada lectura del medidor alimenta la compuerta; al callar, la frase se cierra más ágil que esperando al reconocedor.
+      const onTick = (reading: GateReading) => {
+        if (!isCurrent()) return;
+        if (reading.open) {
+          voiceSeen = true;
+          lastVoiceAt = Date.now();
+        } else if (spoken && voiceSeen && Date.now() - lastVoiceAt > (seemsUnfinished(spoken) ? END_OF_SPEECH_MS + 400 : FAST_END_MS)) {
+          finish();
+        }
+      };
+      void openLevelMeter(gateRef.current!, onLevel, onNoisy, onTick)
         .then((opened) => {
           if (isCurrent()) meter = opened;
           else opened?.close();
@@ -433,5 +542,18 @@ export function useZoeVoice() {
     setListening(false);
   }, []);
 
-  return { muted, toggleMuted, listening, speak, stopSpeaking, checkMic, listen, stopListening, canListen: Boolean(RecognitionCtor) };
+  return {
+    muted,
+    toggleMuted,
+    listening,
+    speak,
+    stopSpeaking,
+    checkMic,
+    listen,
+    stopListening,
+    watchInterrupt,
+    sensitivity,
+    setSensitivity,
+    canListen: Boolean(RecognitionCtor),
+  };
 }

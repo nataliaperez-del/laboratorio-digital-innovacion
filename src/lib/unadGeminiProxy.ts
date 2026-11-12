@@ -147,6 +147,8 @@ export async function generateContentUnadGemini(
     bearer?: string;
     /** Búsqueda web (Google Search grounding); si el proxy la rechaza se reintenta sin ella. */
     googleSearch?: boolean;
+    /** Razonamiento máximo; si se da, sustituye al valor por defecto (más bajo = más rápido). */
+    thinkingBudget?: number;
     /** Señal de aborto (botón «Detener generación»). */
     signal?: AbortSignal;
   },
@@ -190,7 +192,7 @@ export async function generateContentUnadGemini(
   let lastRaw = '';
   let withSearch = Boolean(options?.googleSearch);
   let withThinking = true;
-  const thinkingBudget = resolveThinkingBudget();
+  const thinkingBudget = options?.thinkingBudget ?? resolveThinkingBudget();
 
   for (let i = 0; i < budgets.length; i++) {
     const maxOutTry = budgets[i];
