@@ -257,7 +257,7 @@ export const App: React.FC = () => {
           <span>Desarrollado por</span>
           Natalia Elizabeth Perez
           <br />
-          Camilo Esteban Lozano
+          Camilo Esteban Solano
         </p>
         <img
           src={`/assets/unad_emblema_${theme}.png`}
