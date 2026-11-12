@@ -9,6 +9,7 @@
  * Nunca se inventa contenido: si el modelo falla, la parte vuelve con estado «failed» y su motivo,
  * y la interfaz la marca para revisión. «Detener generación» se propaga tal cual.
  */
+import { EthicsBlockedError } from '@/lib/ethicsGuard';
 import { callAI, GenerationCancelledError, stripOuterMarkdownFence, type CallAIOptions } from '@/services/ai';
 import { sanitizePartMarkdown, type GenerationPartResult, type GenerationPartStatus } from '@/prompts/themeAndInnovationPrompts';
 
@@ -41,7 +42,7 @@ export async function generateReviewedPart(request: ReviewedPartRequest): Promis
     markdown = await ask(request.prompt);
     review = request.review(markdown);
   } catch (e) {
-    if (e instanceof GenerationCancelledError) throw e;
+    if (e instanceof GenerationCancelledError || e instanceof EthicsBlockedError) throw e;
     return { number, title, markdown: '', status: 'failed', issue: e instanceof Error ? e.message : String(e) };
   }
 

@@ -8,6 +8,7 @@ import { GoogleGenAI } from '@google/genai';
 import { useStore, type AIProvider, type AppState } from '@/store/useStore';
 import { resolveAnthropicModel } from '@/constants/aiProviders';
 import { generateContentUnadGemini } from '@/lib/unadGeminiProxy';
+import { ETHICS_PREAMBLE, EthicsBlockedError, extractEthicsRefusal } from '@/lib/ethicsGuard';
 import { reportAiDown, reportAiOk, useAiStatus } from '@/store/aiStatus';
 import { cargarTextoFamilia, cargarTextoGrupo } from '@/repositorio/cargarRepositorio';
 import type { GrupoRepositorio } from '@/repositorio/tipos';
@@ -505,11 +506,18 @@ async function callAIWithRecovery(prompt: string, options?: CallAIOptions): Prom
  * 2) corte por límite de tokens (finishReason) → continuaciones automáticas y alerta si queda incompleto;
  * 3) salida degenerada (bucles de «---» sin contenido) → un reintento completo y luego error claro.
  */
-export async function callAI(prompt: string, options?: CallAIOptions): Promise<string> {
+export async function callAI(rawPrompt: string, options?: CallAIOptions): Promise<string> {
+  // La regla ética viaja con toda llamada: el modelo se niega con una marca si lo pedido busca hacer daño.
+  const prompt = `${ETHICS_PREAMBLE}
+${rawPrompt}`;
   let result = await callAIWithRecovery(prompt, options);
+  const refusal = extractEthicsRefusal(result.text);
+  if (refusal) throw new EthicsBlockedError(refusal);
   if (result.degenerate) {
     console.warn('Salida degenerada (solo líneas repetidas, sin contenido); reintentando la generación completa…');
     result = await callAIWithRecovery(prompt, options);
+    const again = extractEthicsRefusal(result.text);
+    if (again) throw new EthicsBlockedError(again);
     if (result.degenerate) {
       throw new Error(
         'El modelo devolvió una salida sin contenido útil (líneas repetidas). Suele ser transitorio: vuelve a intentarlo; si persiste, cambia de proveedor de IA en Configuración.',

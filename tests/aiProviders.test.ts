@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { ETHICS_PREAMBLE } from '@/lib/ethicsGuard';
 
 // Pruebas de caracterización del motor de IA: fijan cómo habla con cada proveedor
 // (dirección, cabeceras, cuerpo, lectura de la respuesta y errores) para poder reorganizarlo sin cambiarlo.
@@ -39,7 +40,8 @@ describe('motor de IA: un proveedor cada vez', () => {
     unad.mockResolvedValueOnce({ text: 'Hola UNAD', finishReason: 'STOP' });
     await expect(callAI('pregunta', { maxOutputTokens: 512, googleSearch: true })).resolves.toBe('Hola UNAD');
     const [prompt, opts] = unad.mock.calls[0];
-    expect(prompt).toBe('pregunta');
+    expect(prompt).toBe(`${ETHICS_PREAMBLE}
+pregunta`); // la regla ética viaja con cada llamada
     expect(opts).toMatchObject({ maxOutputTokens: 512, model: 'gemini-3.6-flash', googleSearch: true });
     expect(opts.signal).toBeInstanceOf(AbortSignal);
   });
@@ -52,7 +54,8 @@ describe('motor de IA: un proveedor cada vez', () => {
     let req = lastFetch(fetch);
     expect(req.url).toBe('https://api.openai.com/v1/chat/completions');
     expect(req.headers.Authorization).toBe('Bearer sk-prueba');
-    expect(req.body).toMatchObject({ model: 'gpt-4o', max_tokens: 300, messages: [{ role: 'user', content: 'p' }] });
+    expect(req.body).toMatchObject({ model: 'gpt-4o', max_tokens: 300, messages: [{ role: 'user', content: `${ETHICS_PREAMBLE}
+p` }] });
 
     use('openai', { openai: 'sk-prueba' }, { providerModels: { openai: 'o3-mini' } });
     await callAI('p', { maxOutputTokens: 300 });
@@ -100,7 +103,8 @@ describe('motor de IA: un proveedor cada vez', () => {
     await expect(callAI('p', { maxOutputTokens: 1000, googleSearch: true })).resolves.toBe('Hola Gemini');
     expect(geminiGenerate.mock.calls[0][0]).toMatchObject({
       model: 'gemini-2.5-flash',
-      contents: 'p',
+      contents: `${ETHICS_PREAMBLE}
+p`,
       config: { maxOutputTokens: 1000, thinkingConfig: { thinkingBudget: 500 }, tools: [{ googleSearch: {} }] },
     });
     use('gemini');
@@ -160,5 +164,19 @@ describe('círculo de conexión de la IA', () => {
     await expect(checkAiConnection()).resolves.toBe(false);
     expect(useAiStatus.getState().status).toBe('error');
     expect(unad).not.toHaveBeenCalled();
+  });
+});
+
+describe('regla ética en cada llamada', () => {
+  it('si el modelo se niega, la llamada termina con un error claro y sin marcas internas', async () => {
+    const { EthicsBlockedError, ETHICS_REFUSAL_MARKER } = await import('@/lib/ethicsGuard');
+    const fetch = vi.fn().mockImplementation(async () =>
+      json({ choices: [{ message: { content: `${ETHICS_REFUSAL_MARKER} No puedo ayudar con eso, pero sí a prevenir fraudes.` }, finish_reason: 'stop' }] }),
+    );
+    vi.stubGlobal('fetch', fetch);
+    use('openai', { openai: 'sk-prueba' }, { providerModels: { openai: 'gpt-4o' } });
+    const err = await callAI('algo dañino', { maxOutputTokens: 300 }).catch((e) => e);
+    expect(err).toBeInstanceOf(EthicsBlockedError);
+    expect(err.message).toBe('No puedo ayudar con eso, pero sí a prevenir fraudes.');
   });
 });

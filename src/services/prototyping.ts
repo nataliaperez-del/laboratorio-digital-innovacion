@@ -5,6 +5,7 @@
  */
 import { beginGenerationFlow, callAI, defaultCallOptions, parseJsonResponse } from '@/services/ai';
 import { useStore } from '@/store/useStore';
+import { assertSafeInput } from '@/lib/ethicsGuard';
 import { LAB_SCOPE_RULES } from '@/prompts/labGuardrails';
 import { UNAD_ESCUELAS } from '@/constants/unadEscuelas';
 import { formatFichaCompact } from '@/services/ideation';
@@ -174,6 +175,7 @@ export function normalizePrototypePlan(raw: unknown, brief: PrototypeBrief): Pro
 export async function generatePrototypePlan(brief: PrototypeBrief): Promise<PrototypePlan> {
   beginGenerationFlow();
   if (!brief.topic.trim()) throw new Error('Escribe la idea o elige un fruto del árbol para armar el plan.');
+  assertSafeInput(brief.topic, brief.context);
   const { aiProvider, prompt0Data } = useStore.getState();
   const raw = await callAI(buildPrompt(brief, formatFichaCompact(prompt0Data)), defaultCallOptions(aiProvider));
   return normalizePrototypePlan(parseJsonResponse(raw), brief);

@@ -4,6 +4,7 @@
  */
 import { beginGenerationFlow, callAI, defaultCallOptions, GenerationCancelledError, leerNucleoTexto, parseJsonResponse } from '@/services/ai';
 import { generateReviewedPart } from '@/services/reviewedPart';
+import { assertSafeInput } from '@/lib/ethicsGuard';
 import { useStore } from '@/store/useStore';
 import { getMaxThemeStepContainerChars, truncateContainerForDocument } from '@/lib/promptBudget';
 import { buildTreeFromMarkdown, parseTreeGraph, type TreeGraph } from '@/lib/innovationTreeGraph';
@@ -114,6 +115,7 @@ export async function buildGraphFromDocument(themeName: string, markdown: string
 /** Genera el documento del Árbol por partes y al final su grafo interactivo. */
 export async function generateInnovationTree(request: InnovationTreeRequest, onProgress?: (p: GenerationPartProgress) => void): Promise<InnovationTreeResult> {
   beginGenerationFlow();
+  assertSafeInput(request.themeName, request.themeExplanation);
   const ctx = await prepareContext(request);
   const total = INNOVATION_TREE_PARTS.length + 1;
   const sections: GenerationPartResult[] = [];
@@ -138,6 +140,7 @@ export async function regenerateInnovationTreeSection(
   current: readonly GenerationPartResult[],
 ): Promise<InnovationTreeResult> {
   beginGenerationFlow();
+  assertSafeInput(request.themeName, request.themeExplanation);
   const ctx = await prepareContext(request);
   const part = await generatePart(ctx, partIndex, assembleParts(current.slice(0, partIndex)));
   const sections = current.map((s, i) => (i === partIndex ? part : s));

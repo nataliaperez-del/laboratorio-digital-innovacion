@@ -33,6 +33,8 @@ import {
   type ZoeHands,
 } from '@/lib/zoeScreen';
 import { crisisReply, offlineAnswer } from '@/lib/zoeOffline';
+import { APOLOGY_REPLY, isApology, respectReply } from '@/lib/zoeRespect';
+import { assessHarmfulIntent, EthicsBlockedError } from '@/lib/ethicsGuard';
 import {
   describeProgress,
   firstSentence,
@@ -613,6 +615,9 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
     historyRef.current = [...historyRef.current, ...turns, { role: 'zoe' as const, text: zoe }].slice(-12);
   }, []);
 
+  /** Faltas de respeto seguidas en esta charla: 1.ª recuerdo amable, 2.ª firme, 3.ª pausa. */
+  const disrespect = useRef(0);
+
   /** Lo que ZOE preguntó si podía presionar (limpiar, eliminar…): espera un sí o un no. */
   const pendingActions = useRef<ZoeAction[] | null>(null);
 
@@ -937,6 +942,42 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
         return;
       }
 
+      // Respeto: insultos, groserías, amenazas o ira. Se responde con calma y firmeza, sin pasar por la IA.
+      const respect = respectReply(text, disrespect.current);
+      if (respect) {
+        readyAsked.current = false;
+        if (respect.verdict.level !== 'ira') disrespect.current += 1;
+        remember(text, respect.text);
+        if (respect.answerAfter) {
+          // Con ira y una pregunta: primero se acompaña, y enseguida se contesta lo que pidió.
+          await sayAndWait(respect.text);
+        } else if (respect.endConversation) {
+          disrespect.current = 0;
+          void sayAndWait(respect.text).then(() => endConversation());
+          return;
+        } else {
+          say(respect.text);
+          return;
+        }
+      } else if (disrespect.current > 0) {
+        if (isApology(text) && text.trim().split(/\s+/).length <= 6) {
+          disrespect.current = 0;
+          remember(text, APOLOGY_REPLY);
+          say(APOLOGY_REPLY);
+          return;
+        }
+        disrespect.current = 0; // Volvió el buen trato: se empieza de nuevo.
+      }
+
+      // Ética: no se ayuda a estafar, robar, fabricar armas ni a poner vidas en riesgo; se dice con calma y se ofrece algo que sume.
+      const harm = assessHarmfulIntent(text);
+      if (harm) {
+        readyAsked.current = false;
+        remember(text, harm.message);
+        say(harm.message);
+        return;
+      }
+
       // En el recorrido: «sigamos», «repite», «atrás», «espera», «terminar».
       if (tourRef.current) {
         const reply = parseTourReply(text);
@@ -1040,6 +1081,11 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
       } catch (e) {
         window.clearTimeout(filler);
         // Sin estrés: ZOE no corta la charla ni culpa a nadie; responde con lo que sabe y sigue escuchando.
+        if (e instanceof EthicsBlockedError) {
+          remember(text, e.message);
+          say(e.message);
+          return;
+        }
         console.warn('[ZOE] La IA no respondió; contesto con lo que sé de memoria.', e);
         aiDownUntil.current = Date.now() + AI_RETRY_MS;
         answerOffline(text);

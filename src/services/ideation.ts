@@ -5,6 +5,7 @@
  */
 import { beginGenerationFlow, defaultCallOptions, leerNucleoTexto } from '@/services/ai';
 import { generateReviewedPart } from '@/services/reviewedPart';
+import { assertSafeInput } from '@/lib/ethicsGuard';
 import { useStore, type Prompt0Data } from '@/store/useStore';
 import { getMaxThemeStepContainerChars, truncateAtBoundary, truncateContainerForDocument } from '@/lib/promptBudget';
 import { fichaIdentity } from '@/lib/fichaIdentity';
@@ -95,6 +96,7 @@ async function generateVocationPart(ctx: VocationContext, partIndex: number, pre
 /** Genera la Ideación (vocación y tres temas) parte por parte, con revisión y reparación. */
 export async function generateThemeVocationAndOptions(source: InputSource, onProgress?: (p: GenerationPartProgress) => void): Promise<GeneratedDocument> {
   beginGenerationFlow();
+  if (source.kind === 'texto') assertSafeInput(source.text);
   const ctx = await prepareVocationContext(source);
   const sections: GenerationPartResult[] = [];
   for (let i = 0; i < VOCATION_PARTS.length; i++) {
@@ -112,6 +114,7 @@ export async function regenerateVocationSection(
   current: readonly GenerationPartResult[],
 ): Promise<GenerationPartResult> {
   beginGenerationFlow();
+  if (source.kind === 'texto') assertSafeInput(source.text);
   const ctx = await prepareVocationContext(source);
   return generateVocationPart(ctx, partIndex, assembleParts(current.slice(0, partIndex)));
 }
