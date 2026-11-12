@@ -6,12 +6,13 @@ import { playBark, splitBarks } from '@/lib/zoeBark';
 import { playRecorded } from '@/lib/zoeRecorded';
 import {
   isZoeVoiceReady,
+  isZoeVoiceUnavailable,
   pauseAfter,
   playZoe,
-  prepareZoeVoice,
   speechSentences,
   synthesizeZoe,
   unlockZoeAudio,
+  waitForZoeVoice,
   warmZoeVoice,
   withQuickStart,
 } from './zoePiperVoice';
@@ -74,7 +75,9 @@ const MIC_CONSTRAINTS: MediaStreamConstraints = { audio: { echoCancellation: tru
 /** Por debajo de este volumen no entró sonido alguno: el problema es el micrófono, no la persona. */
 const SILENT_MIC_LEVEL = 0.002;
 /** Si la voz propia no tiene lista una frase en este tiempo, la dice la del sistema. */
-const OWN_VOICE_TIMEOUT_MS = 15000;
+const OWN_VOICE_TIMEOUT_MS = 40000;
+/** Cuánto se espera a que la voz propia termine de cargar antes de recurrir a la del sistema: ZOE no cambia de voz por un instante de espera. */
+const OWN_VOICE_LOAD_WAIT_MS = 25000;
 
 /**
  * Idioma del reconocedor. Exige país: con «es-419», que es lo que reportan muchos navegadores
@@ -348,12 +351,21 @@ export function useZoeVoice() {
             const late = new Promise<never>((_, reject) => window.setTimeout(() => reject(new Error('La voz propia tardó demasiado.')), OWN_VOICE_TIMEOUT_MS));
             buffer = await Promise.race([audio[i], late]);
           } catch (e) {
-            // Si la voz propia falla a mitad de camino, el resto lo dice la del sistema.
             if (stopped || run !== speechRun.current) return;
-            console.warn('[ZOE] Falló la voz propia; sigue la del sistema:', e);
-            stopped = true;
-            cutOwnVoice.current = null;
-            return systemVoice(splitSentences(parts.slice(i).join(' ')));
+            console.warn('[ZOE] Falló una frase de la voz propia:', e);
+            if (isZoeVoiceUnavailable()) {
+              // La voz propia dejó de existir (no cargó): no queda otra que la del sistema.
+              stopped = true;
+              cutOwnVoice.current = null;
+              return systemVoice(splitSentences(parts.slice(i).join(' ')));
+            }
+            // La voz sigue siendo la misma: se reintenta la frase una vez y, si no sale, se pasa a la siguiente.
+            try {
+              buffer = await synthesizeZoe(parts[i]);
+            } catch {
+              if (stopped || run !== speechRun.current) return;
+              return void playFrom(i + 1);
+            }
           }
           if (stopped || run !== speechRun.current) return;
           onPart?.(parts[i]);
@@ -375,9 +387,13 @@ export function useZoeVoice() {
       const synthesized = () => {
         // La voz propia va por oraciones completas; la del sistema, en tramos cortos que no corte.
         if (isZoeVoiceReady()) return ownVoice(withQuickStart(speechSentences(text)));
-        // Mientras la voz propia se descarga, habla la del sistema.
-        void prepareZoeVoice()?.catch(() => undefined);
-        systemVoice(splitSentences(text));
+        if (isZoeVoiceUnavailable()) return systemVoice(splitSentences(text));
+        // Si la voz propia aún se está cargando, se espera un poco: ZOE no debe empezar con otra voz y cambiar después.
+        void waitForZoeVoice(OWN_VOICE_LOAD_WAIT_MS).then((loaded) => {
+          if (run !== speechRun.current) return;
+          if (loaded) ownVoice(withQuickStart(speechSentences(text)));
+          else systemVoice(splitSentences(text));
+        });
       };
       if (muted) return silent();
       // Las frases fijas de ZOE tienen su grabación; si no la hay, se sintetiza como siempre.
