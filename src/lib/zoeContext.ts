@@ -231,10 +231,27 @@ export interface ZoeTurn {
  */
 const HESITATION = /^(?:[¡¿]?\s*(?:m{2,}|h+m+|e+h+m*|e+m+)(?![a-záéíóúñü])[\s,.;:…!?]*)+/i;
 
+/**
+ * Restos del formato interno que a veces se cuelan en lo que dice el modelo: «(acciones: false)»,
+ * «seguir: false», «"acciones": []», «decir:». Son del algoritmo; nunca se leen ni se muestran.
+ */
+const PROTOCOL_FIELD = /[(\[{]?\s*["'`]?\b(?:acciones|seguir|hacer)\b["'`]?\s*[:=]\s*(?:false|true|null|none|vac[ií]o|ninguna|\[[^\]]*\]|\{[^}]*\})\s*[)\]}]?[\s,;.]*/gi;
+const PROTOCOL_LEAD = /^\s*[{\[]?\s*["'`]?\bdecir\b["'`]?\s*[:=]\s*/i;
+
+/** Quita del texto hablado los campos del protocolo interno. */
+export function stripProtocolLeaks(text: string): string {
+  return text
+    .replace(PROTOCOL_LEAD, '')
+    .replace(PROTOCOL_FIELD, ' ')
+    .replace(/^\s*["'“”]+(?=\S)|(?<=\S)["'“”]+\s*[}\]]*\s*$/g, '')
+    .replace(/[ \t]{2,}/g, ' ')
+    .replace(/\s+([,.;:!?])/g, '$1')
+    .trim();
+}
+
 /** Limpia la respuesta para leerla en voz alta y en la burbuja. */
 export function cleanZoeReply(raw: string): string {
-  const text = raw
-    .trim()
+  const text = stripProtocolLeaks(raw.trim())
     .replace(/^ZOE:\s*/i, '')
     .replace(/[*_#`]/g, '')
     .replace(/^\s*[-•]\s+/gm, '')

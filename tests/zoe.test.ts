@@ -109,6 +109,10 @@ describe('voz', () => {
   });
 
   it('nunca empieza con «mmm» ni otro titubeo, sin comerse palabras', () => {
+    expect(cleanZoeReply('Claro, vamos al radar. (acciones: false)')).toBe('Claro, vamos al radar.');
+    expect(cleanZoeReply('¡Listo! acciones: [] seguir: false')).toBe('¡Listo!');
+    expect(cleanZoeReply('decir: "Hola, aquí estoy." "acciones": [], "seguir": false')).toBe('Hola, aquí estoy.');
+    expect(cleanZoeReply('Las acciones que tomes importan: sigue adelante.')).toBe('Las acciones que tomes importan: sigue adelante.');
     expect(cleanZoeReply('Mmm, buena pregunta.')).toBe('Buena pregunta.');
     expect(cleanZoeReply('Hmm… mmm. El árbol tiene tres niveles.')).toBe('El árbol tiene tres niveles.');
     expect(cleanZoeReply('Ehh, claro que sí.')).toBe('Claro que sí.');
