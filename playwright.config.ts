@@ -14,6 +14,8 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:3100',
     viewport: { width: 1366, height: 900 },
+    // Un clic que no se puede hacer falla pronto, en vez de agotar el tiempo de toda la prueba.
+    actionTimeout: 20_000,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
