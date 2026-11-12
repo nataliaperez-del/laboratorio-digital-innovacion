@@ -370,7 +370,7 @@ export const EmptyState: React.FC<{ title: string; children: React.ReactNode }> 
   <div className="lab-panel text-center py-12 px-6 space-y-2">
     <FileText className="w-10 h-10 mx-auto text-white/25" aria-hidden="true" />
     <h3 className="text-sm font-bold text-white sy">{title}</h3>
-    <p className="text-sm text-brand-textMuted max-w-xl mx-auto">{children}</p>
+    <div className="text-sm text-brand-textMuted max-w-xl mx-auto">{children}</div>
   </div>
 );
 

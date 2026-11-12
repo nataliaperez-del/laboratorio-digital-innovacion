@@ -46,3 +46,8 @@ hostinger_deploy/assets/badges_original_backup/
 .vercel
 .env*
 !.env.example
+
+# Resultados de pruebas de carga y del recorrido automático
+resultados-pruebas/
+test-results/
+playwright-report/

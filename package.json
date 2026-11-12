@@ -15,7 +15,11 @@
     "predev": "node scripts/sellar-repositorio.mjs && node scripts/zoe/construir-banco-unadista.mjs",
     "prebuild": "node scripts/sellar-repositorio.mjs && node scripts/zoe/construir-banco-unadista.mjs",
     "format": "prettier --write \"src/**/*.{ts,tsx}\" \"tests/**/*.ts\" \"scripts/*.mjs\" \"server/*.ts\" \"api/**/*.ts\" vite.config.ts vite-plugin-unad-gemini-proxy.ts",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"tests/**/*.ts\" \"scripts/*.mjs\" \"server/*.ts\" \"api/**/*.ts\" vite.config.ts vite-plugin-unad-gemini-proxy.ts"
+    "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"tests/**/*.ts\" \"scripts/*.mjs\" \"server/*.ts\" \"api/**/*.ts\" vite.config.ts vite-plugin-unad-gemini-proxy.ts",
+    "e2e": "playwright test",
+    "e2e:ia": "node scripts/pruebas/recorrido-ia.mjs",
+    "carga:paginas": "node scripts/pruebas/carga-paginas.mjs",
+    "carga:ia": "node scripts/pruebas/carga-ia.mjs"
   },
   "dependencies": {
     "@google/genai": "^1.29.0",
@@ -36,6 +40,7 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
+    "@playwright/test": "^1.65.0",
     "@types/node": "^22.14.0",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
