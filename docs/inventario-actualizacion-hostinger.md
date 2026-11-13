@@ -135,3 +135,21 @@ Son 46 cambios en el repositorio. Agrupados:
 - Fondo animado, modo claro con mejor contraste y vista de celular.
 - Radar en la cabecera, logos UNAD y VIEM por tema, vitrina de insignias.
 - Créditos con el nombre corregido de Camilo Esteban Solano.
+
+## 8. Zip de actualización generado el 13 de noviembre
+
+`laboratorio-innovacion-hostinger-2026-11-13-actualizacion.zip` (36,1 MB; 76 archivos): 71 nuevos, 4 que se
+reemplazan y la nota `LEEME-ACTUALIZACION.txt` con los 9 archivos antiguos por borrar.
+
+Frente al inventario de arriba se sumaron `includes/lab.php` y `config/lab.php` (concentrador de datos,
+tablero global y banco de insumos) y `README_HOSTINGER.md` (sección 6, con la instalación).
+
+Se arma con:
+
+```bash
+npm run deploy:package
+python scripts/zip-actualizacion-hostinger.py <zip-que-esta-en-el-servidor> <zip-de-salida>
+```
+
+Los dos pasos se detienen si el paquete nombra otro servicio de despliegue: el empaquetado revisa los
+archivos de texto y el zip se revisa completo, por contenido y por nombre, antes de darse por bueno.
