@@ -9,6 +9,7 @@ import {
   MODULE_ORDER,
   type Bar,
   type ConclusionTone,
+  type MetricsInput,
   type MetricsPeriod,
   type PartsQuality,
 } from '@/lib/contenedorMetrics';
@@ -227,7 +228,7 @@ const qualityParts = (q: PartsQuality): Segment[] => [
   { label: 'Fallidas', value: q.failed, fill: 'var(--viz-crit)', ink: '#fff', icon: <XCircle className="w-3.5 h-3.5 text-[var(--viz-crit)]" aria-hidden="true" /> },
 ];
 
-const Stat: React.FC<{ label: string; value: string; hint?: string; hero?: boolean }> = ({ label, value, hint, hero }) => (
+export const Stat: React.FC<{ label: string; value: string; hint?: string; hero?: boolean }> = ({ label, value, hint, hero }) => (
   <div className={`lab-card viz-stat ${hero ? 'is-hero' : ''}`}>
     <span className="text-[11px] text-brand-textMuted">{label}</span>
     <span className="viz-stat-value">{value}</span>
@@ -248,8 +249,13 @@ const PERIODS: ReadonlyArray<{ value: MetricsPeriod; label: string }> = [
   { value: '365', label: '12 meses' },
 ];
 
-export const MetricasDashboard: React.FC = () => {
-  const { savedStudies, savedIdeations, savedTrees, prototypes, surveyResponses, downloads } = useStore();
+/**
+ * Sin `input` muestra lo guardado en este navegador; con `input`, los datos que se le entreguen
+ * (los de todos los usuarios, traídos del servidor), con las mismas reglas de cálculo.
+ */
+export const MetricasDashboard: React.FC<{ input?: MetricsInput; sourceNote?: string }> = ({ input, sourceNote }) => {
+  const local = useStore();
+  const { savedStudies, savedIdeations, savedTrees, prototypes, surveyResponses, downloads } = input ?? local;
   const [period, setPeriod] = useState<MetricsPeriod>('todo');
   const [line, setLine] = useState<ReportModule | null>(null);
   const [tip, setTip] = useState<Tip | null>(null);
@@ -301,7 +307,7 @@ export const MetricasDashboard: React.FC = () => {
           </select>
         </div>
         <p className="text-[11px] text-brand-textMuted basis-full sm:basis-auto sm:ml-auto sm:max-w-xs">
-          Calculado en este navegador con lo guardado en el Contenedor. Funciona sin conexión.
+          {sourceNote ?? 'Calculado en este navegador con lo guardado en el Contenedor. Funciona sin conexión.'}
         </p>
       </div>
 

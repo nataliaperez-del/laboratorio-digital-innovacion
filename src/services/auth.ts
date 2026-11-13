@@ -1,6 +1,7 @@
 import { loadGoogleIdentityScript } from '@/services/institutionalDrive';
 import type { InstitutionalSession } from '@/store/useStore';
 import { roleOf, type Role } from '@/lib/roles';
+import { closeLabSession, openLabSession } from '@/services/labCollector';
 
 /**
  * Ingreso institucional con Google. Pide solo la identidad (correo y nombre): la lectura de Drive
@@ -113,11 +114,16 @@ export async function signInWithInstitutionalGoogle(): Promise<InstitutionalSess
   }
 
   loginToken = token;
-  return { email, name: info.name?.trim() || email, picture: info.picture, loggedInAt: Date.now() };
+  const name = info.name?.trim() || email;
+  // El servidor verifica esta misma cuenta con Google y entrega el pase para concentrar los datos.
+  // Si no responde, el ingreso sigue igual.
+  await openLabSession(token, name);
+  return { email, name, picture: info.picture, loggedInAt: Date.now() };
 }
 
 /** Cierra la sesión: revoca el token del ingreso y lo olvida. */
 export function signOutInstitutional(): void {
+  closeLabSession();
   if (loginToken) revokeToken(loginToken);
   loginToken = null;
 }

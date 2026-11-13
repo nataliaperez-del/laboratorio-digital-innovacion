@@ -9,6 +9,7 @@ import { useStore } from '@/store/useStore';
 import { getMaxThemeStepContainerChars, truncateContainerForDocument } from '@/lib/promptBudget';
 import { buildTreeFromMarkdown, parseTreeGraph, type TreeGraph } from '@/lib/innovationTreeGraph';
 import { formatFichaCompact } from '@/services/ideation';
+import { trackGeneration } from '@/services/labCollector';
 import { radarPromptBlock } from '@/services/observatorio';
 import {
   assembleParts,
@@ -105,7 +106,7 @@ export async function buildGraphFromDocument(themeName: string, markdown: string
 }
 
 /** Genera el documento del Árbol por partes y al final su grafo interactivo. */
-export async function generateInnovationTree(request: InnovationTreeRequest, onProgress?: (p: GenerationPartProgress) => void): Promise<InnovationTreeResult> {
+async function generateInnovationTreeUntracked(request: InnovationTreeRequest, onProgress?: (p: GenerationPartProgress) => void): Promise<InnovationTreeResult> {
   beginGenerationFlow();
   assertSafeInput(request.themeName, request.themeExplanation);
   const ctx = await prepareContext(request);
@@ -138,4 +139,9 @@ export async function regenerateInnovationTreeSection(
   const sections = current.map((s, i) => (i === partIndex ? part : s));
   const markdown = assembleParts(sections);
   return { markdown, sections, graph: await buildGraphFromDocument(ctx.inputs.themeName, markdown) };
+}
+
+/** `generateInnovationTree` con medición: anota en el concentrador si la generación terminó y cuánto tardó. */
+export function generateInnovationTree(...args: Parameters<typeof generateInnovationTreeUntracked>): ReturnType<typeof generateInnovationTreeUntracked> {
+  return trackGeneration('arbol', () => generateInnovationTreeUntracked(...args));
 }

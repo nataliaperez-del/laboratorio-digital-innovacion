@@ -767,6 +767,7 @@ button.viz-hbar-row { cursor: pointer; }
 .login-error { padding: 8px 12px; border-radius: 10px; font-size: 13px; background: rgba(239, 68, 68, .12); border: 1px solid rgba(239, 68, 68, .4); }
 .login-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 16px; border-radius: 999px; font-size: 14px; font-weight: 700; color: #04222B; background: #27DCFF; cursor: pointer; }
 .login-btn:disabled { opacity: .6; cursor: default; }
+.login-data-notice { font-size: 11px; line-height: 1.45; color: var(--text-muted); text-align: left; border-top: 1px solid var(--lab-border); padding-top: 10px; margin-top: 4px; }
 .login-footnote { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
 
 /* ═══════════ Celulares: ZOE y su chat ═══════════ */

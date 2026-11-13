@@ -13,6 +13,7 @@ import { ZoeFreePresence, type ZoeRequest } from './components/zoe/ZoeFreePresen
 import { useStore } from './store/useStore';
 import { AdminOnly, LoginScreen, SessionKeeper, useAuth } from './components/auth/AuthGate';
 import { startAutoDeposit } from './store/bancoAutomatico';
+import { startLabCollector } from './services/labCollector';
 
 const ZoeIntro = lazy(() => import('./components/zoe/ZoeIntro'));
 
@@ -31,6 +32,8 @@ export const App: React.FC = () => {
   };
   // Cada resultado terminado se guarda solo en el Banco: los módulos no necesitan botón para eso.
   useEffect(() => startAutoDeposit(), []);
+  // Lo que se hace en línea se concentra en el servidor (si lo hay) para el tablero global y el banco de insumos.
+  useEffect(() => startLabCollector(), []);
   useEffect(() => {
     const onHash = () => setTool(readHash());
     window.addEventListener('hashchange', onHash);

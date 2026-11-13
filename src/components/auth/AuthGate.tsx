@@ -108,6 +108,10 @@ export const LoginScreen: React.FC = () => {
           <ShieldCheck className="w-3.5 h-3.5" aria-hidden="true" />
           La sesión se cierra tras {idleMinutes} minutos sin actividad.
         </p>
+        <p className="login-data-notice">
+          Al ingresar aceptas que el Laboratorio registre tu nombre y correo institucional, el uso que haces de las herramientas y los resultados que generes, para
+          el seguimiento institucional y para alimentar el banco de insumos de innovación. Los insumos se comparten sin tu nombre.
+        </p>
       </div>
     </div>
   );

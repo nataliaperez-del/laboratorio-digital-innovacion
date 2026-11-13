@@ -9,6 +9,7 @@ import { assertSafeInput } from '@/lib/ethicsGuard';
 import { useStore, type Prompt0Data } from '@/store/useStore';
 import { getMaxThemeStepContainerChars, truncateAtBoundary, truncateContainerForDocument } from '@/lib/promptBudget';
 import { fichaIdentity } from '@/lib/fichaIdentity';
+import { trackGeneration } from '@/services/labCollector';
 import { radarPromptBlock } from '@/services/observatorio';
 import { extractContenedor2Section } from '@/prompts/contenedor2Sections';
 import {
@@ -101,7 +102,7 @@ async function generateVocationPart(ctx: VocationContext, partIndex: number, pre
 }
 
 /** Genera la Ideación (vocación y tres temas) parte por parte, con revisión y reparación. */
-export async function generateThemeVocationAndOptions(source: InputSource, onProgress?: (p: GenerationPartProgress) => void): Promise<GeneratedDocument> {
+async function generateThemeVocationAndOptionsUntracked(source: InputSource, onProgress?: (p: GenerationPartProgress) => void): Promise<GeneratedDocument> {
   beginGenerationFlow();
   if (source.kind === 'texto') assertSafeInput(source.text);
   const ctx = await prepareVocationContext(source);
@@ -124,4 +125,9 @@ export async function regenerateVocationSection(
   if (source.kind === 'texto') assertSafeInput(source.text);
   const ctx = await prepareVocationContext(source);
   return generateVocationPart(ctx, partIndex, assembleParts(current.slice(0, partIndex)));
+}
+
+/** `generateThemeVocationAndOptions` con medición: anota en el concentrador si la generación terminó y cuánto tardó. */
+export function generateThemeVocationAndOptions(...args: Parameters<typeof generateThemeVocationAndOptionsUntracked>): ReturnType<typeof generateThemeVocationAndOptionsUntracked> {
+  return trackGeneration('ideacion', () => generateThemeVocationAndOptionsUntracked(...args));
 }

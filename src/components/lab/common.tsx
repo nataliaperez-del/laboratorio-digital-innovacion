@@ -153,7 +153,7 @@ export const SectionReview: React.FC<{
  * (`SatisfactionDialog`); sin respuestas no hay descarga. El mismo documento en el otro formato
  * ya no vuelve a preguntar. Funciona sin conexión: todo se arma y se guarda en el navegador.
  */
-export const ReportActions: React.FC<{ getReport: () => LabReport | null; disabled?: boolean }> = ({ getReport, disabled }) => {
+export const ReportActions: React.FC<{ getReport: () => LabReport | null; disabled?: boolean; direct?: boolean }> = ({ getReport, disabled, direct }) => {
   const [busy, setBusy] = useState<'word' | 'pdf' | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [asking, setAsking] = useState<{ format: DownloadFormat; report: LabReport } | null>(null);
@@ -161,7 +161,8 @@ export const ReportActions: React.FC<{ getReport: () => LabReport | null; disabl
   const recordDownload = useStore((s) => s.recordDownload);
 
   const deliver = (format: DownloadFormat, report: LabReport) => {
-    recordDownload({ at: new Date().toISOString(), module: report.module, format, document: report.meta.title || report.fileName });
+    // `direct`: consulta de un administrador sobre el trabajo de otra persona; no cuenta como descarga ni pide encuesta.
+    if (!direct) recordDownload({ at: new Date().toISOString(), module: report.module, format, document: report.meta.title || report.fileName });
     void (format === 'word' ? downloadWord(report) : downloadPdf(report));
   };
 
@@ -170,7 +171,7 @@ export const ReportActions: React.FC<{ getReport: () => LabReport | null; disabl
     const report = getReport();
     if (!report) return;
     const answered = useStore.getState().surveyResponses ?? [];
-    if (needsSurvey(answered, documentKey(report))) setAsking({ format, report });
+    if (!direct && needsSurvey(answered, documentKey(report))) setAsking({ format, report });
     else deliver(format, report);
   };
 

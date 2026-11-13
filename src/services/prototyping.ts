@@ -9,6 +9,7 @@ import { assertSafeInput } from '@/lib/ethicsGuard';
 import { LAB_SCOPE_RULES } from '@/prompts/labGuardrails';
 import { UNAD_ESCUELAS } from '@/constants/unadEscuelas';
 import { formatFichaCompact } from '@/services/ideation';
+import { trackGeneration } from '@/services/labCollector';
 import { radarPromptBlock } from '@/services/observatorio';
 
 /** Tipos de prototipo que ofrece el formulario de Prototipado. */
@@ -173,7 +174,7 @@ export function normalizePrototypePlan(raw: unknown, brief: PrototypeBrief): Pro
 }
 
 /** Pide a la IA el plan de prototipado (JSON) y lo normaliza; lanza si la idea está vacía o la IA falla. */
-export async function generatePrototypePlan(brief: PrototypeBrief): Promise<PrototypePlan> {
+async function generatePrototypePlanUntracked(brief: PrototypeBrief): Promise<PrototypePlan> {
   beginGenerationFlow();
   if (!brief.topic.trim()) throw new Error('Escribe la idea o elige un fruto del árbol para armar el plan.');
   assertSafeInput(brief.topic, brief.context);
@@ -182,4 +183,9 @@ export async function generatePrototypePlan(brief: PrototypeBrief): Promise<Prot
   const observatoryBlock = brief.origin.kind === 'observatorio' ? '' : await radarPromptBlock(`${brief.topic} ${brief.context.slice(0, 1500)}`, { tag: 'Prototipado' });
   const raw = await callAI(buildPrompt(brief, formatFichaCompact(prompt0Data), observatoryBlock), defaultCallOptions(aiProvider));
   return normalizePrototypePlan(parseJsonResponse(raw), brief);
+}
+
+/** `generatePrototypePlan` con medición: anota en el concentrador si la generación terminó y cuánto tardó. */
+export function generatePrototypePlan(...args: Parameters<typeof generatePrototypePlanUntracked>): ReturnType<typeof generatePrototypePlanUntracked> {
+  return trackGeneration('prototipado', () => generatePrototypePlanUntracked(...args));
 }

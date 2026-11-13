@@ -21,7 +21,7 @@ import {
   BarChart3,
 } from 'lucide-react';
 import { useStore, type SavedStudy, type SavedIdeation, type SavedTree } from '@/store/useStore';
-import { ToolHeader, EmptyState, ReportActions } from '@/components/lab/common';
+import { ToolHeader, EmptyState, ReportActions, SegmentedControl } from '@/components/lab/common';
 import { PlanView } from './PrototipadoView';
 import { SectionReview } from '@/components/lab/common';
 import { CONTENEDOR2_SECTIONS } from '@/prompts/contenedor2Sections';
@@ -33,6 +33,8 @@ import { MODULE_LABELS } from '@/lib/moduleLabels';
 import type { PrototypePlan } from '@/services/prototyping';
 import type { ToolId } from '@/components/layout/Header';
 import { MetricasDashboard } from './MetricasDashboard';
+import { GlobalDataView } from './GlobalDataView';
+import { isLabAdmin } from '@/services/labCollector';
 
 /**
  * Pestañas del Banco Unificado de Innovación:
@@ -54,6 +56,7 @@ interface Props {
  */
 export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 'prototipado' }) => {
   const [activeTab, setActiveTab] = useState<BancoTab>(defaultTab);
+  const [metricsScope, setMetricsScope] = useState<'local' | 'global'>(isLabAdmin() ? 'global' : 'local');
 
   const {
     savedStudies,
@@ -677,7 +680,20 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
       )}
 
       {/* PESTAÑA 6: MÉTRICAS Y SATISFACCIÓN (sin IA, también sin conexión) */}
-      {activeTab === 'metricas' && <MetricasDashboard />}
+      {activeTab === 'metricas' && (
+        <div className="space-y-5">
+          <SegmentedControl<'local' | 'global'>
+            label="Origen de los datos"
+            value={metricsScope}
+            onChange={setMetricsScope}
+            options={[
+              { value: 'local', label: 'Este navegador' },
+              { value: 'global', label: 'Todos los usuarios' },
+            ]}
+          />
+          {metricsScope === 'global' ? <GlobalDataView /> : <MetricasDashboard />}
+        </div>
+      )}
 
       {/* PESTAÑA 5: INSIGNIAS Y LOGROS DE INNOVACIÓN */}
       {activeTab === 'logros' && (

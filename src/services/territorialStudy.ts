@@ -2,6 +2,7 @@
  * Estudio Territorial: el mismo diagnóstico de la app Fase 1 (metodología MDVT en doce puntos
  * de entrega, procedencia de fuentes, autoevaluación y regeneración por bloque).
  */
+import { trackGeneration } from '@/services/labCollector';
 import { radarPromptBlock } from '@/services/observatorio';
 import { beginGenerationFlow, callAI, GenerationCancelledError, getUnadGeminiMaxOutputTokens, leerNucleoTexto, stripOuterMarkdownFence } from '@/services/ai';
 import { useStore, type AIProvider, type Prompt0Data } from '@/store/useStore';
@@ -346,7 +347,7 @@ async function generateContenedor2Section(ctx: Contenedor2Context, point: Conten
 }
 
 /** Genera el Estudio Territorial punto por punto con el núcleo metodológico, las fuentes y la ficha; informa el avance. */
-export async function generateContainer(
+async function generateContainerUntracked(
   prompt0Data: Prompt0Data,
   institutionalDriveText?: string,
   onProgress?: (p: Contenedor2SectionProgress) => void,
@@ -401,4 +402,9 @@ export async function regenerateContenedor2Section(
     .join('\n\n');
 
   return generateContenedor2Section(ctx, point, previous);
+}
+
+/** `generateContainer` con medición: anota en el concentrador si la generación terminó y cuánto tardó. */
+export function generateContainer(...args: Parameters<typeof generateContainerUntracked>): ReturnType<typeof generateContainerUntracked> {
+  return trackGeneration('estudio', () => generateContainerUntracked(...args));
 }
