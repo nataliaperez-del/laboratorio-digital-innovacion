@@ -144,3 +144,27 @@ El archivo `includes/gemini_proxy.php` actúa como un intermediario seguro entre
 - Las llamadas desde el navegador se dirigen a `/api/unad-gemini`.
 - El servidor PHP valida la solicitud, aplica el token institucional o credencial autorizada en el encabezado `Authorization: Bearer`, y reenvía a `https://chatbot-ia-360.unad.edu.co/api-proxy/v1`.
 - **Ninguna clave de API viaja al cliente ni queda expuesta en código fuente.**
+
+## 6. Concentrador de datos, tablero global y banco de insumos
+`includes/lab.php` reúne en la base de datos lo que cada persona hace en el Laboratorio: ingresos, uso de las herramientas, encuestas, descargas y los resultados guardados. Con eso los administradores ven, en el Contenedor de resultados (pestaña «Métricas y satisfacción», opción «Todos los usuarios»), el tablero global, los resultados de todos y el banco de insumos.
+
+### Qué hay que hacer en Hostinger
+1. **Crear la base de datos** (Paso 2 de esta guía), si aún no existe.
+2. **Poner sus datos en `config/db.php`** (Paso 4): nombre de la base, usuario y contraseña.
+3. **Subir** `includes/lab.php`, `config/lab.php` y el `.htaccess` de este paquete.
+
+No hay que importar nada: las tablas del concentrador (`lab_usuarios`, `lab_eventos`, `lab_resultados`, `lab_insumos` y `lab_ajustes`) se crean solas la primera vez que alguien ingresa.
+
+### Cómo comprobar que funciona
+1. Ingresar al Laboratorio con una cuenta de administrador.
+2. Abrir el Contenedor de resultados → «Métricas y satisfacción» → «Todos los usuarios».
+3. Debe aparecer «Personas registradas» con al menos 1. Si aparece «Los datos de todos los usuarios no están disponibles aquí», revisar los tres puntos de arriba y volver a ingresar.
+
+### Cómo se protege
+- Nada se guarda sin un pase, y el pase solo se entrega a una cuenta que Google confirma, del dominio institucional y emitida para este sitio.
+- Quién es administrador lo decide el servidor con `config/lab.php`, que el empaquetado genera con los correos de `VITE_ADMIN_EMAILS`. Para cambiar los administradores hay que volver a empaquetar o editar ese archivo en el servidor.
+- El banco de insumos no guarda quién hizo cada pieza. Por ahora solo lo consultan los administradores.
+- Se guardan el nombre y el correo institucional de cada persona: la pantalla de ingreso lo avisa. El texto de ese aviso debe revisarlo el responsable de protección de datos de la institución.
+
+### Filtro con IA
+Cada resultado guardado hace una consulta adicional y corta a la IA para elegir sus insumos (entre 3 y 8). Si la IA no responde, los insumos se extraen con reglas y el resultado se guarda igual.

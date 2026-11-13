@@ -13,7 +13,7 @@ declare(strict_types=1);
  *   POST sesion      Cambia el ingreso de Google por un pase firmado del Laboratorio.
  *   POST eventos     Lote de eventos de uso (requiere pase).
  *   POST resultado   Un resultado guardado, con su documento completo y sus insumos (requiere pase).
- *   GET  insumos     Banco de insumos: lo más relevante de los resultados de todos, sin autor (requiere pase).
+ *   GET  insumos     Banco de insumos: lo más relevante de los resultados de todos, sin autor (solo administradores).
  *   GET  tablero     Datos para el tablero global (solo administradores).
  *   GET  resultados  Lista de resultados de todos (solo administradores).
  *   GET  resultado   Un resultado completo (solo administradores).
@@ -404,10 +404,13 @@ function lab_ruta_resultado_guardar(): never
     lab_responder(200, ['guardado' => true, 'nuevo' => $nuevo, 'insumos' => $insumos]);
 }
 
-/** Banco de insumos: lo más relevante de los resultados de todos. No dice quién hizo cada uno. */
+/**
+ * Banco de insumos: lo más relevante de los resultados de todos. No dice quién hizo cada uno.
+ * Por ahora solo lo consultan los administradores.
+ */
 function lab_ruta_insumos(): never
 {
-    lab_usuario();
+    lab_admin();
     $pdo = lab_db();
     $tipo = lab_texto($_GET['tipo'] ?? '', 20);
     $modulo = lab_texto($_GET['modulo'] ?? '', 20);

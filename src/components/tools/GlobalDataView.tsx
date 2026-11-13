@@ -240,7 +240,7 @@ export const GlobalDataView: React.FC = () => {
               <Stat label="Ingresos" value={num(data.usuarios.ingresos)} />
               <Stat label="Conversaciones con ZOE" value={num(data.zoe)} />
               <Stat label="Insignias obtenidas" value={num(data.insignias)} />
-              <Stat label="Insumos en el banco" value={num((data as GlobalDashboard & { insumos?: number }).insumos ?? 0)} />
+              <Stat label="Insumos en el banco" value={num(data.insumos ?? 0)} />
             </div>
           </div>
 
@@ -281,8 +281,7 @@ export const GlobalDataView: React.FC = () => {
           <section className="lab-panel space-y-3" aria-label="Banco de insumos">
             <h3 className="text-sm font-bold text-white sy">Banco de insumos</h3>
             <p className="text-xs text-brand-textMuted">
-              Lo más relevante de cada resultado, elegido por un filtro con IA y guardado sin el nombre de su autor. Cualquier persona que ingrese puede usarlo como
-              punto de partida en Crear Conceptos.
+              Lo más relevante de cada resultado, elegido por un filtro con IA y guardado sin el nombre de su autor. Por ahora solo lo consultan los administradores.
             </p>
             <InsumosBank />
           </section>

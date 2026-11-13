@@ -130,6 +130,8 @@ export interface GlobalDashboard {
   uso: Array<{ modulo: ReportModule; ok: number; fallidas: number; segundosPromedio: number | null }>;
   zoe: number;
   insignias: number;
+  /** Piezas guardadas en el banco de insumos. */
+  insumos?: number;
   /** Hay más filas en el servidor de las que caben en el tablero: las cifras salen de las más recientes. */
   recortado: boolean;
   maximoFilas: number;

@@ -6,8 +6,8 @@ import { MODULE_METRIC_LABEL } from '@/lib/contenedorMetrics';
 
 /**
  * Banco de insumos: lo más relevante de los resultados de todos, elegido por el filtro con IA y
- * guardado en el servidor. Se puede buscar y, si la herramienta lo pide (`onPick`), usar un insumo
- * como punto de partida. No muestra quién hizo cada uno.
+ * guardado en el servidor. Por ahora solo lo consultan los administradores (el servidor lo exige).
+ * Se puede buscar y, si quien lo usa lo pide (`onPick`), elegir un insumo. No muestra quién hizo cada uno.
  */
 export const InsumosBank: React.FC<{ onPick?: (insumo: BankInsumo) => void; pickLabel?: string; selectedId?: number | null }> = ({
   onPick,

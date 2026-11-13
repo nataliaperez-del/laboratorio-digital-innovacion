@@ -26,6 +26,9 @@ export default defineConfig(({ mode }) => {
       port: 3000,
       host: '0.0.0.0',
       proxy: {
+        // Solo para probar en local el concentrador de datos de Hostinger: `php -S` con
+        // scripts/pruebas/router-php.php y LAB_PHP=http://127.0.0.1:8099.
+        ...(process.env.LAB_PHP ? { '/api/lab': { target: process.env.LAB_PHP, changeOrigin: false } } : {}),
         '/api-anthropic': {
           target: 'https://api.anthropic.com',
           changeOrigin: true,

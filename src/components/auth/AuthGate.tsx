@@ -110,7 +110,7 @@ export const LoginScreen: React.FC = () => {
         </p>
         <p className="login-data-notice">
           Al ingresar aceptas que el Laboratorio registre tu nombre y correo institucional, el uso que haces de las herramientas y los resultados que generes, para
-          el seguimiento institucional y para alimentar el banco de insumos de innovación. Los insumos se comparten sin tu nombre.
+          el seguimiento institucional y para alimentar el banco de insumos de innovación, donde se guardan sin tu nombre.
         </p>
       </div>
     </div>

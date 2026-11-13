@@ -33,6 +33,8 @@ dist-ssr
 
 # Credenciales del servidor
 hostinger_deploy/config/ia.php
+# Lo genera el empaquetado con los correos de los administradores
+hostinger_deploy/config/lab.php
 
 # Material de trabajo de ZOE (muestras de voz y archivo para el autorig): no se publica
 muestras-voz-zoe/
