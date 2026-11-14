@@ -23,6 +23,7 @@ Cada fila está publicada en el repositorio y probada, pero no está en Hostinge
 | 2 | 13 nov 2026 | Cierres de ZOE variados | «¿Todo listo para continuar? Estoy aquí contigo» se alterna con otros nueve cierres, y el recorrido guiado pregunta distinto en cada parada |
 | 3 | 13 nov 2026 | Micrófono más selectivo y modo multitud | El volumen se mide solo en la banda de la voz y sin ganancia automática; lo entendido cuenta si hubo una voz cercana; botón «Multitud» para salas llenas: hay que nombrar a ZOE, exige más volumen, descarta lo dudoso y no se deja interrumpir por voces vecinas |
 | 4 | 13 nov 2026 | Banner del inicio cada 22 s, de ida y vuelta | Alterna presentación y video cada 22 segundos sin detenerse; si el video termina o falla vuelve solo, y elegir un punto reinicia la cuenta |
+| 5 | 14 nov 2026 | Clave personal de AI Studio como respaldo de la IA | Cada persona crea su clave gratis con su correo institucional y la pega en el panel «IA» (solo en su pestaña); se valida con Google y elige el modelo; si la IA de la UNAD falla, las herramientas pasan solas a esa clave. El panel queda por encima de ZOE |
 
 **Archivos que implica hoy lo pendiente:** `index.html` y ocho archivos de código en `assets/`
 (se suben 9 y se borran 8). El número no crece mucho con más cambios: casi todo cambio de la

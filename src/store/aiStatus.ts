@@ -18,13 +18,20 @@ interface AiStatusState {
   checkedAt: number;
   /** Hay una prueba en curso. */
   probing: boolean;
+  /** La IA institucional falló y las herramientas están usando la clave de AI Studio. */
+  fallback: boolean;
 }
 
-export const useAiStatus = create<AiStatusState>(() => ({ status: 'checking', message: '', checkedAt: 0, probing: false }));
+export const useAiStatus = create<AiStatusState>(() => ({ status: 'checking', message: '', checkedAt: 0, probing: false, fallback: false }));
 
 /** Una respuesta de la IA llegó: está conectada. */
 export function reportAiOk(now = Date.now()): void {
   useAiStatus.setState({ status: 'ok', message: '', checkedAt: now });
+}
+
+/** Se pasó al respaldo (AI Studio) o se volvió a la IA institucional. */
+export function reportAiFallback(active: boolean): void {
+  useAiStatus.setState({ fallback: active });
 }
 
 /** La IA no respondió (o el navegador perdió la red). */

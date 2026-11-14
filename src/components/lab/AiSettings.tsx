@@ -1,9 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ChevronDown, Cpu, Eye, EyeOff, Settings, ShieldCheck } from 'lucide-react';
+import { CheckCircle2, ChevronDown, Cpu, ExternalLink, Eye, EyeOff, Settings, ShieldCheck } from 'lucide-react';
 import { useStore, type AIProvider } from '@/store/useStore';
 import { AI_PROVIDERS_CATALOG } from '@/constants/aiProviders';
 import { checkAiConnection } from '@/services/ai';
 import { markAiUnknown, useAiStatus } from '@/store/aiStatus';
+import { validateStudioKey } from '@/services/studio';
+import { STUDIO_KEY_URL, studioKeyShape } from '@/lib/studioKey';
 
 type ConnStatus = 'idle' | 'checking' | 'ok' | 'error';
 
@@ -15,6 +17,99 @@ const CONN_LABEL: Record<ConnStatus, string> = {
 };
 // Los mismos verde y rojo del círculo de la cabecera.
 const CONN_DOT: Record<ConnStatus, string> = { idle: 'bg-white/30', checking: 'bg-[#F29F05] animate-pulse', ok: 'bg-[#22C55E]', error: 'bg-[#EF4444]' };
+
+/**
+ * Clave personal de Google AI Studio. Cada persona crea la suya, gratis, con su correo institucional, y la
+ * pega aquí: vive solo en esta pestaña. Sirve de IA principal o, con la IA de la UNAD elegida, de respaldo
+ * automático si esa falla.
+ */
+const StudioKeyField: React.FC<{ backup: boolean }> = ({ backup }) => {
+  const { apiKeys, setApiKey, setProviderModel } = useStore();
+  const { fallback } = useAiStatus();
+  const key = apiKeys.gemini || '';
+  const [showKey, setShowKey] = useState(false);
+  const [guide, setGuide] = useState(false);
+  const [state, setState] = useState<{ kind: 'idle' | 'checking' | 'ok' | 'error'; text: string }>({ kind: 'idle', text: '' });
+  const shape = studioKeyShape(key);
+
+  const check = async () => {
+    setState({ kind: 'checking', text: 'Comprobando la clave con Google…' });
+    const result = await validateStudioKey(key);
+    if (result.ok === false) return setState({ kind: 'error', text: result.message });
+    setProviderModel('gemini', result.recommended);
+    markAiUnknown();
+    setState({
+      kind: 'ok',
+      text: backup
+        ? `Clave válida. Si la IA de la UNAD falla, las herramientas pasan solas a tu clave (modelo ${result.recommended}).`
+        : `Clave válida. Modelo elegido: ${result.recommended}.`,
+    });
+  };
+
+  return (
+    <div className="space-y-2">
+      <label className="block text-xs font-semibold text-white">
+        <span className="flex items-center justify-between">
+          {backup ? 'Mi clave personal de AI Studio (respaldo)' : 'Mi clave de AI Studio'}
+          <button type="button" className="text-[11px] font-normal text-[var(--brand-teal-text)] flex items-center gap-1" onClick={() => setShowKey((v) => !v)}>
+            {showKey ? <EyeOff className="w-3 h-3" aria-hidden="true" /> : <Eye className="w-3 h-3" aria-hidden="true" />}
+            {showKey ? 'Ocultar' : 'Ver'}
+          </button>
+        </span>
+        <input
+          className="lab-input mt-1 font-mono"
+          type={showKey ? 'text' : 'password'}
+          placeholder="AIzaSy..."
+          value={key}
+          onChange={(e) => {
+            setApiKey('gemini', e.target.value.trim());
+            setState({ kind: 'idle', text: '' });
+          }}
+          autoComplete="off"
+          spellCheck={false}
+        />
+        <span className="block mt-1 font-normal text-[11px] text-brand-textMuted">Es tuya: se guarda solo en esta pestaña y se borra al cerrarla. Nadie más la ve.</span>
+      </label>
+
+      {shape === 'extrana' && <p className="text-[11px] text-[#F3C26B]">Las claves de Google empiezan por «AIza» y miden 39 caracteres. Revisa que la copiaste completa.</p>}
+
+      <div className="flex flex-wrap items-center gap-2">
+        <button type="button" className="lab-btn lab-btn-sm" disabled={shape === 'vacia' || state.kind === 'checking'} onClick={() => void check()}>
+          {state.kind === 'checking' ? 'Comprobando…' : 'Validar mi clave'}
+        </button>
+        <button type="button" className="text-[11px] font-semibold text-[var(--brand-teal-text)] underline" aria-expanded={guide} onClick={() => setGuide((v) => !v)}>
+          {guide ? 'Ocultar los pasos' : '¿Cómo creo mi clave?'}
+        </button>
+      </div>
+
+      {state.kind !== 'idle' && (
+        <p className={`flex items-start gap-1.5 text-[11px] leading-snug ${state.kind === 'error' ? 'text-[#F3C26B]' : 'text-brand-textSecondary'}`} role={state.kind === 'error' ? 'alert' : 'status'}>
+          {state.kind === 'ok' && <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-[#22C55E]" aria-hidden="true" />}
+          {state.text}
+        </p>
+      )}
+      {backup && fallback && <p className="text-[11px] font-semibold text-[#F3C26B]">Ahora mismo las herramientas están usando tu clave de AI Studio porque la IA de la UNAD no responde.</p>}
+
+      {guide && (
+        <ol className="list-decimal pl-4 space-y-1 text-[11px] leading-snug text-brand-textSecondary">
+          <li>
+            Abre{' '}
+            <a className="font-semibold text-[var(--brand-teal-text)] underline inline-flex items-center gap-0.5" href={STUDIO_KEY_URL} target="_blank" rel="noopener noreferrer">
+              aistudio.google.com/apikey <ExternalLink className="w-3 h-3" aria-hidden="true" />
+            </a>{' '}
+            e ingresa con tu correo institucional.
+          </li>
+          <li>Acepta los términos si te los pide y pulsa «Crear clave de API» (Create API key).</li>
+          <li>Elige un proyecto nuevo o el que te ofrezca y copia la clave que aparece: empieza por AIza.</li>
+          <li>Pégala arriba y pulsa «Validar mi clave». Si sale en verde, ya quedó lista.</li>
+          <li className="list-none -ml-4 pt-1 text-brand-textMuted">
+            Si tu cuenta institucional no te deja entrar, puede que el administrador de la universidad tenga AI Studio desactivado: prueba con otra cuenta de Google.
+          </li>
+        </ol>
+      )}
+    </div>
+  );
+};
 
 /**
  * Selector de proveedor de IA, igual al de la app Fase 1: cada visita empieza con la IA
@@ -133,10 +228,17 @@ export const AiSettings: React.FC = () => {
             </label>
 
             {aiProvider === 'unadGemini' ? (
-              <p className="flex items-start gap-2 text-[11px] leading-relaxed text-brand-textSecondary">
-                <ShieldCheck className="w-4 h-4 shrink-0 text-[var(--brand-teal-text)]" aria-hidden="true" />
-                IA institucional UNAD. Las credenciales las pone el servidor: no necesitas ninguna clave personal.
-              </p>
+              <>
+                <p className="flex items-start gap-2 text-[11px] leading-relaxed text-brand-textSecondary">
+                  <ShieldCheck className="w-4 h-4 shrink-0 text-[var(--brand-teal-text)]" aria-hidden="true" />
+                  IA institucional UNAD. Las credenciales las pone el servidor: no necesitas ninguna clave personal.
+                </p>
+                <div className="pt-3 border-t border-white/10">
+                  <StudioKeyField backup />
+                </div>
+              </>
+            ) : aiProvider === 'gemini' ? (
+              <StudioKeyField backup={false} />
             ) : aiProvider === 'ollama' ? (
               <label className="block text-xs font-semibold text-white">
                 URL del servidor local

@@ -13,7 +13,7 @@ vi.mock('@google/genai', () => ({
   },
 }));
 
-const { callAI, cancelActiveGeneration, beginGenerationFlow, GenerationCancelledError } = await import('@/services/ai');
+const { callAI, cancelActiveGeneration, beginGenerationFlow, GenerationCancelledError, resetAiFallback } = await import('@/services/ai');
 const { useStore } = await import('@/store/useStore');
 
 const noKeys = { unadGemini: '', gemini: '', openai: '', anthropic: '', ollama: '' };
@@ -30,6 +30,7 @@ beforeEach(() => {
   vi.unstubAllGlobals();
   unad.mockReset();
   geminiGenerate.mockReset();
+  resetAiFallback();
   vi.spyOn(console, 'error').mockImplementation(() => undefined);
   beginGenerationFlow();
 });
@@ -178,5 +179,61 @@ describe('regla ética en cada llamada', () => {
     const err = await callAI('algo dañino', { maxOutputTokens: 300 }).catch((e) => e);
     expect(err).toBeInstanceOf(EthicsBlockedError);
     expect(err.message).toBe('No puedo ayudar con eso, pero sí a prevenir fraudes.');
+  });
+});
+
+describe('respaldo con la clave personal de AI Studio', () => {
+  const outage = () => unad.mockRejectedValue(new Error('Error 503: la pasarela no responde'));
+
+  it('sin clave personal, una caída de la IA institucional sigue siendo un error', async () => {
+    use('unadGemini');
+    outage();
+    await expect(callAI('p')).rejects.toThrow(/Error con unadGemini/);
+    expect(geminiGenerate).not.toHaveBeenCalled();
+  });
+
+  it('con clave personal, la caída pasa a AI Studio y el trabajo continúa', async () => {
+    use('unadGemini', { gemini: 'AIza-prueba' }, { providerModels: { gemini: 'gemini-2.5-flash' } });
+    outage();
+    geminiGenerate.mockResolvedValue({ text: 'Respuesta de AI Studio', candidates: [{ finishReason: 'STOP' }] });
+    await expect(callAI('p')).resolves.toBe('Respuesta de AI Studio');
+    expect(geminiGenerate.mock.calls[0][0]).toMatchObject({ model: 'gemini-2.5-flash' });
+  });
+
+  it('una vez en el respaldo, las siguientes llamadas van directo a AI Studio sin esperar a la institucional', async () => {
+    use('unadGemini', { gemini: 'AIza-prueba' });
+    outage();
+    geminiGenerate.mockResolvedValue({ text: 'ok', candidates: [{ finishReason: 'STOP' }] });
+    await callAI('uno');
+    unad.mockClear();
+    await callAI('dos');
+    expect(unad).not.toHaveBeenCalled();
+    expect(geminiGenerate).toHaveBeenCalledTimes(2);
+  });
+
+  it('un pedido mal hecho no pasa al respaldo: fallaría igual', async () => {
+    use('unadGemini', { gemini: 'AIza-prueba' });
+    unad.mockRejectedValue(new Error('Error 400: Cuerpo de petición inválido'));
+    await expect(callAI('p')).rejects.toThrow(/400/);
+    expect(geminiGenerate).not.toHaveBeenCalled();
+  });
+
+  it('si el respaldo también falla, el error cuenta las dos causas', async () => {
+    use('unadGemini', { gemini: 'AIza-prueba' });
+    outage();
+    geminiGenerate.mockRejectedValue(new Error('API key not valid'));
+    await expect(callAI('p')).rejects.toThrow(/503.*Respaldo AI Studio: API key not valid/s);
+  });
+
+  it('el botón «Detener» no activa el respaldo', async () => {
+    use('unadGemini', { gemini: 'AIza-prueba' });
+    unad.mockImplementation(async (_prompt: string, opts: { signal: AbortSignal }) => {
+      await new Promise((_, reject) => opts.signal.addEventListener('abort', () => reject(new Error('Failed to fetch'))));
+    });
+    const pending = callAI('p');
+    await new Promise((r) => setTimeout(r, 20));
+    cancelActiveGeneration();
+    await expect(pending).rejects.toBeInstanceOf(GenerationCancelledError);
+    expect(geminiGenerate).not.toHaveBeenCalled();
   });
 });

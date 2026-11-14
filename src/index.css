@@ -468,7 +468,7 @@ button.lab-card:hover { border-color: var(--brand-teal-text); }
 .lab-disclosure-body { padding: 2px 14px 14px; }
 .lab-drop { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 24px; text-align: center; border: 2px dashed var(--lab-border); border-radius: 14px; cursor: pointer; }
 .lab-drop:hover { border-color: var(--brand-teal-text); }
-.lab-popover { position: absolute; right: 0; top: calc(100% + 8px); width: min(92vw, 26rem); padding: 18px; border-radius: 16px; z-index: 60; background: var(--bg-page); border: 1px solid var(--lab-border); box-shadow: 0 24px 60px rgba(0, 0, 0, .45); }
+.lab-popover { position: absolute; right: 0; top: calc(100% + 8px); width: min(92vw, 26rem); padding: 18px; border-radius: 16px; z-index: 60; max-height: min(80vh, 40rem); overflow-y: auto; background: var(--bg-page); border: 1px solid var(--lab-border); box-shadow: 0 24px 60px rgba(0, 0, 0, .45); }
 .lab-navitem { display: flex; width: 100%; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 10px; font-size: 12.5px; color: var(--text-secondary); border: 1px solid transparent; cursor: pointer; }
 .lab-navitem:hover { background: var(--lab-surface); }
 .lab-navitem.is-active { background: var(--lab-surface-2); border-color: var(--brand-teal-text); color: var(--text-primary); font-weight: 600; }

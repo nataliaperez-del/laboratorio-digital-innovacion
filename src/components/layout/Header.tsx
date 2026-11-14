@@ -68,7 +68,7 @@ export const Header: React.FC<HeaderProps> = ({ currentTool, onSelectTool, theme
   const navTools = allNavTools.filter((t) => t.id !== 'banco' || auth.role === 'admin');
 
   return (
-    <header className="relative z-40 w-full box-border px-4 sm:px-6 md:px-8 xl:px-12 2xl:px-16 pt-5 pb-3">
+    <header className="relative z-[55] w-full box-border px-4 sm:px-6 md:px-8 xl:px-12 2xl:px-16 pt-5 pb-3">
       {/* Hidden SVGs for Logo Symbol */}
       <svg width="0" height="0" className="hidden" aria-hidden="true">
         <symbol id="mkFull" viewBox="0 0 1145 1113">

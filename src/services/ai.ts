@@ -9,7 +9,8 @@ import { useStore, type AIProvider, type AppState } from '@/store/useStore';
 import { resolveAnthropicModel } from '@/constants/aiProviders';
 import { generateContentUnadGemini } from '@/lib/unadGeminiProxy';
 import { ETHICS_PREAMBLE, EthicsBlockedError, extractEthicsRefusal } from '@/lib/ethicsGuard';
-import { reportAiDown, reportAiOk, useAiStatus } from '@/store/aiStatus';
+import { reportAiDown, reportAiFallback, reportAiOk, useAiStatus } from '@/store/aiStatus';
+import { FALLBACK_WINDOW_MS, isProviderOutage } from '@/lib/studioKey';
 import { cargarTextoFamilia, cargarTextoGrupo } from '@/repositorio/cargarRepositorio';
 import type { GrupoRepositorio } from '@/repositorio/tipos';
 
@@ -312,6 +313,15 @@ const PROVIDERS: Record<AIProvider, ProviderCall> = {
  * «Detener generación» la corte, y traduce los errores: la cancelación sale como
  * GenerationCancelledError y lo demás como «Error con <proveedor>: <causa>».
  */
+/** Hasta cuándo (ms) las llamadas van directo a AI Studio porque la IA institucional falló hace poco. */
+let studioFallbackUntil = 0;
+
+/** Vuelve a intentar primero con la IA institucional (lo usan las pruebas y el botón «Probar» del panel). */
+export function resetAiFallback(): void {
+  studioFallbackUntil = 0;
+  reportAiFallback(false);
+}
+
 async function callAIOnce(prompt: string, options?: CallAIOptions, probing = false): Promise<CallAIResult> {
   const detached = Boolean(options?.detached);
   if (cancelRequested && !detached) throw new GenerationCancelledError();
@@ -322,12 +332,44 @@ async function callAIOnce(prompt: string, options?: CallAIOptions, probing = fal
   if (!detached) activeAbort = controller;
   const signal = controller.signal;
 
+  // Respaldo: con la IA institucional elegida y una clave de AI Studio en esta pestaña, una caída de la
+  // institucional no detiene el trabajo; durante unos minutos se va directo a AI Studio.
+  const hasStudioKey = aiProvider === 'unadGemini' && Boolean(state.apiKeys.gemini?.trim());
+  const onStudioNow = hasStudioKey && Date.now() < studioFallbackUntil;
+  const request = { prompt, maxOut: options?.maxOutputTokens, googleSearch: options?.googleSearch, thinkingBudget: options?.thinkingBudget, signal, state };
+  let primaryFailure = '';
+
   try {
-    const provider = PROVIDERS[aiProvider];
+    const provider = PROVIDERS[onStudioNow ? 'gemini' : aiProvider];
     if (!provider) throw new Error(`Unsupported AI Provider: ${aiProvider}`);
-    const result = await provider({ prompt, maxOut: options?.maxOutputTokens, googleSearch: options?.googleSearch, thinkingBudget: options?.thinkingBudget, signal, state });
+    let result: CallAIResult;
+    try {
+      result = await provider(request);
+    } catch (first: unknown) {
+      const message = first instanceof Error ? first.message : String(first);
+      const cancelled = first instanceof GenerationCancelledError || signal.aborted || (first as Error)?.name === 'AbortError';
+      if (onStudioNow) {
+        // El respaldo también falló: la próxima llamada vuelve a intentar primero con la institucional.
+        studioFallbackUntil = 0;
+        reportAiFallback(false);
+        throw first;
+      }
+      if (!hasStudioKey || cancelled || !isProviderOutage(message)) throw first;
+      primaryFailure = message;
+      console.warn('[IA] La IA institucional no responde; se pasa a AI Studio.', message);
+      try {
+        result = await callGeminiDirect(request);
+      } catch (second: unknown) {
+        if (second instanceof GenerationCancelledError || signal.aborted) throw second;
+        throw new Error(`${message} · Respaldo AI Studio: ${second instanceof Error ? second.message : String(second)}`);
+      }
+      studioFallbackUntil = Date.now() + FALLBACK_WINDOW_MS;
+      reportAiFallback(true);
+    }
+    if (onStudioNow) reportAiFallback(true);
     // Cada respuesta real confirma la conexión sin gastar una llamada aparte.
     if (!probing) reportAiOk();
+    else if (primaryFailure || onStudioNow) reportAiOk();
     return result;
   } catch (error: unknown) {
     // Abort del usuario: se propaga tal cual para que la UI lo silencie.

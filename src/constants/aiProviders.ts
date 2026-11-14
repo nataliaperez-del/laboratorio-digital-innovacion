@@ -81,12 +81,12 @@ export const AI_PROVIDERS_CATALOG: Record<string, AIProviderConfig> = {
   },
   gemini: {
     id: 'gemini',
-    name: 'Google Gemini (Comercial)',
-    short: 'Gemini',
+    name: 'Google AI Studio (gratis, con tu cuenta)',
+    short: 'AI Studio',
     category: 'comercial',
     defaultModel: 'gemini-2.5-flash',
     placeholder: 'AIzaSy...',
-    docsUrl: 'https://aistudio.google.com/app/apikey',
+    docsUrl: 'https://aistudio.google.com/apikey',
     models: [
       { id: 'gemini-2.5-flash', label: 'gemini-2.5-flash (Recomendado)', recommended: true },
       { id: 'gemini-2.5-pro', label: 'gemini-2.5-pro' },
