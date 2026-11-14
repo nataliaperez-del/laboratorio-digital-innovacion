@@ -67,7 +67,7 @@ const HYSTERESIS_DB = 3;
 
 export function createNoiseGate(options: GateOptions = {}) {
   let sensitivity: Sensitivity = options.sensitivity ?? 'media';
-  const extraDb = options.extraDb ?? 0;
+  let extraDb = options.extraDb ?? 0;
   const attackMs = options.attackMs ?? 100;
   const releaseMs = options.releaseMs ?? 600;
   const calibrationMs = options.calibrationMs ?? 400;
@@ -85,6 +85,10 @@ export function createNoiseGate(options: GateOptions = {}) {
     /** Cambia la sensibilidad sobre la marcha. */
     setSensitivity(next: Sensitivity) {
       sensitivity = next;
+    },
+    /** Cambia el margen adicional sobre la marcha (p. ej. al entrar o salir del modo multitud). */
+    setExtraDb(next: number) {
+      extraDb = next;
     },
     reset() {
       floorDb = -60;

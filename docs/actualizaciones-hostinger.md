@@ -21,6 +21,7 @@ Cada fila está publicada en el repositorio y probada, pero no está en Hostinge
 |---|---|---|---|
 | 1 | 13 nov 2026 | Voz de ZOE sin solapamiento | La presentación y ZOE en pantalla compartían la voz sin poder callarse; una grabación que fallaba sonaba doble; una frase que empezaba tarde quedaba debajo de la siguiente |
 | 2 | 13 nov 2026 | Cierres de ZOE variados | «¿Todo listo para continuar? Estoy aquí contigo» se alterna con otros nueve cierres, y el recorrido guiado pregunta distinto en cada parada |
+| 3 | 13 nov 2026 | Micrófono más selectivo y modo multitud | El volumen se mide solo en la banda de la voz y sin ganancia automática; lo entendido cuenta si hubo una voz cercana; botón «Multitud» para salas llenas: hay que nombrar a ZOE, exige más volumen, descarta lo dudoso y no se deja interrumpir por voces vecinas |
 
 **Archivos que implica hoy lo pendiente:** `index.html` y ocho archivos de código en `assets/`
 (se suben 9 y se borran 8). El número no crece mucho con más cambios: casi todo cambio de la

@@ -1596,11 +1596,22 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
                 <button
                   type="button"
                   className="zoe-sens"
+                  disabled={voice.crowd}
                   onClick={() => voice.setSensitivity(SENSITIVITIES[(SENSITIVITIES.indexOf(voice.sensitivity) + 1) % SENSITIVITIES.length])}
                   title="Sensibilidad del micrófono: alta capta voces suaves; baja ignora más el ruido de fondo"
                 >
-                  Sensibilidad: {SENSITIVITY_LABEL[voice.sensitivity]}
+                  Sensibilidad: {voice.crowd ? 'Baja' : SENSITIVITY_LABEL[voice.sensitivity]}
                 </button>
+                <button
+                  type="button"
+                  className="zoe-sens"
+                  aria-pressed={voice.crowd}
+                  onClick={() => voice.setCrowd(!voice.crowd)}
+                  title="Modo multitud, para salas con muchas personas: ZOE solo atiende a quien la nombra y habla cerca del micrófono"
+                >
+                  Multitud: {voice.crowd ? 'Sí' : 'No'}
+                </button>
+                {voice.crowd && <span className="zoe-crowd-tip">Di «ZOE» y tu pregunta, cerca del micrófono</span>}
               </span>
             )}
             {touring && (

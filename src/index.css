@@ -503,9 +503,12 @@ button.lab-card:hover { border-color: var(--brand-teal-text); }
 .zoe-status-on { animation: zoe-breathe 1.2s ease-in-out infinite; }
 @keyframes zoe-breathe { 50% { opacity: .55; } }
 .zoe-level-track { display: block; height: 4px; margin-top: 6px; overflow: hidden; border-radius: 4px; background: rgba(39, 220, 255, .16); }
-.zoe-mic-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px; font-size: 10px; }
+.zoe-mic-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 4px 8px; margin-top: 6px; font-size: 10px; }
 .zoe-db { font-variant-numeric: tabular-nums; color: var(--text-muted, #8aa); min-width: 64px; }
 .zoe-sens { border: 1px solid rgba(39, 220, 255, .35); border-radius: 999px; padding: 1px 8px; font-size: 10px; color: inherit; background: transparent; cursor: pointer; }
+.zoe-sens[aria-pressed='true'] { border-color: var(--brand-teal-text); color: var(--text-primary); }
+.zoe-sens:disabled { opacity: .5; cursor: default; }
+.zoe-crowd-tip { flex-basis: 100%; font-size: 10.5px; color: var(--text-muted); }
 .zoe-sens:hover { background: rgba(39, 220, 255, .14); }
 .zoe-level { display: block; height: 100%; background: #27DCFF; transform: scaleX(0); transform-origin: left; transition: transform .08s linear; }
 /* Círculo de la IA en la cabecera: verde conectada, rojo sin conexión; gris mientras se comprueba la primera vez. */

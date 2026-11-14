@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { createNoiseDetector, NOISY_LEVEL } from '@/lib/zoeNoise';
 import { BARGE_IN_EXTRA_DB, createNoiseGate, isNoisyRoom, isSensitivity, type GateReading, type Sensitivity } from '@/lib/zoeGate';
 import { seemsUnfinished } from '@/lib/zoeContext';
+import { addressedText, CROWD_EXTRA_DB, heardNearVoice, joinRecognized, VOICE_BAND_HZ } from '@/lib/zoeCrowd';
 import { playBark, splitBarks } from '@/lib/zoeBark';
 import { playRecorded } from '@/lib/zoeRecorded';
 import {
@@ -72,6 +73,28 @@ const BARGE_IN_GRACE_MS = 700;
 const SENSITIVITY_KEY = 'innovahub_zoe_sensitivity';
 /** Audio del micrófono con las mejoras del navegador: cancelación de eco, supresión de ruido y ganancia. */
 const MIC_CONSTRAINTS: MediaStreamConstraints = { audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } };
+/**
+ * Audio para medir el volumen: sin la ganancia automática. Esa ganancia sube el ruido de fondo en los
+ * silencios y hace que una voz lejana se mida casi igual que una cercana; sin ella, los decibelios dicen
+ * de verdad qué tan cerca habla alguien.
+ */
+const METER_CONSTRAINTS: MediaStreamConstraints = { audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: false } };
+const CROWD_KEY = 'innovahub_zoe_multitud';
+
+/** Conecta el micrófono a un medidor que solo oye la banda de la voz humana: ni zumbidos graves ni siseos. */
+function voiceBandAnalyser(context: AudioContext, stream: MediaStream): AnalyserNode {
+  const highpass = context.createBiquadFilter();
+  highpass.type = 'highpass';
+  highpass.frequency.value = VOICE_BAND_HZ.low;
+  const lowpass = context.createBiquadFilter();
+  lowpass.type = 'lowpass';
+  lowpass.frequency.value = VOICE_BAND_HZ.high;
+  const analyser = context.createAnalyser();
+  analyser.fftSize = 512;
+  context.createMediaStreamSource(stream).connect(highpass).connect(lowpass).connect(analyser);
+  return analyser;
+}
+
 /** Por debajo de este volumen no entró sonido alguno: el problema es el micrófono, no la persona. */
 const SILENT_MIC_LEVEL = 0.002;
 /** Si la voz propia no tiene lista una frase en este tiempo, la dice la del sistema. */
@@ -96,11 +119,9 @@ async function openLevelMeter(
 ) {
   // En Android el reconocedor y otra captura de audio se estorban.
   if (/android/i.test(navigator.userAgent) || !navigator.mediaDevices) return null;
-  const stream = await navigator.mediaDevices.getUserMedia(MIC_CONSTRAINTS);
+  const stream = await navigator.mediaDevices.getUserMedia(METER_CONSTRAINTS);
   const context = new AudioContext();
-  const analyser = context.createAnalyser();
-  analyser.fftSize = 512;
-  context.createMediaStreamSource(stream).connect(analyser);
+  const analyser = voiceBandAnalyser(context, stream);
   const samples = new Float32Array(analyser.fftSize);
   const meter = { peak: 0, sum: 0, count: 0, noisy: false, close: () => undefined as void };
   // La sala cuenta como ruidosa si su piso de ruido (en dB) es alto de forma sostenida.
@@ -156,10 +177,21 @@ export function useZoeVoice() {
       return 'media';
     }
   });
+  /** Modo multitud: para salas con muchas personas hablando. */
+  const [crowd, setCrowdState] = useState(() => {
+    try {
+      return localStorage.getItem(CROWD_KEY) === '1';
+    } catch {
+      return false;
+    }
+  });
+  const crowdRef = useRef(crowd);
+  crowdRef.current = crowd;
   const [listening, setListening] = useState(false);
   /** La compuerta aprende el piso de ruido del lugar y lo conserva entre escuchas. */
   const gateRef = useRef<ReturnType<typeof createNoiseGate> | null>(null);
-  if (!gateRef.current) gateRef.current = createNoiseGate({ sensitivity });
+  // Entre mucha gente la compuerta usa el margen más exigente, y un poco más.
+  if (!gateRef.current) gateRef.current = createNoiseGate({ sensitivity: crowd ? 'baja' : sensitivity, extraDb: crowd ? CROWD_EXTRA_DB : 0 });
   const recognitionRef = useRef<{ abort: () => void } | null>(null);
   const listenSession = useRef(0);
   const owner = useRef(Symbol('voz-de-zoe')).current;
@@ -193,9 +225,23 @@ export function useZoeVoice() {
     if (canSpeak) window.speechSynthesis.cancel();
   }, [canSpeak]);
 
+  const setCrowd = useCallback(
+    (next: boolean) => {
+      setCrowdState(next);
+      gateRef.current?.setSensitivity(next ? 'baja' : sensitivity);
+      gateRef.current?.setExtraDb(next ? CROWD_EXTRA_DB : 0);
+      try {
+        localStorage.setItem(CROWD_KEY, next ? '1' : '0');
+      } catch {
+        /* Solo es una preferencia. */
+      }
+    },
+    [sensitivity],
+  );
+
   const setSensitivity = useCallback((next: Sensitivity) => {
     setSensitivityState(next);
-    gateRef.current?.setSensitivity(next);
+    if (!crowdRef.current) gateRef.current?.setSensitivity(next);
     try {
       localStorage.setItem(SENSITIVITY_KEY, next);
     } catch {
@@ -210,20 +256,20 @@ export function useZoeVoice() {
   const watchInterrupt = useCallback(
     (onInterrupt: () => void) => {
       if (/android/i.test(navigator.userAgent) || !navigator.mediaDevices || !window.isSecureContext) return () => undefined;
+      // Entre mucha gente cualquier voz vecina la interrumpiría: ahí solo se la interrumpe tocándola.
+      if (crowdRef.current) return () => undefined;
       let closed = false;
       let cleanup: (() => void) | undefined;
       const startedAt = Date.now();
       void navigator.mediaDevices
-        .getUserMedia(MIC_CONSTRAINTS)
+        .getUserMedia(METER_CONSTRAINTS)
         .then((stream) => {
           if (closed) {
             stream.getTracks().forEach((t) => t.stop());
             return;
           }
           const context = new AudioContext();
-          const analyser = context.createAnalyser();
-          analyser.fftSize = 512;
-          context.createMediaStreamSource(stream).connect(analyser);
+          const analyser = voiceBandAnalyser(context, stream);
           const samples = new Float32Array(analyser.fftSize);
           // Una compuerta aparte, más exigente: la propia voz de ZOE puede colarse por los parlantes.
           const gate = createNoiseGate({ sensitivity, extraDb: BARGE_IN_EXTRA_DB, attackMs: BARGE_IN_ATTACK_MS, calibrationMs: 500 });
@@ -506,18 +552,29 @@ export function useZoeVoice() {
         recognition.onstart = () => {
           if (isCurrent()) setListening(true);
         };
-        recognition.onresult = (event: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => {
+        recognition.onresult = (event: { results: ArrayLike<ArrayLike<{ transcript: string; confidence?: number }> & { isFinal?: boolean }> }) => {
           if (!isCurrent()) return;
+          const inCrowd = crowdRef.current;
           // Compuerta de ruido: si el micrófono nunca oyó una voz clara sobre el ruido, lo «entendido» es
           // murmullo de fondo (otra persona lejos, un video…): se ignora en vez de contestarle.
           if (meter && meter.count > 12 && !voiceSeen && !spoken && ignoredByGate < 4) {
             ignoredByGate += 1;
             return;
           }
-          spoken = Array.from(event.results, (result) => result[0]?.transcript ?? '')
-            .join(' ')
-            .replace(/\s+/g, ' ')
-            .trim();
+          // Entre mucha gente la regla es estricta y sin excepciones: lo entendido solo cuenta si el
+          // micrófono oyó una voz cercana hace un instante. Lo demás es la conversación de otros.
+          if (inCrowd && meter && meter.count > 12 && !spoken && !heardNearVoice(lastVoiceAt, Date.now())) return;
+          let heard = joinRecognized(
+            Array.from(event.results, (result) => ({ transcript: result[0]?.transcript ?? '', confidence: result[0]?.confidence, isFinal: result.isFinal })),
+            inCrowd,
+          );
+          if (inCrowd) {
+            // Hay que nombrarla: «ZOE, …». Sin su nombre, no le hablaban a ella y sigue escuchando.
+            const addressed = addressedText(heard);
+            if (!addressed) return;
+            heard = addressed;
+          }
+          spoken = heard;
           onPartial?.(spoken);
           window.clearTimeout(endTimer);
           endTimer = window.setTimeout(finish, seemsUnfinished(spoken) ? END_OF_SPEECH_MS + 400 : END_OF_SPEECH_MS);
@@ -552,7 +609,8 @@ export function useZoeVoice() {
       open();
       // Ruido sostenido sin que el reconocedor entienda nada: no se espera al final, se avisa ya.
       const onNoisy = () => {
-        if (isCurrent() && !spoken && !failure) finish();
+        // En modo multitud el ruido ya se da por hecho: no se abandona la escucha por él.
+        if (isCurrent() && !spoken && !failure && !crowdRef.current) finish();
       };
       // Cada lectura del medidor alimenta la compuerta; al callar, la frase se cierra más ágil que esperando al reconocedor.
       const onTick = (reading: GateReading) => {
@@ -592,6 +650,8 @@ export function useZoeVoice() {
     watchInterrupt,
     sensitivity,
     setSensitivity,
+    crowd,
+    setCrowd,
     canListen: Boolean(RecognitionCtor),
   };
 }
