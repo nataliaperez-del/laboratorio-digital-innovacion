@@ -9,11 +9,15 @@
 export const STUDIO_KEY_URL = 'https://aistudio.google.com/apikey';
 export const STUDIO_MODELS_URL = 'https://generativelanguage.googleapis.com/v1beta/models?pageSize=200';
 
-/** Las claves de Google empiezan por «AIza» y miden 39 caracteres. Solo orienta: la prueba real es listar los modelos. */
+/**
+ * Forma de una clave de Google. Las claves de AI Studio tienen dos formatos: el clásico («AIza…», 39
+ * caracteres) y el nuevo («AQ.…», más largo). Solo orienta, sin espacios ni saltos de línea: la prueba
+ * real es listar los modelos con la clave.
+ */
 export function studioKeyShape(raw: string): 'vacia' | 'extrana' | 'ok' {
   const key = raw.trim();
   if (!key) return 'vacia';
-  return /^AIza[0-9A-Za-z_-]{35}$/.test(key) ? 'ok' : 'extrana';
+  return /^(AIza[0-9A-Za-z_-]{35}|AQ\.[0-9A-Za-z_-]{20,})$/.test(key) ? 'ok' : 'extrana';
 }
 
 interface RawModel {
@@ -57,7 +61,7 @@ export type StudioProblem = 'clave-invalida' | 'sin-permiso' | 'cuota' | 'sin-re
 export function describeStudioProblem(problem: StudioProblem): string {
   switch (problem) {
     case 'clave-invalida':
-      return 'Google no reconoce esa clave. Revisa que la copiaste completa (empieza por AIza) y sin espacios, o crea una nueva en AI Studio.';
+      return 'Google no reconoce esa clave. Revisa que la copiaste completa y sin espacios, o crea una nueva en AI Studio.';
     case 'sin-permiso':
       return 'Google rechazó la clave por permisos. Si usas la cuenta de la universidad, puede que el administrador del dominio tenga AI Studio desactivado: prueba con otra cuenta o pídeselo a soporte.';
     case 'cuota':

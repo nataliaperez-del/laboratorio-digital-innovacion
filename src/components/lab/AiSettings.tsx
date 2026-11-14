@@ -59,7 +59,7 @@ const StudioKeyField: React.FC<{ backup: boolean }> = ({ backup }) => {
         <input
           className="lab-input mt-1 font-mono"
           type={showKey ? 'text' : 'password'}
-          placeholder="AIzaSy..."
+          placeholder="Pega aquí tu clave de AI Studio"
           value={key}
           onChange={(e) => {
             setApiKey('gemini', e.target.value.trim());
@@ -71,7 +71,7 @@ const StudioKeyField: React.FC<{ backup: boolean }> = ({ backup }) => {
         <span className="block mt-1 font-normal text-[11px] text-brand-textMuted">Es tuya: se guarda solo en esta pestaña y se borra al cerrarla. Nadie más la ve.</span>
       </label>
 
-      {shape === 'extrana' && <p className="text-[11px] text-[#F3C26B]">Las claves de Google empiezan por «AIza» y miden 39 caracteres. Revisa que la copiaste completa.</p>}
+      {shape === 'extrana' && <p className="text-[11px] text-[#F3C26B]">Esa clave no tiene la forma de una de AI Studio (empieza por «AQ.» o «AIza»). Revisa que la copiaste completa y sin espacios.</p>}
 
       <div className="flex flex-wrap items-center gap-2">
         <button type="button" className="lab-btn lab-btn-sm" disabled={shape === 'vacia' || state.kind === 'checking'} onClick={() => void check()}>
@@ -100,7 +100,7 @@ const StudioKeyField: React.FC<{ backup: boolean }> = ({ backup }) => {
             e ingresa con tu correo institucional.
           </li>
           <li>Acepta los términos si te los pide y pulsa «Crear clave de API» (Create API key).</li>
-          <li>Elige un proyecto nuevo o el que te ofrezca y copia la clave que aparece: empieza por AIza.</li>
+          <li>Elige un proyecto nuevo o el que te ofrezca y copia la clave que aparece (con el botón de copiar).</li>
           <li>Pégala arriba y pulsa «Validar mi clave». Si sale en verde, ya quedó lista.</li>
           <li className="list-none -ml-4 pt-1 text-brand-textMuted">
             Si tu cuenta institucional no te deja entrar, puede que el administrador de la universidad tenga AI Studio desactivado: prueba con otra cuenta de Google.

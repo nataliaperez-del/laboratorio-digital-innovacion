@@ -10,6 +10,10 @@ describe('clave personal de AI Studio', () => {
     expect(studioKeyShape('')).toBe('vacia');
     expect(studioKeyShape('   ')).toBe('vacia');
     expect(studioKeyShape(KEY)).toBe('ok');
+    // El formato nuevo de AI Studio.
+    expect(studioKeyShape(`AQ.${'b'.repeat(50)}`)).toBe('ok');
+    expect(studioKeyShape('AQ.corta')).toBe('extrana');
+    expect(studioKeyShape(`${KEY} otra`)).toBe('extrana');
     expect(studioKeyShape(` ${KEY} `)).toBe('ok');
     expect(studioKeyShape('sk-ant-123')).toBe('extrana');
     expect(studioKeyShape('AIza_corta')).toBe('extrana');
@@ -46,7 +50,7 @@ describe('clave personal de AI Studio', () => {
     expect(studioProblemFromStatus(429)).toBe('cuota');
     expect(studioProblemFromStatus(500)).toBe('otro');
     expect(describeStudioProblem('sin-permiso')).toMatch(/administrador del dominio/);
-    expect(describeStudioProblem('clave-invalida')).toMatch(/AIza/);
+    expect(describeStudioProblem('clave-invalida')).toMatch(/completa y sin espacios/);
   });
 
   it('valida la clave listando los modelos, con la clave en el encabezado y no en la dirección', async () => {
