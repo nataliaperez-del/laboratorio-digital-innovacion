@@ -1,3 +1,4 @@
+import { varyClosing } from '@/lib/zoeClosings';
 import React, { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Compass, Dog, Footprints, Globe, Heart, House, MessageSquare, Mic, Moon, Volume2, VolumeX, X } from 'lucide-react';
 import type { ZoeSoulState, ZoeTrick } from './ZoeCanvas3D';
@@ -1072,7 +1073,15 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
         if (!chatOpenRef.current || chatVoiceRef.current) voice.speak(line);
       }, FILLER_AFTER_MS);
       try {
-        let reply = await askZoe(text, historyRef.current, toolRef.current);
+        // El cierre («¿Seguimos? Estoy contigo») no se repite igual que en las respuestas recientes.
+        const fresh = <T extends { decir: string }>(r: T): T => ({
+          ...r,
+          decir: varyClosing(
+            r.decir,
+            historyRef.current.filter((t) => t.role === 'zoe').map((t) => t.text),
+          ),
+        });
+        let reply = fresh(await askZoe(text, historyRef.current, toolRef.current));
         window.clearTimeout(filler);
         offlineNoticed.current = false;
         const done: string[] = [];
@@ -1089,7 +1098,7 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
           if (!last) {
             // La tarea sigue en la pantalla nueva: la mira y continúa con el mismo pedido.
             setBehavior('thinking');
-            reply = await askZoe(text, historyRef.current, toolRef.current, done);
+            reply = fresh(await askZoe(text, historyRef.current, toolRef.current, done));
             continue;
           }
           releaseFacing();

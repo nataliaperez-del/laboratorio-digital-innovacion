@@ -155,7 +155,11 @@ describe('recorrido guiado', () => {
   it('pasa por todas las herramientas, empezando por el inicio', () => {
     expect(TOUR_STEPS.map((s) => s.tool)).toEqual(['portal', 'radar', 'estudio', 'ideacion', 'arbol', 'prototipado', 'banco']);
     expect(readyQuestion(0)).toContain('Estoy aquí contigo');
-    expect(readyQuestion(2)).toBe('¿Seguimos con Crear Conceptos? Estoy aquí contigo.');
+    expect(readyQuestion(2)).toBe('¿Pasamos a Crear Conceptos? Tú marcas el paso.');
+    // Ninguna parada pregunta con las mismas palabras que la anterior.
+    const questions = TOUR_STEPS.map((_, i) => readyQuestion(i));
+    expect(new Set(questions).size).toBe(questions.length);
+    expect(questions.filter((q) => q.includes('Estoy aquí contigo'))).toHaveLength(1);
   });
 
   it('hace el ejercicio completo de punta a punta, encadenando cada resultado', async () => {

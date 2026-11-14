@@ -47,19 +47,28 @@ export function preloadRecorded(): void {
 export function playRecorded(text: string, onEnd: () => void, onMissing: () => void, onPlay?: () => void): () => void {
   let stopped = false;
   let audio: HTMLAudioElement | null = null;
+  // Un archivo que falla avisa por dos vías (el error y el rechazo de `play`): se atiende una sola,
+  // porque dos avisos hacían sonar la misma frase dos veces, una encima de la otra.
+  let missed = false;
+  const missing = () => {
+    if (stopped || missed) return;
+    missed = true;
+    audio?.pause();
+    onMissing();
+  };
   void loadIndex().then((map) => {
     if (stopped) return;
     const id = map.get(normalizePhrase(text));
-    if (!id) return onMissing();
+    if (!id) return missing();
     let started = false;
     audio = new Audio(`${BASE}${id}.mp3`);
     audio.onplaying = () => {
       started = true;
       onPlay?.();
     };
-    audio.onended = () => !stopped && onEnd();
-    audio.onerror = () => !stopped && !started && onMissing();
-    audio.play().catch(() => !stopped && onMissing());
+    audio.onended = () => !stopped && !missed && onEnd();
+    audio.onerror = () => !started && missing();
+    audio.play().catch(missing);
   });
   return () => {
     stopped = true;

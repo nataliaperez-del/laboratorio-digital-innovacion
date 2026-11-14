@@ -13,6 +13,7 @@
  * Los guiones solo usan el `TourContext` que les da `ZoeFreePresence`: así se prueban con un contexto
  * falso (tests/zoeOffline.test.ts) y nunca dicen un resultado que no esté en pantalla.
  */
+import { COMPANY_LINES } from '@/lib/zoeClosings';
 import type { ToolId } from '@/components/layout/Header';
 import { isConfirmation } from '@/lib/zoeContext';
 import { ROUTES_TEXT } from '@/lib/zoeOffline';
@@ -597,8 +598,13 @@ export const TOUR_STEPS: readonly TourStep[] = [portal, radar, estudio, ideacion
 export function readyQuestion(index: number): string {
   if (index === 0) return '¿Todo listo para empezar? Estoy aquí contigo.';
   const next = TOUR_STEPS[index + 1];
-  return next ? `¿Seguimos con ${next.title}? Estoy aquí contigo.` : '¿Te cuento qué ruta seguir ahora?';
+  if (!next) return '¿Te cuento qué ruta seguir ahora?';
+  // Cada parada pregunta y acompaña con otras palabras: repetida igual suena a grabación.
+  const lead = READY_LEADS[index % READY_LEADS.length];
+  return `${lead} ${next.title}? ${COMPANY_LINES[index % COMPANY_LINES.length]}`;
 }
+
+const READY_LEADS = ['¿Seguimos con', '¿Vamos ahora a', '¿Pasamos a', '¿Te muestro', '¿Avanzamos a'] as const;
 
 /** Cierre del recorrido: las rutas y la invitación a empezar. */
 export const TOUR_END = `¡Terminamos el recorrido, y lo hiciste muy bien! Ya viste que cada herramienta funciona sola y que, encadenadas, cada una alimenta a la siguiente. Ahora, ¿qué ruta seguir? ${ROUTES_TEXT} ¿Por cuál te gustaría empezar? Dime, por ejemplo, «por el estudio», y te llevo.`;

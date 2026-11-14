@@ -127,6 +127,18 @@ async function openLevelMeter(
   return meter;
 }
 
+/**
+ * ZOE tiene una sola voz en toda la aplicación. Este estado es compartido por todos los que usan
+ * `useZoeVoice` (ZOE en pantalla y su presentación): así cualquier frase nueva calla la que esté
+ * sonando, venga de donde venga. Con un estado por componente, dos de ellos hablaban encima.
+ */
+const speechRun = { current: 0 };
+const timerRef: { current: number | undefined } = { current: undefined };
+/** Corta lo que esté sonando; con `andFinish` además da la locución por terminada. */
+const cutOwnVoice: { current: ((andFinish: boolean) => void) | null } = { current: null };
+/** Quién dijo lo último: al desmontarse, un componente solo calla lo que él mismo inició. */
+let speechOwner: symbol | null = null;
+
 /** Voz de ZOE: su voz propia (o la del sistema mientras carga) por frases, y reconocimiento del navegador. */
 export function useZoeVoice() {
   const [muted, setMuted] = useState(() => {
@@ -150,10 +162,7 @@ export function useZoeVoice() {
   if (!gateRef.current) gateRef.current = createNoiseGate({ sensitivity });
   const recognitionRef = useRef<{ abort: () => void } | null>(null);
   const listenSession = useRef(0);
-  const speechRun = useRef(0);
-  const timerRef = useRef<number | undefined>(undefined);
-  /** Corta la voz propia; con `andFinish` además da la locución por terminada. */
-  const cutOwnVoice = useRef<((andFinish: boolean) => void) | null>(null);
+  const owner = useRef(Symbol('voz-de-zoe')).current;
   const canSpeak = typeof window !== 'undefined' && 'speechSynthesis' in window;
   const RecognitionCtor =
     typeof window !== 'undefined'
@@ -168,10 +177,14 @@ export function useZoeVoice() {
     if (canSpeak) window.speechSynthesis.getVoices();
     return () => {
       window.removeEventListener('pointerdown', unlockZoeAudio);
+      // Solo se calla lo que inició este componente: otro puede estar hablando en ese momento.
+      if (speechOwner !== owner) return;
+      speechRun.current += 1;
+      window.clearTimeout(timerRef.current);
       cutOwnVoice.current?.(false);
       if (canSpeak) window.speechSynthesis.cancel();
     };
-  }, [canSpeak]);
+  }, [canSpeak, owner]);
 
   const stopSpeaking = useCallback(() => {
     speechRun.current += 1;
@@ -259,6 +272,7 @@ export function useZoeVoice() {
   const speak = useCallback(
     (text: string, onEnd?: () => void, onPart?: (sentence: string) => void) => {
       stopSpeaking();
+      speechOwner = owner;
       const run = speechRun.current;
       const finish = () => {
         if (run === speechRun.current) onEnd?.();
@@ -379,7 +393,15 @@ export function useZoeVoice() {
             else void playFrom(i + 1);
           };
           stopCurrent = playZoe(buffer, advance);
-          timerRef.current = window.setTimeout(advance, buffer.duration * 1000 + 1500);
+          // Si el aviso de fin no llega, se sigue; antes se corta esta frase, por si empezó tarde y aún
+          // suena: sin eso, la siguiente le quedaba encima.
+          timerRef.current = window.setTimeout(
+            () => {
+              stopCurrent?.();
+              advance();
+            },
+            buffer.duration * 1000 + 1500,
+          );
         };
         void playFrom(0);
       };
@@ -415,7 +437,7 @@ export function useZoeVoice() {
         if (andFinish) finish();
       };
     },
-    [muted, canSpeak, stopSpeaking],
+    [muted, canSpeak, stopSpeaking, owner],
   );
 
   /** Pide el micrófono dentro del gesto de la persona y dice con precisión qué falla. */
