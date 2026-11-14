@@ -11,20 +11,33 @@ interface PortalCatalogProps {
   onOpenBadges?: () => void;
 }
 
+/** Segundos que se ve cada diapositiva del inicio antes de pasar a la otra. */
+const BANNER_INTERVAL_MS = 22_000;
+
 /** Inicio: presentación del Laboratorio, sus herramientas, el video de ZOE y accesos rápidos. */
 export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOpenZoe, onOpenBadges }) => {
   // 0: Presentación del LAB, 1: Video Proyección Holográfica de ZOE
   const [slideIndex, setSlideIndex] = useState<0 | 1>(0);
+  /** Cada vez que alguien elige una diapositiva (incluso la que ya se ve) se vuelve a contar el tiempo. */
+  const [resetCount, setResetCount] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Transición automática estricta cada 20 segundos (sin interrupciones)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setSlideIndex((prev) => (prev === 0 ? 1 : 0));
-    }, 20000);
+  const goTo = (next: 0 | 1) => {
+    setSlideIndex(next);
+    setResetCount((n) => n + 1);
+  };
+  const advance = () => {
+    setSlideIndex((prev) => (prev === 0 ? 1 : 0));
+    setResetCount((n) => n + 1);
+  };
 
-    return () => clearTimeout(timer);
-  }, [slideIndex]);
+  // Alterna entre las dos diapositivas cada 22 segundos, de ida y de vuelta, sin detenerse nunca: cada
+  // cambio programa el siguiente. Si el video termina antes (o falla), se pasa a la presentación enseguida.
+  useEffect(() => {
+    const timer = window.setTimeout(advance, BANNER_INTERVAL_MS);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slideIndex, resetCount]);
 
   // Manejo de reproducción de video sincronizada con el slide
   useEffect(() => {
@@ -239,7 +252,9 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
               src="/assets/zoe/zoe_presentation.mp4"
               controls
               playsInline
-              onEnded={() => setSlideIndex(0)}
+              // Si el video termina o falla, vuelve a la presentación; solo si el video es el que se ve.
+              onEnded={() => slideIndex === 1 && goTo(0)}
+              onError={() => slideIndex === 1 && goTo(0)}
               className="w-full h-full max-h-[85vh] object-contain drop-shadow-[0_0_30px_rgba(39,220,255,0.25)]"
               title="Proyección Holográfica Oficial de ZOE"
             >
@@ -251,12 +266,12 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
 
       {/* =========================================================================
           CONTROLES DE PAGINACIÓN: ÚNICAMENTE LOS PUNTOS PARA AVANZAR Y RETROCEDER
-          Alternan con animación cada 20 segundos o al hacer clic
+          Alternan con animación cada 22 segundos o al hacer clic
           ========================================================================= */}
       <div className="on-dark absolute bottom-2.5 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-black/45 backdrop-blur-md border border-white/10 shadow-[0_4px_16px_rgba(0,0,0,0.5)]">
         <button
           type="button"
-          onClick={() => setSlideIndex(0)}
+          onClick={() => goTo(0)}
           className={`transition-all rounded-full cursor-pointer ${
             slideIndex === 0 ? 'w-7 h-2.5 bg-[#27DCFF] shadow-[0_0_12px_#27DCFF]' : 'w-2.5 h-2.5 bg-white/30 hover:bg-white/60'
           }`}
@@ -265,7 +280,7 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
         />
         <button
           type="button"
-          onClick={() => setSlideIndex(1)}
+          onClick={() => goTo(1)}
           className={`transition-all rounded-full cursor-pointer ${
             slideIndex === 1 ? 'w-7 h-2.5 bg-[#27DCFF] shadow-[0_0_12px_#27DCFF]' : 'w-2.5 h-2.5 bg-white/30 hover:bg-white/60'
           }`}
