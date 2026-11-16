@@ -10,7 +10,7 @@ import { resolveAnthropicModel } from '@/constants/aiProviders';
 import { generateContentUnadGemini } from '@/lib/unadGeminiProxy';
 import { ETHICS_PREAMBLE, EthicsBlockedError, extractEthicsRefusal } from '@/lib/ethicsGuard';
 import { reportAiDown, reportAiFallback, reportAiOk, useAiStatus } from '@/store/aiStatus';
-import { FALLBACK_WINDOW_MS, isProviderOutage } from '@/lib/studioKey';
+import { FALLBACK_WINDOW_MS, isProviderOutage, nextStudioModel, quotaExhaustedMessage, studioQuota } from '@/lib/studioKey';
 import { validateStudioKey } from '@/services/studio';
 import { cargarTextoFamilia, cargarTextoGrupo } from '@/repositorio/cargarRepositorio';
 import type { GrupoRepositorio } from '@/repositorio/tipos';
@@ -173,11 +173,57 @@ function abortableWait(ms: number, signal: AbortSignal): Promise<void> {
   });
 }
 
+/**
+ * Modelos de AI Studio que agotaron su cuota, con la hora en que Google dice que vuelven. Se guarda en el
+ * navegador: así, al recargar, no se gasta una llamada en un modelo que ya se sabe agotado hasta mañana.
+ */
+const QUOTA_KEY = 'innovahub_studio_cuota';
+function exhaustedModels(): Map<string, number> {
+  try {
+    const raw = JSON.parse(localStorage.getItem(QUOTA_KEY) ?? '{}') as Record<string, number>;
+    return new Map(Object.entries(raw).filter(([, until]) => until > Date.now()));
+  } catch {
+    return new Map();
+  }
+}
+function markExhausted(model: string, retryMs: number): void {
+  const all = exhaustedModels();
+  all.set(model, Date.now() + retryMs);
+  try {
+    localStorage.setItem(QUOTA_KEY, JSON.stringify(Object.fromEntries(all)));
+  } catch {
+    /* Solo evita llamadas perdidas. */
+  }
+}
+/** Modelos que ofrece la clave, consultados una vez por clave. */
+const studioModelsCache = new Map<string, Promise<string[]>>();
+function studioModels(key: string): Promise<string[]> {
+  if (!studioModelsCache.has(key)) {
+    studioModelsCache.set(
+      key,
+      validateStudioKey(key)
+        .then((c) => (c.ok ? c.models : []))
+        .catch(() => []),
+    );
+  }
+  return studioModelsCache.get(key)!;
+}
+
 /** Gemini comercial, directo con el SDK de Google y la clave de la persona. */
 const callGeminiDirect: ProviderCall = async ({ prompt, maxOut, googleSearch, thinkingBudget, signal, state }) => {
   const aiClient = getGeminiAI(state.apiKeys.gemini);
+  const key = state.apiKeys.gemini || '';
   let geminiModel = (state.providerModels?.gemini || import.meta.env.VITE_GEMINI_MODEL || 'gemini-2.5-flash').trim();
   let modelRetried = false;
+  // Si el modelo elegido ya agotó su cuota de hoy, se empieza directo por otro que tenga cuota.
+  const pickWithQuota = async (): Promise<string | null> => {
+    const exhausted = exhaustedModels();
+    if (!exhausted.has(geminiModel)) return geminiModel;
+    return nextStudioModel(await studioModels(key), new Set(exhausted.keys()));
+  };
+  const startModel = await pickWithQuota();
+  if (!startModel) throw new Error(quotaExhaustedMessage(Math.max(0, Math.min(...exhaustedModels().values()) - Date.now())));
+  geminiModel = startModel;
   // El SDK no expone la señal de aborto: se corta con una carrera contra el botón «Detener».
   const abortPromise = new Promise<never>((_, reject) => {
     signal.addEventListener('abort', () => reject(new GenerationCancelledError()), { once: true });
@@ -220,9 +266,21 @@ const callGeminiDirect: ProviderCall = async ({ prompt, maxOut, googleSearch, th
           continue;
         }
       }
+      // Cuota agotada: la del día no vuelve reintentando, y la de cada minuto tarda lo que diga Google. En
+      // ambos casos se pasa enseguida a otro modelo de la misma clave (cada uno tiene su propia cuota).
+      const quota = studioQuota(msg);
+      if (quota && (quota.daily || quota.retryMs > 10_000)) {
+        markExhausted(geminiModel, quota.retryMs);
+        const next = nextStudioModel(await studioModels(key), new Set(exhaustedModels().keys()));
+        if (!next) throw new Error(quotaExhaustedMessage(quota.retryMs));
+        console.warn(`Modelo ${geminiModel} sin cuota${quota.daily ? ' por hoy' : ''}; se pasa a ${next}.`);
+        geminiModel = next;
+        attempt--;
+        continue;
+      }
       const isTransient = /"code"\s*:\s*(503|429)|UNAVAILABLE|RESOURCE_EXHAUSTED|high demand|overloaded/i.test(msg);
       if (!isTransient || attempt === maxAttempts) throw e;
-      const waitMs = 3000 * attempt;
+      const waitMs = quota ? Math.max(1000, quota.retryMs) : 3000 * attempt;
       console.warn(`Gemini ocupado (intento ${attempt}/${maxAttempts}); reintentando en ${waitMs / 1000}s…`);
       // La espera respeta «Detener generación»: sin esto, el botón quedaba sin efecto durante el retardo.
       await abortableWait(waitMs, signal);

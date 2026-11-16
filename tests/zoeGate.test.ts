@@ -89,4 +89,38 @@ describe('compuerta de ruido', () => {
     expect(meterFraction(-28, -58)).toBe(1);
     expect(meterFraction(-43, -58)).toBeCloseTo(0.5);
   });
+  it('con un televisor de fondo no se abre con sus diálogos, y sí con una voz cercana', () => {
+    const gate = createNoiseGate();
+    feed(gate, -56, 800);
+    // Diálogos del televisor (−36 dB) con pausas: tras unos 18 segundos de escucharlo, ya no abren la compuerta.
+    let opened = 0;
+    for (let i = 0; i < 10; i++) {
+      const talking = feed(gate, -36 + (i % 2), 2000);
+      if (i >= 7 && talking.open) opened++;
+      feed(gate, -56, 500);
+    }
+    expect(opened).toBe(0);
+    const tv = feed(gate, -36, 1000);
+    expect(tv.open).toBe(false);
+    expect(tv.busy).toBe(true);
+    // La persona habla cerca del micrófono, por encima del televisor: se abre.
+    expect(feed(gate, -20, 400).open).toBe(true);
+    // Calla y el televisor sigue: se cierra y no vuelve a abrirse.
+    feed(gate, -56, 900);
+    expect(feed(gate, -36, 2000).open).toBe(false);
+  });
+
+  it('un ruido parejo (ventilador) no cuenta como televisor', () => {
+    const gate = createNoiseGate();
+    const fan = feed(gate, -45, 6000);
+    expect(fan.busy).toBe(false);
+    expect(feed(gate, -28, 400).open).toBe(true);
+  });
+  it('una frase larga de la persona no se corta ni le impide volver a hablar', () => {
+    const gate = createNoiseGate();
+    feed(gate, -56, 800);
+    expect(feed(gate, -20, 7000).open).toBe(true);
+    feed(gate, -56, 1500);
+    expect(feed(gate, -20, 400).open).toBe(true);
+  });
 });

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { describeStudioProblem, isProviderOutage, pickStudioModel, studioKeyShape, studioProblemFromStatus, usableStudioModels } from '@/lib/studioKey';
+import { nextStudioModel, quotaExhaustedMessage, studioQuota } from '@/lib/studioKey';
 import { validateStudioKey } from '@/services/studio';
 
 const KEY = `AIza${'a'.repeat(35)}`;
@@ -104,5 +105,29 @@ describe('cuándo se pasa al respaldo', () => {
     ]) {
       expect(isProviderOutage(message), message).toBe(false);
     }
+  });
+});
+
+describe('cuota de AI Studio', () => {
+  const daily =
+    'Error con gemini: {"error":{"code":429,"message":"You exceeded your current quota. Quota exceeded for metric: generate_content_free_tier_requests, limit: 20, model: gemini-3.8-flash. Please retry in 15h6m12.08s.","status":"RESOURCE_EXHAUSTED","details":[{"quotaId":"GenerateRequestsPerDayPerProjectPerModel-FreeTier"},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"54372s"}]}}';
+
+  it('reconoce el tope del día y cuánto falta', () => {
+    const q = studioQuota(daily);
+    expect(q?.daily).toBe(true);
+    expect(q?.retryMs).toBe(54372000);
+  });
+
+  it('el tope por minuto no es del día', () => {
+    const q = studioQuota('{"error":{"code":429,"status":"RESOURCE_EXHAUSTED","details":[{"retryDelay":"7s"}]}}');
+    expect(q).toEqual({ daily: false, retryMs: 7000 });
+    expect(studioQuota('{"error":{"code":503,"status":"UNAVAILABLE"}}')).toBeNull();
+  });
+
+  it('pasa a otro modelo con cuota y avisa cuando no queda ninguno', () => {
+    const models = ['gemini-3.8-flash', 'gemini-3.5-flash', 'gemini-3.8-flash-lite', 'gemini-3.8-pro'];
+    expect(nextStudioModel(models, new Set(['gemini-3.8-flash']))).toBe('gemini-3.8-flash-lite');
+    expect(nextStudioModel(models, new Set(['gemini-3.8-flash', 'gemini-3.8-flash-lite', 'gemini-3.5-flash']))).toBeNull();
+    expect(quotaExhaustedMessage(54372000)).toMatch(/unas 15 horas/);
   });
 });

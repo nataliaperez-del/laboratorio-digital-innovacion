@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { bestEntry, crisisReply, feelingReply, nextStepAdvice, OFFLINE_FALLBACK, offlineAnswer, parseBank, sectionLines } from '@/lib/zoeOffline';
+import { bestEntry, instantAnswer, crisisReply, feelingReply, nextStepAdvice, OFFLINE_FALLBACK, offlineAnswer, parseBank, sectionLines } from '@/lib/zoeOffline';
 import {
   describeProgress,
   describeSignal,
@@ -245,5 +245,18 @@ describe('la IA puede pedir movimientos', () => {
       { hacer: 'animar', movimiento: 'shake' },
       { hacer: 'animar', movimiento: 'spin' },
     ]);
+  });
+});
+
+describe('respuesta inmediata de memoria', () => {
+  it('contesta al instante lo que coincide casi palabra por palabra con el banco', () => {
+    expect(instantAnswer('¿Qué significa ZOE?', DOC)).toBeTruthy();
+    expect(instantAnswer('¿Por qué un perro?', DOC)).toBeTruthy();
+  });
+
+  it('deja a la IA lo que habla del trabajo o la pantalla, y lo que no coincide claro', () => {
+    expect(instantAnswer('revisa mi estudio territorial', DOC)).toBeNull();
+    expect(instantAnswer('¿qué significa esta tabla de aquí?', DOC)).toBeNull();
+    expect(instantAnswer('cuéntame algo sobre la economía del Huila', DOC)).toBeNull();
   });
 });

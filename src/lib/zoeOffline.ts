@@ -140,7 +140,7 @@ export function sectionLines(markdown: string, title: RegExp): string[] {
  * La entrada del banco que mejor responde lo dicho, o null si ninguna se parece lo suficiente.
  * Pesa más las palabras raras («TRL», «FODA») que las comunes («laboratorio»).
  */
-export function bestEntry(bank: readonly BankEntry[], text: string): BankEntry | null {
+export function bestEntry(bank: readonly BankEntry[], text: string, min = 0.45): BankEntry | null {
   const said = [...new Set(keywords(text))];
   if (!said.length) return null;
   const df = new Map<string, number>();
@@ -158,7 +158,23 @@ export function bestEntry(bank: readonly BankEntry[], text: string): BankEntry |
     const score = 0.6 * (weight(sharedQ) / weight(qTokens)) + 0.4 * (sharedSaid.reduce((s, tok) => s + idf(tok), 0) / weight(said));
     if (!best || score > best.score) best = { entry, score };
   }
-  return best && best.score >= 0.45 ? best.entry : null;
+  return best && best.score >= min ? best.entry : null;
+}
+
+/** Coincidencia tan clara con una pregunta del banco que no vale la pena esperar a la IA. */
+export const INSTANT_MATCH = 0.82;
+
+/**
+ * Respuesta inmediata de la memoria de ZOE, sin IA: solo para preguntas cortas que coinciden casi
+ * palabra por palabra con una del banco («¿qué es un TRL?», «¿quién eres?»). Así ZOE no se queda
+ * pensando en lo que ya sabe. Lo demás (la pantalla, el trabajo de la persona, pedidos) va a la IA.
+ */
+export function instantAnswer(text: string, markdown: string): string | null {
+  const words = normalizeText(text).split(/\s+/).filter(Boolean);
+  if (words.length < 2 || words.length > 12) return null;
+  // Lo que habla del trabajo o de la pantalla de la persona necesita verla: eso lo contesta la IA.
+  if (/\b(mi|mis|este|esta|esto|aqui|ahi|hazme|haz|ayudame|genera|crea|escribe|revisa|corrige|abre|ve a|llevame)\b/.test(words.join(' '))) return null;
+  return bestEntry(parseBank(markdown), text, INSTANT_MATCH)?.answer ?? null;
 }
 
 // ── Acompañamiento emocional ──

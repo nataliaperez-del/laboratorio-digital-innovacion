@@ -90,5 +90,36 @@ export function isProviderOutage(message: string): boolean {
   return /50[0-9]|429|401|403|fetch|network|conexi[oó]n|timeout|tard[oó] demasiado|ECONN|IA_NO_CONFIGURADA|no est[aá] configurada|credencial|UNAVAILABLE|overloaded|high demand|RESOURCE_EXHAUSTED/i.test(message);
 }
 
+/**
+ * Límite de cuota de Google (429). La cuota gratuita es POR MODELO: agotar la de un modelo no agota
+ * la de los demás. Devuelve cuántos milisegundos pide Google esperar y si es el tope del día (que no
+ * se arregla reintentando en segundos), o null si el error no es de cuota.
+ */
+export function studioQuota(message: string): { daily: boolean; retryMs: number } | null {
+  if (!/"code"\s*:\s*429|RESOURCE_EXHAUSTED|exceeded your current quota/i.test(message)) return null;
+  // Primero el dato exacto («retryDelay»); si no viene, el texto «retry in 15h6m12s».
+  const delay = /retryDelay"?\s*:\s*"?(\d+(?:\.\d+)?)s/i.exec(message);
+  const hms = /retry in (?:(\d+)h)?(?:(\d+)m)?(\d+(?:\.\d+)?)s/i.exec(message);
+  const retryMs = delay
+    ? Number(delay[1]) * 1000
+    : hms
+      ? ((Number(hms[1] ?? 0) * 60 + Number(hms[2] ?? 0)) * 60 + Number(hms[3])) * 1000
+      : 0;
+  const daily = /PerDay|per day/i.test(message) || retryMs > 10 * 60_000;
+  return { daily, retryMs: retryMs || (daily ? 24 * 3600_000 : 60_000) };
+}
+
+/** El siguiente modelo a probar cuando los de `exhausted` agotaron su cuota; null si no queda ninguno. */
+export function nextStudioModel(models: readonly string[], exhausted: ReadonlySet<string>): string | null {
+  return pickStudioModel(models.filter((m) => !exhausted.has(m) && !/pro/i.test(m)));
+}
+
+/** Texto para la persona cuando la clave agotó la cuota de todos sus modelos. */
+export function quotaExhaustedMessage(retryMs: number): string {
+  const hours = Math.round(retryMs / 3600_000);
+  const when = hours >= 1 ? `en unas ${hours} ${hours === 1 ? 'hora' : 'horas'}` : `en ${Math.max(1, Math.round(retryMs / 60_000))} minutos`;
+  return `La clave de AI Studio llegó al límite gratuito de hoy en todos sus modelos. Vuelve a funcionar ${when}. Mientras tanto usa la IA de la UNAD o una clave creada con otra cuenta.`;
+}
+
 /** Cuánto dura el respaldo antes de volver a intentar con la IA institucional. */
 export const FALLBACK_WINDOW_MS = 5 * 60_000;

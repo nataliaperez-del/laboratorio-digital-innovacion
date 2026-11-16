@@ -35,7 +35,6 @@ import {
   isConfirmation,
   isDoneReply,
   parseZoeCommand,
-  seemsUnfinished,
   toolMentioned,
   TOOL_HINTS,
   TOOL_NAMES,
@@ -56,10 +55,10 @@ import {
   type ZoeAction,
   type ZoeHands,
 } from '@/lib/zoeScreen';
-import { crisisReply, offlineAnswer } from '@/lib/zoeOffline';
+import { crisisReply, instantAnswer, offlineAnswer } from '@/lib/zoeOffline';
 import { APOLOGY_REPLY, isApology, respectReply } from '@/lib/zoeRespect';
 import { assessHarmfulIntent, EthicsBlockedError } from '@/lib/ethicsGuard';
-import { formatDb, meterFraction, SENSITIVITIES, SENSITIVITY_LABEL } from '@/lib/zoeGate';
+import { meterFraction } from '@/lib/zoeGate';
 import { isResumeRequest, remainingAfter } from '@/lib/zoeInterrupt';
 import {
   describeProgress,
@@ -124,6 +123,13 @@ const FILLER_AFTER_MS = 1500;
 const FILLERS = ['¡Woa, woa! Déjame pensarlo.', 'Woa, woa… a ver, a ver.', '¡Woa, woa! Buena pregunta.', 'Woa, woa, déjame olfatear eso.'];
 /** Tras un fallo de la IA, durante este tiempo ZOE contesta de memoria sin hacer esperar a nadie. */
 const AI_RETRY_MS = 60_000;
+/** Lo más que se espera a la IA en una conversación: después ZOE contesta de memoria en vez de quedarse pensando. */
+const AI_TALK_TIMEOUT_MS = 8000;
+/** Tras una IA lenta, este tiempo se contesta de memoria (más corto que tras un fallo: puede ser un momento). */
+const AI_SLOW_RETRY_MS = 20_000;
+/** Escuchas seguidas sin ruido de fondo para salir solo del modo de ruido. */
+const CALM_TURNS_TO_EXIT = 2;
+const NOISE_QUESTION = 'Oigo ruido o varias voces por aquí. ¿Activo el modo para lugares con ruido? Así te atiendo solo cuando digas «ZOE» antes de tu pregunta.';
 const AFTER_SPEECH_MS = 250;
 /** Vueltas máximas de un mismo pedido (cambiar de pantalla y terminar allá cuenta como dos). */
 const MAX_AGENT_ROUNDS = 3;
@@ -373,6 +379,10 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
   const askedDoneRef = useRef(false);
   /** ZOE preguntó «¿Todo listo para continuar?» y espera un sí o un no. */
   const readyAsked = useRef(false);
+  /** ZOE preguntó si hay ruido y espera el sí o el no. */
+  const noiseAsked = useRef(false);
+  /** Escuchas seguidas sin fondo ruidoso, estando en el modo de ruido. */
+  const calmTurns = useRef(0);
   /** Al terminar el recorrido, ZOE espera saber por qué herramienta empezar. */
   const awaitingRoute = useRef(false);
   /** Hasta cuándo se contesta de memoria tras un fallo de la IA. */
@@ -646,7 +656,6 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
   const turnRef = useRef<string | null>(null);
   /** Lo que faltaba por decir cuando la interrumpieron; «sigue» lo retoma sin pasar por la IA. */
   const resumeRef = useRef('');
-  const dbRef = useRef<HTMLSpanElement>(null);
 
   /** Faltas de respeto seguidas en esta charla: 1.ª recuerdo amable, 2.ª firme, 3.ª pausa. */
   const disrespect = useRef(0);
@@ -1109,6 +1118,27 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
     async (text: string) => {
       setHeard(text);
       turnRef.current = text;
+      // ¿Es la respuesta a «¿activo el modo para lugares con ruido?»?
+      if (noiseAsked.current) {
+        noiseAsked.current = false;
+        const yes = isConfirmation(text);
+        if (yes === true) {
+          voice.setCrowd(true);
+          calmTurns.current = 0;
+          const line = 'Listo. Desde ahora dime «ZOE» y tu pregunta, cerca del micrófono. Cuando esté más tranquilo vuelvo al modo normal.';
+          remember(text, line);
+          say(line);
+          return;
+        }
+        if (yes === false) {
+          voice.setNoiseCheck(false);
+          const line = 'Perfecto, sigo escuchándote normal. Habla cerca del micrófono y te entiendo mejor.';
+          remember(text, line);
+          say(line);
+          return;
+        }
+        // Contestó otra cosa: era una pregunta, se atiende como tal.
+      }
       // ¿Es la respuesta a «¿me confirmas que presione…?»? Si habla de otra cosa, se olvida la pregunta.
       const pending = pendingActions.current;
       pendingActions.current = null;
@@ -1252,6 +1282,14 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
         return;
       }
 
+      // Lo que ZOE ya sabe casi palabra por palabra se contesta al instante, sin esperar a la IA.
+      const known = instantAnswer(text, MASTER_DOCUMENT);
+      if (known) {
+        remember(text, known);
+        say(known);
+        return;
+      }
+
       setBehavior('thinking');
       setCaption(null);
       const filler = window.setTimeout(() => {
@@ -1268,7 +1306,12 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
             historyRef.current.filter((t) => t.role === 'zoe').map((t) => t.text),
           ),
         });
-        let reply = fresh(await askZoe(text, historyRef.current, toolRef.current));
+        // Tope de tiempo: si la IA tarda demasiado, ZOE no se queda pensando y contesta de memoria.
+        let slow: number | undefined;
+        const timeout = new Promise<never>((_, reject) => {
+          slow = window.setTimeout(() => reject(new Error('IA_LENTA')), AI_TALK_TIMEOUT_MS);
+        });
+        let reply = fresh(await Promise.race([askZoe(text, historyRef.current, toolRef.current), timeout]).finally(() => window.clearTimeout(slow)));
         window.clearTimeout(filler);
         offlineNoticed.current = false;
         const done: string[] = [];
@@ -1309,8 +1352,9 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
           say(e.message);
           return;
         }
-        console.warn('[ZOE] La IA no respondió; contesto con lo que sé de memoria.', e);
-        aiDownUntil.current = Date.now() + AI_RETRY_MS;
+        const tooSlow = e instanceof Error && e.message === 'IA_LENTA';
+        console.warn(tooSlow ? '[ZOE] La IA tardó demasiado; contesto de memoria.' : '[ZOE] La IA no respondió; contesto con lo que sé de memoria.', e);
+        aiDownUntil.current = Date.now() + (tooSlow ? AI_SLOW_RETRY_MS : AI_RETRY_MS);
         answerOffline(text);
       }
     },
@@ -1350,8 +1394,14 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
     (reason: ZoeListenFailure) => {
       setBehavior('idle');
       if (reason === 'ruido') {
-        // Mucho ruido: se deja de insistir con el micrófono y se pasa al chat.
-        openChat(MIC_PROBLEMS.ruido);
+        // Ruido o voces de fondo: ZOE pregunta si activa el modo para lugares con ruido. Si ya está en ese
+        // modo y aun así no se puede, queda el chat.
+        if (voice.crowd) {
+          openChat(MIC_PROBLEMS.ruido);
+          return;
+        }
+        noiseAsked.current = true;
+        say(NOISE_QUESTION);
         return;
       }
       if (reason === 'sin-voz' && pendingRef.current) {
@@ -1381,7 +1431,7 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
         openChat(`${MIC_PROBLEMS[reason] ?? MIC_PROBLEMS.error!} Mientras tanto, escríbeme aquí.`);
       }
     },
-    [answer, endConversation, openChat, say],
+    [answer, endConversation, openChat, say, voice],
   );
 
   /**
@@ -1390,6 +1440,14 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
    */
   const onHeard = (text: string) => {
     silentTries.current = 0;
+    // En el modo de ruido: si el lugar se calmó un par de turnos, se vuelve solo al modo normal.
+    if (voice.crowd) {
+      calmTurns.current = voice.lastListenBusy() ? 0 : calmTurns.current + 1;
+      if (calmTurns.current >= CALM_TURNS_TO_EXIT) {
+        voice.setCrowd(false);
+        calmTurns.current = 0;
+      }
+    }
     if (askedDoneRef.current && isDoneReply(text)) {
       const question = pendingRef.current;
       pendingRef.current = '';
@@ -1401,13 +1459,9 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
       say('Sin afán, tómate tu tiempo. Te escucho.');
       return;
     }
+    // Ya no se pregunta «¿ya terminaste?»: esa ronda de voz era el retraso más largo. La escucha espera un
+    // poco más en silencio cuando la frase queda abierta, y eso basta.
     const full = `${pendingRef.current} ${text}`.trim();
-    if (!askedDoneRef.current && seemsUnfinished(full)) {
-      pendingRef.current = full;
-      askedDoneRef.current = true;
-      say('¿Ya terminaste? Si quieres, sigue: te escucho.');
-      return;
-    }
     pendingRef.current = '';
     askedDoneRef.current = false;
     void answer(full);
@@ -1419,7 +1473,6 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
     setCaption(null);
     voice.listen(onHeard, onListenFail, setHeard, (level, reading) => {
       if (levelRef.current) levelRef.current.style.transform = `scaleX(${reading ? meterFraction(reading.db, reading.floorDb) : Math.min(1, level * 9)})`;
-      if (dbRef.current && reading) dbRef.current.textContent = `${formatDb(reading.db)}${reading.open ? ' · voz' : ''}`;
     });
   };
 
@@ -1815,33 +1868,7 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
                 <span ref={levelRef} className="zoe-level" />
               </span>
             )}
-            {voice.canListen && talking && !chatOpen && (
-              // Compuerta de ruido: con más sensibilidad se capta una voz suave; con menos, solo una voz clara sobre el ruido.
-              <span className="zoe-mic-row">
-                <span ref={dbRef} className="zoe-db" aria-hidden="true">
-                  {voice.listening ? '…' : ''}
-                </span>
-                <button
-                  type="button"
-                  className="zoe-sens"
-                  disabled={voice.crowd}
-                  onClick={() => voice.setSensitivity(SENSITIVITIES[(SENSITIVITIES.indexOf(voice.sensitivity) + 1) % SENSITIVITIES.length])}
-                  title="Sensibilidad del micrófono: alta capta voces suaves; baja ignora más el ruido de fondo"
-                >
-                  Sensibilidad: {voice.crowd ? 'Baja' : SENSITIVITY_LABEL[voice.sensitivity]}
-                </button>
-                <button
-                  type="button"
-                  className="zoe-sens"
-                  aria-pressed={voice.crowd}
-                  onClick={() => voice.setCrowd(!voice.crowd)}
-                  title="Modo multitud, para salas con muchas personas: ZOE solo atiende a quien la nombra y habla cerca del micrófono"
-                >
-                  Multitud: {voice.crowd ? 'Sí' : 'No'}
-                </button>
-                {voice.crowd && <span className="zoe-crowd-tip">Di «ZOE» y tu pregunta, cerca del micrófono</span>}
-              </span>
-            )}
+            {voice.crowd && talking && !chatOpen && <span className="zoe-crowd-tip">Modo para lugares con ruido: di «ZOE» y tu pregunta</span>}
             {touring && (
               // También con botones: sin micrófono, o con ruido, el recorrido se maneja tocando.
               <div className="zoe-tour-controls" role="group" aria-label="Recorrido guiado">

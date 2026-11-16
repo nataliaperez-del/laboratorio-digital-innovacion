@@ -6,6 +6,9 @@
  *  - El volumen (RMS 0–1) se pasa a dBFS: 0 dB es el máximo; el silencio ronda −60 dB o menos.
  *  - Se aprende el «piso de ruido» del lugar: baja rápido cuando se calla y sube muy despacio, y se
  *    congela mientras la compuerta está abierta (la voz no cuenta como piso).
+ *  - También se aprende el «ambiente»: hasta dónde sube el sonido de fondo que va y viene (un televisor,
+ *    gente conversando). Sube en un par de segundos y baja muy despacio, así las pausas del televisor no lo
+ *    borran; una voz cercana arranca de golpe y lo supera antes de que el ambiente la alcance.
  *  - La compuerta se abre cuando el volumen supera el piso por un margen (más pequeño con sensibilidad
  *    alta, más grande con baja) de forma sostenida, y se cierra tras un rato por debajo (con histéresis).
  *
@@ -16,6 +19,10 @@ export type Sensitivity = 'alta' | 'media' | 'baja';
 
 /** Decibelios por encima del piso de ruido que debe superar una voz para abrir la compuerta. */
 export const GATE_MARGIN_DB: Record<Sensitivity, number> = { alta: 7, media: 11, baja: 16 };
+/** Decibelios por encima del ambiente (televisor, voces de fondo) que debe superar una voz cercana. */
+export const AMBIENT_MARGIN_DB: Record<Sensitivity, number> = { alta: 3, media: 5, baja: 8 };
+/** Si el ambiente supera al piso por esto, de fondo hay sonido que va y viene: un televisor, otra conversación. */
+export const BUSY_ROOM_DB = 10;
 /** Margen extra para interrumpir a ZOE mientras habla: su propia voz puede colarse al micrófono. */
 export const BARGE_IN_EXTRA_DB = 7;
 /** Por debajo de este nivel nunca se abre: es el cero digital del micrófono. */
@@ -42,6 +49,10 @@ export interface GateReading {
   db: number;
   /** Piso de ruido aprendido en dBFS. */
   floorDb: number;
+  /** Hasta dónde sube el sonido de fondo que va y viene, en dBFS. */
+  ambientDb: number;
+  /** ¿De fondo hay un televisor u otras voces? */
+  busy: boolean;
   /** Nivel que hay que superar para abrir la compuerta, en dBFS. */
   gateDb: number;
   /** ¿Hay una voz ahora mismo? */
@@ -62,6 +73,10 @@ export interface GateOptions {
   calibrationMs?: number;
 }
 
+/** Una voz que lleva abierta la compuerta más que esto sin una sola pausa empieza a contar como ambiente: nadie le habla a ZOE tanto de corrido, un televisor sí. */
+const OPEN_LEARN_AFTER_MS = 5000;
+/** Tras este silencio seguido, el ambiente aprendido se olvida rápido: ya no hay televisor. */
+const QUIET_FORGET_MS = 2500;
 /** Histéresis: se cierra 3 dB por debajo de donde se abrió, para que no parpadee en el límite. */
 const HYSTERESIS_DB = 3;
 
@@ -73,13 +88,17 @@ export function createNoiseGate(options: GateOptions = {}) {
   const calibrationMs = options.calibrationMs ?? 400;
 
   let floorDb = -60;
+  let ambientDb = -60;
   let elapsed = 0;
   let open = false;
   let everOpened = false;
   let aboveMs = 0;
   let belowMs = 0;
+  let openMs = 0;
+  let quietMs = 0;
 
-  const gateAt = () => Math.max(GATE_FLOOR_DB, floorDb + GATE_MARGIN_DB[sensitivity] + extraDb);
+  const gateAt = () => Math.max(GATE_FLOOR_DB, floorDb + GATE_MARGIN_DB[sensitivity] + extraDb, ambientDb + AMBIENT_MARGIN_DB[sensitivity] + extraDb);
+  const busy = () => ambientDb - floorDb > BUSY_ROOM_DB && ambientDb > -48;
 
   return {
     /** Cambia la sensibilidad sobre la marcha. */
@@ -92,11 +111,14 @@ export function createNoiseGate(options: GateOptions = {}) {
     },
     reset() {
       floorDb = -60;
+      ambientDb = -60;
       elapsed = 0;
       open = false;
       everOpened = false;
       aboveMs = 0;
       belowMs = 0;
+      openMs = 0;
+      quietMs = 0;
     },
     /** Una lectura: volumen RMS y milisegundos desde la anterior. */
     update(rms: number, dtMs: number): GateReading {
@@ -106,6 +128,7 @@ export function createNoiseGate(options: GateOptions = {}) {
       if (elapsed <= calibrationMs) {
         // Calibración: el piso sigue al promedio de lo que se oye, sin abrir.
         floorDb = elapsed <= dtMs ? db : floorDb + (db - floorDb) * 0.4;
+        ambientDb = floorDb;
       } else {
         const gate = gateAt();
         const closeAt = gate - HYSTERESIS_DB;
@@ -115,19 +138,27 @@ export function createNoiseGate(options: GateOptions = {}) {
             open = true;
             everOpened = true;
             belowMs = 0;
+            openMs = 0;
           }
           // Con la compuerta cerrada el piso se aprende: baja rápido, sube despacio.
           floorDb += db < floorDb ? (db - floorDb) * 0.35 : (db - floorDb) * 0.02 * (dtMs / 80);
+          // El ambiente sigue al sonido de fondo: sube en un par de segundos y baja muy despacio.
+          quietMs = db < floorDb + 4 ? quietMs + dtMs : 0;
+          ambientDb += (db - ambientDb) * (db > ambientDb ? 0.035 : quietMs > QUIET_FORGET_MS ? 0.08 : 0.01) * (dtMs / 80);
+          if (ambientDb < floorDb) ambientDb = floorDb;
         } else {
           belowMs = db < closeAt ? belowMs + dtMs : 0;
           if (belowMs >= releaseMs) {
             open = false;
             aboveMs = 0;
           }
-          // Abierta: el piso se congela (la voz no es ruido).
+          // Abierta: el piso se congela (la voz no es ruido). El ambiente también, salvo que lleve abierta
+          // demasiado tiempo sin pausa: eso es un televisor u otra conversación, y se aprende.
+          openMs += dtMs;
+          if (openMs > OPEN_LEARN_AFTER_MS && db > ambientDb) ambientDb += (db - ambientDb) * 0.025 * (dtMs / 80);
         }
       }
-      return { db, floorDb, gateDb: gateAt(), open, everOpened };
+      return { db, floorDb, ambientDb, busy: busy(), gateDb: gateAt(), open, everOpened };
     },
   };
 }

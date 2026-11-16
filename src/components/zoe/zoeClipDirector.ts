@@ -189,7 +189,7 @@ export class ZoeClipDirector {
     const steps: Step[] = [];
     // Al empezar a caminar o trotar, el perro arranca de inmediato con el ciclo de pasos para que las patitas se muevan al instante
     if (to === 'walk' || to === 'trot') {
-      return [this.loopOf(to, 0.22)];
+      return [{ ...this.loopOf(to), fade: 0.22 }];
     }
     const settle = from === 'walk' || from === 'trot' ? 'stand' : from;
     // Primero, volver a estar de pie si hace falta.

@@ -63,9 +63,13 @@ export type ZoeListenFailure = 'sin-permiso' | 'sin-microfono' | 'mic-mudo' | 's
 /** Espera a que la persona empiece a hablar; el reconocedor solo aguanta unos segundos y se reabre. */
 const LISTEN_WINDOW_MS = 12000;
 /** Silencio que da por terminada la frase: permite pausar a media oración sin que corte. */
-const END_OF_SPEECH_MS = 1500;
+const END_OF_SPEECH_MS = 1100;
 /** Con la compuerta de ruido: tras callar este tiempo se da por terminada la frase (más ágil que esperar al reconocedor). */
-const FAST_END_MS = 950;
+const FAST_END_MS = 700;
+/** …y solo si el reconocedor lleva este tiempo sin entender nada nuevo: así no se corta a media frase. */
+const RESULT_QUIET_MS = 500;
+/** Fondo que va y viene (televisor, otras voces) sostenido este tiempo sin que nadie le hable: ZOE pregunta si hay ruido. */
+const BUSY_ASK_MS = 3000;
 /** Para interrumpir a ZOE hace falta voz sostenida este tiempo (un golpe o una tos no cuentan). */
 const BARGE_IN_ATTACK_MS = 260;
 /** Al empezar una frase de ZOE se ignora el micrófono este tiempo: ahí se cuela más su propia voz. */
@@ -123,7 +127,7 @@ async function openLevelMeter(
   const context = new AudioContext();
   const analyser = voiceBandAnalyser(context, stream);
   const samples = new Float32Array(analyser.fftSize);
-  const meter = { peak: 0, sum: 0, count: 0, noisy: false, close: () => undefined as void };
+  const meter = { peak: 0, sum: 0, count: 0, noisy: false, busy: false, close: () => undefined as void };
   // La sala cuenta como ruidosa si su piso de ruido (en dB) es alto de forma sostenida.
   const isNoisy = createNoiseDetector(0.5);
   const timer = window.setInterval(() => {
@@ -133,6 +137,7 @@ async function openLevelMeter(
     meter.sum += level;
     meter.count += 1;
     const reading = gate.update(level, 80);
+    meter.busy = reading.busy;
     onLevel?.(level, reading);
     onTick?.(reading);
     if (!meter.noisy && isNoisy(isNoisyRoom(reading.floorDb) ? 1 : 0, 80)) {
@@ -169,22 +174,19 @@ export function useZoeVoice() {
       return false;
     }
   });
-  const [sensitivity, setSensitivityState] = useState<Sensitivity>(() => {
-    try {
-      const saved = localStorage.getItem(SENSITIVITY_KEY);
-      return isSensitivity(saved) ? saved : 'media';
-    } catch {
-      return 'media';
-    }
-  });
-  /** Modo multitud: para salas con muchas personas hablando. */
-  const [crowd, setCrowdState] = useState(() => {
-    try {
-      return localStorage.getItem(CROWD_KEY) === '1';
-    } catch {
-      return false;
-    }
-  });
+  // La sensibilidad ya no la elige la persona: la compuerta aprende sola el piso y el fondo del lugar.
+  // Una preferencia vieja guardada en «baja» hacía que ZOE no oyera voces normales, así que se olvida.
+  const [sensitivity, setSensitivityState] = useState<Sensitivity>('media');
+  /**
+   * Modo para lugares con ruido (antes «multitud»): hay que decir «ZOE» antes de la pregunta. Lo activa
+   * ZOE cuando detecta ruido y la persona le dice que sí; no se guarda entre visitas, porque un modo que
+   * quedó encendido de otro día no dejaba hablar con normalidad.
+   */
+  const [crowd, setCrowdState] = useState(false);
+  /** ¿ZOE puede avisar que oye ruido? Se apaga si la persona dijo que no hace falta. */
+  const noiseCheckRef = useRef(true);
+  /** ¿Hubo fondo con voces o televisor en la última escucha? Sirve para salir solo del modo de ruido. */
+  const lastBusyRef = useRef(false);
   const crowdRef = useRef(crowd);
   crowdRef.current = crowd;
   const [listening, setListening] = useState(false);
@@ -202,6 +204,15 @@ export function useZoeVoice() {
       : undefined;
 
   // Las voces llegan de forma asíncrona: esto las deja listas para la primera frase.
+  useEffect(() => {
+    try {
+      localStorage.removeItem(SENSITIVITY_KEY);
+      localStorage.removeItem(CROWD_KEY);
+    } catch {
+      /* Solo limpia preferencias viejas. */
+    }
+  }, []);
+
   useEffect(() => {
     warmZoeVoice();
     // El navegador solo deja sonar el audio después de un gesto de la persona.
@@ -230,11 +241,6 @@ export function useZoeVoice() {
       setCrowdState(next);
       gateRef.current?.setSensitivity(next ? 'baja' : sensitivity);
       gateRef.current?.setExtraDb(next ? CROWD_EXTRA_DB : 0);
-      try {
-        localStorage.setItem(CROWD_KEY, next ? '1' : '0');
-      } catch {
-        /* Solo es una preferencia. */
-      }
     },
     [sensitivity],
   );
@@ -242,11 +248,11 @@ export function useZoeVoice() {
   const setSensitivity = useCallback((next: Sensitivity) => {
     setSensitivityState(next);
     if (!crowdRef.current) gateRef.current?.setSensitivity(next);
-    try {
-      localStorage.setItem(SENSITIVITY_KEY, next);
-    } catch {
-      /* Solo es una preferencia. */
-    }
+  }, []);
+
+  /** Con `false`, ZOE deja de preguntar por el ruido en esta visita (la persona dijo que no hacía falta). */
+  const setNoiseCheck = useCallback((next: boolean) => {
+    noiseCheckRef.current = next;
   }, []);
 
   /**
@@ -517,10 +523,19 @@ export function useZoeVoice() {
       let lastVoiceAt = 0;
       let voiceSeen = false;
       let ignoredByGate = 0;
+      /** Lo que el reconocedor ya dio por terminado mientras nadie le hablaba a ZOE (el televisor, otra charla): no cuenta. */
+      let skipResults = 0;
+      /** ¿El reconocedor entendió algo, aunque se haya descartado? Y cuándo fue lo último que entendió. */
+      let anyResult = false;
+      let lastResultAt = 0;
+      /** Desde cuándo el fondo suena a televisor u otras voces sin que nadie le hable a ZOE. */
+      let busySince = 0;
+      let busySeen = false;
 
       /** Cierra la sesión: desde aquí, ningún evento tardío del reconocedor cuenta. */
       const close = () => {
         listenSession.current += 1;
+        lastBusyRef.current = busySeen;
         window.clearTimeout(endTimer);
         window.clearTimeout(windowTimer);
         meter?.close();
@@ -530,8 +545,10 @@ export function useZoeVoice() {
       const finish = () => {
         const text = spoken.trim();
         const peak = meter?.peak;
-        // Ruido: el medidor lo vio sostenido, o el volumen medio fue alto durante toda la escucha.
-        const noisy = Boolean(meter && (meter.noisy || (meter.count > 25 && meter.sum / meter.count > NOISY_LEVEL)));
+        // Ruido: el medidor lo vio sostenido, o el volumen medio fue alto durante toda la escucha, y además
+        // no se distinguió ninguna voz ni el reconocedor entendió nada. Si alguien habló, no es «mucho ruido»:
+        // mandar al chat en ese caso le quitaba la palabra a quien sí estaba hablando.
+        const noisy = Boolean(meter && !voiceSeen && !anyResult && (meter.noisy || (meter.count > 25 && meter.sum / meter.count > NOISY_LEVEL)));
         close();
         if (text) onText(text);
         else if (failure) onFail(failure);
@@ -546,6 +563,7 @@ export function useZoeVoice() {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const recognition = new (RecognitionCtor as any)();
         recognitionRef.current = recognition;
+        skipResults = 0;
         recognition.lang = lang;
         recognition.continuous = true;
         recognition.interimResults = true;
@@ -555,19 +573,31 @@ export function useZoeVoice() {
         recognition.onresult = (event: { results: ArrayLike<ArrayLike<{ transcript: string; confidence?: number }> & { isFinal?: boolean }> }) => {
           if (!isCurrent()) return;
           const inCrowd = crowdRef.current;
+          anyResult = true;
           // Compuerta de ruido: si el micrófono nunca oyó una voz clara sobre el ruido, lo «entendido» es
           // murmullo de fondo (otra persona lejos, un video…): se ignora en vez de contestarle.
+          const finals = () => {
+            let n = 0;
+            while (n < event.results.length && event.results[n].isFinal) n++;
+            return n;
+          };
           if (meter && meter.count > 12 && !voiceSeen && !spoken && ignoredByGate < 4) {
             ignoredByGate += 1;
+            skipResults = finals();
             return;
           }
-          // Entre mucha gente la regla es estricta y sin excepciones: lo entendido solo cuenta si el
-          // micrófono oyó una voz cercana hace un instante. Lo demás es la conversación de otros.
-          if (inCrowd && meter && meter.count > 12 && !spoken && !heardNearVoice(lastVoiceAt, Date.now())) return;
+          // Entre mucha gente (modo multitud) la regla es estricta y sin excepciones: lo entendido solo cuenta
+          // si el micrófono oyó una voz cercana hace un instante. Fuera de ese modo no se aplica: con un
+          // televisor de fondo descartaba también a quien hablaba y cortaba la conversación.
+          if (inCrowd && meter && meter.count > 12 && !spoken && !heardNearVoice(lastVoiceAt, Date.now())) {
+            skipResults = finals();
+            return;
+          }
           let heard = joinRecognized(
-            Array.from(event.results, (result) => ({ transcript: result[0]?.transcript ?? '', confidence: result[0]?.confidence, isFinal: result.isFinal })),
+            Array.from(event.results, (result) => ({ transcript: result[0]?.transcript ?? '', confidence: result[0]?.confidence, isFinal: result.isFinal })).slice(skipResults),
             inCrowd,
           );
+          if (!heard) return;
           if (inCrowd) {
             // Hay que nombrarlo: «ZOE, …». Sin su nombre, no le hablaban a él y sigue escuchando.
             const addressed = addressedText(heard);
@@ -575,6 +605,7 @@ export function useZoeVoice() {
             heard = addressed;
           }
           spoken = heard;
+          lastResultAt = Date.now();
           onPartial?.(spoken);
           window.clearTimeout(endTimer);
           endTimer = window.setTimeout(finish, seemsUnfinished(spoken) ? END_OF_SPEECH_MS + 400 : END_OF_SPEECH_MS);
@@ -607,22 +638,36 @@ export function useZoeVoice() {
         }
       };
       open();
-      // Ruido sostenido sin que el reconocedor entienda nada: no se espera al final, se avisa ya.
-      const onNoisy = () => {
-        // En modo multitud el ruido ya se da por hecho: no se abandona la escucha por él.
-        if (isCurrent() && !spoken && !failure && !crowdRef.current) finish();
-      };
+      // Con ruido sostenido no se abandona la escucha: la persona puede hablar más cerca y por encima del
+      // fondo. Si al final no se entendió nada, `finish` avisa que había mucho ruido.
       // Cada lectura del medidor alimenta la compuerta; al callar, la frase se cierra más ágil que esperando al reconocedor.
       const onTick = (reading: GateReading) => {
         if (!isCurrent()) return;
+        if (reading.busy) busySeen = true;
+        // Fondo con voces o televisor y nadie le ha dicho nada a ZOE: en vez de esperar a que se confunda,
+        // se corta la escucha y ZOE pregunta si hay ruido (solo fuera del modo de ruido y si no le dijeron que no).
+        if (reading.busy && !spoken && !crowdRef.current && noiseCheckRef.current) {
+          busySince ||= Date.now();
+          if (Date.now() - busySince > BUSY_ASK_MS) {
+            failure = 'ruido';
+            finish();
+            return;
+          }
+        } else busySince = 0;
         if (reading.open) {
           voiceSeen = true;
           lastVoiceAt = Date.now();
-        } else if (spoken && voiceSeen && Date.now() - lastVoiceAt > (seemsUnfinished(spoken) ? END_OF_SPEECH_MS + 400 : FAST_END_MS)) {
+        } else if (
+          spoken &&
+          voiceSeen &&
+          Date.now() - lastVoiceAt > (seemsUnfinished(spoken) ? END_OF_SPEECH_MS + 400 : FAST_END_MS) &&
+          // Si el reconocedor sigue entendiendo palabras, la persona no ha terminado aunque baje la voz.
+          Date.now() - lastResultAt > RESULT_QUIET_MS
+        ) {
           finish();
         }
       };
-      void openLevelMeter(gateRef.current!, onLevel, onNoisy, onTick)
+      void openLevelMeter(gateRef.current!, onLevel, undefined, onTick)
         .then((opened) => {
           if (isCurrent()) meter = opened;
           else opened?.close();
@@ -652,6 +697,9 @@ export function useZoeVoice() {
     setSensitivity,
     crowd,
     setCrowd,
+    setNoiseCheck,
+    /** ¿La última escucha oyó un fondo con voces o televisor? */
+    lastListenBusy: () => lastBusyRef.current,
     canListen: Boolean(RecognitionCtor),
   };
 }
