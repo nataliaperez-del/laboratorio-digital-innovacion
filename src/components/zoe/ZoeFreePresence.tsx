@@ -355,7 +355,7 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
   /** Dónde estaba antes de irse a la casita: ahí vuelve al salir. */
   const returnSpot = useRef<{ x: number; y: number } | null>(null);
   const comingOut = useRef(false);
-  const [posture, setPosture] = useState<'sitting' | 'standing' | 'lying'>('sitting');
+  const [posture, setPosture] = useState<'sitting' | 'standing' | 'lying'>('standing');
   const postureRef = useRef(posture);
   postureRef.current = posture;
   const [napping, setNapping] = useState(false);
@@ -443,7 +443,7 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
   const wake = useCallback(() => {
     stopRoutine();
     setBehavior((b) => (b === 'sleeping' ? 'idle' : b));
-    setPosture((p) => (p === 'lying' ? 'sitting' : p));
+    setPosture((p) => (p === 'lying' ? 'standing' : p));
   }, [stopRoutine]);
 
   const playTrick = useCallback((name: ZoeTrick) => setTrick((prev) => ({ name, id: (prev?.id ?? 0) + 1 })), []);
@@ -467,7 +467,7 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
     const spot = findQuietSpot(from.x);
     await walkTo(spot.x, spot.y);
     if (!alive()) return;
-    setPosture('sitting');
+    setPosture(Math.random() < 0.20 ? 'sitting' : 'standing');
     await pause(400);
     if (!alive()) return;
     if (Math.random() < 0.06) {
@@ -486,7 +486,7 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
     const span = 160 + Math.random() * 160;
     setPosture('standing');
     await walkTo(x + (x > window.innerWidth / 2 ? -span : span), y);
-    if (id === routine.current) setPosture(Math.random() < 0.6 ? 'sitting' : 'standing');
+    if (id === routine.current) setPosture(Math.random() < 0.15 ? 'sitting' : 'standing');
   }, [stopRoutine, walkTo]);
 
   /** «Ven»: llega al frente y al centro de la pantalla, se sienta y mueve la cola. */
@@ -497,7 +497,7 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
     setPosture('standing');
     await walkTo((window.innerWidth - STAGE.width) / 2, clampPosition(0, window.innerHeight).y);
     if (id !== routine.current) return;
-    setPosture('sitting');
+    setPosture('standing');
     playTrick('wag');
   }, [playTrick, releaseFacing, wake, walkTo]);
 
@@ -509,7 +509,7 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
     setPosture('standing');
     const spot = findQuietSpot(positionRef.current.x);
     await walkTo(spot.x, spot.y);
-    if (id === routine.current) setPosture('sitting');
+    if (id === routine.current) setPosture('standing');
   }, [releaseFacing, wake, walkTo]);
 
   /** Camina (o trota) hasta su casita y entra: en pantalla queda solo la casita. */
