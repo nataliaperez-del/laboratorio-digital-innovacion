@@ -239,8 +239,8 @@ def plant_standing(rest):
 # casi tan erguido como la espalda y el cuello se doblaba ~49° para enderezar la cabeza: la piel
 # entre el collar y la placa del arnés se estiraba hasta ×40 y la tira central se partía. Con 0,6
 # la curva se hace en la zona lumbar, como en un perro real, y el cuello apenas se dobla.
-SIT = {"hip": 0.30, "hock_back": 0.12, "hock_out": 0.05, "max_pitch": 55, "chest": 0.6, "neck": 0.5, "head": 0.45}
-LIE = {"hip": 0.30, "shoulder": 0.32, "hock_back": 0.20, "hock_out": 0.10, "head": 6}
+SIT = {"hip": 0.35, "hock_back": 0.08, "hock_out": 0.04, "max_pitch": 55, "chest": 0.6, "neck": 0.5, "head": 0.45}
+LIE = {"hip": 0.34, "shoulder": 0.32, "hock_back": -0.06, "hock_out": 0.04, "head": 6}
 
 
 def sit_angle(rest):
@@ -296,7 +296,6 @@ def pose_lie(rest, s, t=0.0, sleep=0.0, look=0.0):
         hip = head(leg(side, "back")[0])
         end = Vector((hip.x + sign * rest.hip_height * LIE["hock_out"], hip.y + rest.hip_height * LIE["hock_back"], rest.ground + rest.foot_lift))
         hock = rest.joint[f"Back_Leg_Ankle_{side}"].lerp(end, s)
-        hock.z += math.sin(math.pi * s) * rest.hip_height * 0.05
         solve_leg(side, "back", hock, bend=-1, flat=rest.dirs[f"Back_Leg_Ankle_{side}"].lerp(FLAT, s).normalized())
         # Manos: el codo baja al piso detrás del hombro y el antebrazo queda plano hacia delante.
         shoulder = head(leg(side, "front")[0])
@@ -409,18 +408,58 @@ def make_clips(arm, rest, existing=()):
         tail(swing=28 * s, lift=30 * s, phase=2 * math.pi * t * 5)
         ears(lift=-8 * s)
 
+    def scratch(t):
+        reset()
+        pose_sit(rest, 1.0, angle, t=0.0)
+        # Transición suave de entrada y salida
+        if t < 0.18:
+            s = smooth(t / 0.18)
+        elif t < 0.82:
+            s = 1.0
+        else:
+            s = smooth((1.0 - t) / 0.18)
+
+        # 1. Contrapeso anatómico: la cadera y columna se inclinan hacia el lado de apoyo (Punto 4 Auditoría)
+        roll("Hips", -4.0 * s)
+        pitch("Hips", -2.0 * s)
+        roll("Spine_1", -2.5 * s)
+
+        # 2. Las 3 patas de apoyo permanecen firmemente plantadas en el suelo sin deslizamiento
+        solve_leg("R", "back", rest.joint["Back_Leg_Ankle_R"], bend=-1, flat=rest.dirs["Back_Leg_Ankle_R"].lerp(FLAT, 1.0).normalized())
+        solve_leg("L", "front", rest.joint["Front_Leg_Ankle_L"], bend=1, rest_dirs=rest.dirs)
+        solve_leg("R", "front", rest.joint["Front_Leg_Ankle_R"], bend=1, rest_dirs=rest.dirs)
+
+        # 3. Ritmo no lineal tipo rastrillo (ráfagas rápidas con micro-pausas)
+        phase = (t - 0.18) / 0.64 if (0.18 <= t <= 0.82) else 0.0
+        if 0.0 < phase < 1.0:
+            burst = math.sin(phase * math.pi * 18.0) * (0.8 + 0.2 * math.cos(phase * math.pi * 6.0))
+        else:
+            burst = 0.0
+
+        # 4. Inclinación y rotación de cabeza hacia la pata que rasca
+        roll("Head", 18 * s)
+        yaw("Head", -15 * s)
+        pitch("Head", -10 * s + burst * 3.0 * s)
+
+        # 5. La pata izquierda trasera rasca con precisión en la base de la oreja
+        ear_target = rest.joint["Ear_L"].lerp(rest.joint["Back_Leg_Ankle_L"], 0.22)
+        scratch_target = ear_target + Vector((-0.015 * s, burst * 0.032 * s, burst * 0.022 * s))
+        solve_leg("L", "back", rest.joint["Back_Leg_Ankle_L"].lerp(scratch_target, s), bend=-1, rest_dirs=rest.dirs)
+
+        # 6. Movimiento secundario reactivo en oreja y cola
+        ears(lift=-14 * s + burst * 10 * s)
+        tail(swing=12 * s, phase=2 * math.pi * t * 4)
+
     clips = {
         "idle": record(arm, "idle", 4 * FPS, idle),
         "alert": record(arm, "alert", 3 * FPS, alert),
         "walk": record(arm, "walk", FPS, walk),
         "sit_down": record(arm, "sit_down", int(1.1 * FPS), lambda t: pose_sit(rest, smooth(t), angle)),
         "sit_idle": record(arm, "sit_idle", 4 * FPS, lambda t: pose_sit(rest, 1.0, angle, t=t * 2, look=5 * math.sin(2 * math.pi * t))),
-        "lie_down": record(arm, "lie_down", int(1.6 * FPS), lambda t: pose_lie(rest, smooth(t))),
-        "lie_idle": record(arm, "lie_idle", 4 * FPS, lambda t: pose_lie(rest, 1.0, t=t * 2, look=6 * math.sin(2 * math.pi * t))),
-        "sleep": record(arm, "sleep", 6 * FPS, lambda t: pose_lie(rest, 1.0, t=t * 2, sleep=1.0)),
         # Si el GLB ya trae «Tail_Wag» (Meshy), ese hace de alegría y no se crea otro.
         **({} if any(n.lower().replace("_", "") == "tailwag" for n in existing) else {"happy": record(arm, "happy", int(1.5 * FPS), happy)}),
         "play_bow": record(arm, "play_bow", 2 * FPS, play),
+        "scratch": record(arm, "scratch", int(2.5 * FPS), scratch),
     }
     return clips
 
@@ -448,8 +487,8 @@ def renders(arm, body_obj, clips, rest):
         scene.render.filepath = os.path.join(RENDERS, name + ".png")
         bpy.ops.render.render(write_still=True)
 
-    plan = [("sit_idle", 0, "lado"), ("sit_idle", 0, "tres"), ("lie_idle", 0, "lado"), ("lie_idle", 0, "tres"), ("sleep", 0, "tres"), ("play_bow", 30, "lado"),
-            ("walk", 0, "lado"), ("walk", 8, "lado"), ("walk", 15, "lado"), ("walk", 23, "lado"), ("sit_down", 16, "lado"), ("lie_down", 24, "lado")]
+    plan = [("sit_idle", 0, "lado"), ("sit_idle", 0, "tres"), ("play_bow", 30, "lado"),
+            ("walk", 0, "lado"), ("walk", 8, "lado"), ("walk", 15, "lado"), ("walk", 23, "lado"), ("sit_down", 16, "lado")]
     views = {"lado": (1, 0, 0.12), "tres": (0.7, -0.7, 0.3)}
     for clip, frame, view in plan:
         arm.animation_data.action = clips[clip]
@@ -471,21 +510,26 @@ def main():
     for obj in list(bpy.data.objects):
         if obj not in (arm, body_obj):
             bpy.data.objects.remove(obj)
-    # Las animaciones que ya trae el GLB (por ejemplo las de Meshy: Shake, Trot, Tail_Wag) se
-    # conservan; se desactivan mientras se mide el reposo y se crean las demás.
+    # Conservamos solo animaciones únicas de Meshy (Shake, Trot, Tail_Wag).
+    # Eliminamos las acciones previas que vamos a generar de nuevo para evitar nombres duplicados (.001)
     imported = list(bpy.data.actions)
+    imported_names = [a.name for a in imported]
+    keep_names = {"shake", "trot", "tail_wag", "tailwag"}
     for action in imported:
-        action.use_fake_user = True
+        if action.name.lower() in keep_names:
+            action.use_fake_user = True
+        else:
+            bpy.data.actions.remove(action)
     if arm.animation_data:
         arm.animation_data.action = None
         for track in list(arm.animation_data.nla_tracks):
             arm.animation_data.nla_tracks.remove(track)
-    log("animaciones del GLB:", ", ".join(a.name for a in imported) or "ninguna")
+    log("animaciones del GLB:", ", ".join(imported_names) or "ninguna")
     bpy.context.scene.render.fps = FPS
     update()
     ARM, ARM_INV, POSE = arm.matrix_world.copy(), arm.matrix_world.inverted(), arm.pose
     rest = measure(body_obj)
-    clips = make_clips(arm, rest, [a.name for a in imported])
+    clips = make_clips(arm, rest, imported_names)
     if RENDERS:
         os.makedirs(RENDERS, exist_ok=True)
         renders(arm, body_obj, clips, rest)

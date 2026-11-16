@@ -209,6 +209,11 @@ export function relevantTerms(bank: UnadistaBank, text: string, max = 6): Glossa
   return picked;
 }
 
+/** Fuente de los pasajes que vienen de la guía de facilitación del taller (el Word de `docs/taller/`). */
+export const GUIDE_SOURCE = 'Guía de facilitación del taller';
+/** Palabras que indican que se pregunta por cómo se conduce el taller. */
+const ASKS_ABOUT_WORKSHOP = /\b(taller|facilitador[a]?|facilitar|facilitacion|plan b|guion|mesa|anfitrion|co facilitador[a]?|cronometro|decision del grupo)\b/;
+
 /** Los pasajes del repositorio que mejor responden, dentro de un presupuesto de caracteres. */
 export function relevantPassages(bank: UnadistaBank, text: string, max = 3, budget = 5000): Passage[] {
   const index = indexOf(bank);
@@ -216,6 +221,7 @@ export function relevantPassages(bank: UnadistaBank, text: string, max = 3, budg
   const norm = normalizeKnowledgeText(text);
   const wantsC2 = /\bcontenedor 2\b|\bmdvt\b/.test(norm);
   const wantsC1 = /\bcontenedor 1\b/.test(norm);
+  const wantsGuide = ASKS_ABOUT_WORKSHOP.test(norm);
   const out: Passage[] = [];
   let used = 0;
   const take = (p: Passage) => {
@@ -234,6 +240,7 @@ export function relevantPassages(bank: UnadistaBank, text: string, max = 3, budg
       let score = shared.reduce((sum, tok) => sum + index.passageIdf(tok), 0);
       if (wantsC2 && passage.fuente.startsWith('Contenedor 2')) score *= 1.6;
       if (wantsC1 && passage.fuente.startsWith('Contenedor 1')) score *= 1.4;
+      if (wantsGuide && passage.fuente === GUIDE_SOURCE) score *= 1.8;
       return { passage, score, shared: shared.length };
     })
     .filter((x) => x.shared >= 2 && x.score >= 6)
@@ -260,6 +267,37 @@ export function knowledgeBlock(bank: UnadistaBank | null, text: string): string 
     ...(terms.length ? ['Términos del metalenguaje unadista que vienen al caso:', ...terms.map((t) => `- ${t.termino}: ${t.definicion}`)] : []),
     ...(passages.length ? ['Pasajes del repositorio:', ...passages.map((p) => `[${p.titulo}]\n${p.texto}`)] : []),
   ].join('\n');
+}
+
+// ── Sin IA: cómo se conduce el taller, con la guía de facilitación ──
+
+/** Lo que la guía dice sobre lo preguntado, resumido; null si no se pregunta por el taller o la guía no lo trae. */
+export function guideAnswer(bank: UnadistaBank | null, text: string): string | null {
+  if (!bank || !ASKS_ABOUT_WORKSHOP.test(normalizeKnowledgeText(text))) return null;
+  const said = [...new Set(tokens(text))];
+  const matches = (row: string, title = '') => {
+    const words = tokens(`${title} ${row}`);
+    return said.filter((s) => words.some((w) => sameWord(s, w))).length;
+  };
+  // Entre los pasajes de la guía que vienen al caso, el que tiene la fila que mejor responde.
+  const candidates = relevantPassages(bank, text, 8, 20000)
+    .filter((p) => p.fuente === GUIDE_SOURCE)
+    .map((passage) => {
+      const rows = passage.texto.split(/\n\s*\n/).filter(Boolean);
+      const scored = rows.map((row, index) => ({ row, index, score: matches(row, passage.titulo) }));
+      return { passage, scored, best: Math.max(0, ...scored.map((r) => r.score)) };
+    })
+    .sort((a, b) => b.best - a.best);
+  const top = candidates[0];
+  if (!top) return null;
+  // Las dos filas que más se parecen a lo preguntado, en su orden original.
+  const chosen = (top.best > 0 ? [...top.scored].sort((a, b) => b.score - a.score || a.index - b.index).slice(0, 2) : top.scored.slice(0, 2))
+    .sort((a, b) => a.index - b.index)
+    .map((r) => r.row);
+  const answer = chosen.join(' ');
+  const short = answer.length > 700 ? `${answer.slice(0, 650).replace(/\s+\S*$/, '')}…` : answer;
+  const topic = top.passage.titulo.replace(/^Guía del taller · /, '').replace(/ · /g, ', ');
+  return `Esto dice la guía del taller (${topic}): ${short}`;
 }
 
 // ── Sin IA: «¿qué es…?» con el diccionario ──

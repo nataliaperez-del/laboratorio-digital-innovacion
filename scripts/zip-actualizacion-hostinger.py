@@ -16,7 +16,8 @@ import zipfile
 
 DEPLOY = 'hostinger_deploy'
 # Nunca viajan: credenciales del servidor (ya están allá) y documentos internos.
-EXCLUIDOS = {'config/ia.php', 'config/db.php'}
+# config/lab.php tampoco: quién administra lo define quien despliega, en el servidor (README_HOSTINGER.md, sección 6).
+EXCLUIDOS = {'config/ia.php', 'config/db.php', 'config/lab.php'}
 PROHIBIDO = re.compile(rb'vercel', re.IGNORECASE)
 CODIGO = re.compile(r'^assets/[^/]+-[\w-]{8}\.(js|mjs|css)$')
 
@@ -53,7 +54,8 @@ for rel, ruta in sorted(actuales.items()):
         nuevos.append(rel)
     elif anteriores[rel] not in (exacta, sin_crlf):
         cambiados.append(rel)
-borrar = sorted(rel for rel in anteriores if rel not in actuales and CODIGO.match(rel))
+# Todo lo que estaba en el servidor y ya no está en el paquete (compilaciones viejas, archivos retirados).
+borrar = sorted(rel for rel in anteriores if rel not in actuales and rel not in EXCLUIDOS and not rel.startswith('assets/badges_original_backup'))
 
 nota = f"""ACTUALIZACIÓN DEL LABORATORIO DE INNOVACIÓN EN LÍNEA — HOSTINGER
 ==============================================================
@@ -63,11 +65,26 @@ Este zip trae SOLO lo que cambió frente al paquete anterior ({os.path.basename(
 CÓMO INSTALARLA
 1. Descomprime el zip y sube su contenido a public_html, encima de lo que hay,
    conservando las carpetas. Acepta reemplazar los archivos que ya existan.
-2. No borres ni reemplaces config/ia.php ni config/db.php del servidor: no vienen en este zip.
-3. Borra del servidor los archivos antiguos de la lista de abajo (ya no se usan).
-4. Para el tablero global y el banco de insumos, la base de datos debe existir y sus datos estar
-   en config/db.php. Los pasos están en README_HOSTINGER.md, sección 6.
-5. Entra al sitio y recarga con Ctrl+F5.
+2. No borres ni reemplaces config/ia.php, config/db.php ni config/lab.php del servidor: no vienen en este zip.
+3. Borra del servidor los archivos de la lista de abajo (ya no se usan). Incluye includes/api.php,
+   que ya no existe y no tenía protección, y README_HOSTINGER.md, que no debe estar publicado.
+4. ADMINISTRADORES: los correos de los administradores ya no están en el código público. Quien
+   despliega define en el servidor quién es administrador y qué ve cada cuenta: en config/lab.php
+   la lista 'administradores' (o la variable de entorno LAB_ADMINISTRADORES). Si el config/lab.php
+   del servidor ya la tiene, no hace falta tocarlo. Si queda vacía, nadie ve el tablero global, el
+   Contenedor de todos ni el botón «Administrar la IA» del menú.
+5. LA IA Y EL RADAR AHORA EXIGEN INGRESO: /api/unad-gemini y /api/observatorio/radar solo responden
+   con el pase del ingreso con Google (el mismo del concentrador), y cada cuenta tiene un tope por
+   hora (IA 400, eventos 120, resultados 120; constantes LAB_LIMITE_* de includes/lab.php). Por eso la
+   base de datos y config/db.php deben estar bien configurados: sin ellos nadie obtiene pase.
+6. .htaccess cambia: se quitó la regla de api/data. Si el del servidor tiene ajustes propios,
+   compara antes de reemplazarlo.
+7. El botón «Administrar la IA» del menú (☰) abre /admin/, el panel que ya existe en el servidor y
+   no viene en este zip. Solo lo ve quien el servidor reconoce como administrador.
+8. Para el tablero global y el banco de insumos, la base de datos debe existir y sus datos estar
+   en config/db.php. Los pasos están en README_HOSTINGER.md (viene en este zip, junto a esta
+   nota; son para leer, no se suben), sección 6.
+9. Entra al sitio y recarga con Ctrl+F5.
 
 ARCHIVOS NUEVOS ({len(nuevos)})
 """ + '\n'.join(f'  + {r}' for r in nuevos) + f"""
@@ -84,6 +101,8 @@ with zipfile.ZipFile(out_path, 'w', zipfile.ZIP_DEFLATED, compresslevel=6) as z:
     for rel in nuevos + cambiados:
         z.write(actuales[rel], rel)
     z.writestr('LEEME-ACTUALIZACION.txt', nota.replace('\n', '\r\n'))
+    # La guía de instalación viaja aparte de la carpeta publicada: es para leer, no para subir.
+    z.write('docs/README_HOSTINGER.md', 'README_HOSTINGER.md')
 
 # Verificación final sobre el zip ya escrito: contenido de cada archivo y cada nombre.
 hallazgos = []

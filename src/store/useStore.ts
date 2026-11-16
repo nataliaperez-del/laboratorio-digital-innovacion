@@ -5,10 +5,11 @@ import { DEFAULT_OPENAI_MODEL } from '@/constants/openaiModels';
 import type { DriveLoadDiagnostics, DriveTerritorySources } from '@/services/institutionalDrive';
 import { assembleContenedor2Document, type Contenedor2SectionResult } from '@/prompts/contenedor2Sections';
 import { assembleParts, type GenerationPartResult, type InputSource } from '@/prompts/themeAndInnovationPrompts';
-import type { TreeGraph } from '@/lib/innovationTreeGraph';
+import type { TreeGraph, TreeNode } from '@/lib/innovationTreeGraph';
 import type { PrototypeBrief, PrototypePlan } from '@/services/prototyping';
 import type { Procedencia } from '@/repositorio/procedencia';
 import type { ReportModule } from '@/lib/labReports';
+import { ESTUDIOS_TERRITORIALES_INICIALES, mergeInitialStudies } from '@/lib/bancoInicial';
 
 /** Proveedores de IA del panel «IA»: la UNAD (por defecto) o uno comercial/local con clave propia. */
 export type AIProvider = 'unadGemini' | 'gemini' | 'openai' | 'anthropic' | 'ollama';
@@ -197,6 +198,12 @@ export interface AppState {
     sections: GenerationPartResult[],
     graph: TreeGraph,
   ) => void;
+  /** Reemplaza una parte del análisis del árbol (la corrige o la borra) y vuelve a ensamblar el documento. */
+  replaceTreeSection: (index: number, section: GenerationPartResult) => void;
+  /** Corrige un nodo del árbol (nombre, descripción, solución, impacto). */
+  updateTreeNode: (codigo: string, patch: Partial<Pick<TreeNode, 'nombre' | 'descripcion' | 'solucion' | 'impacto_esperado'>>) => void;
+  /** Borra un nodo del árbol y lo quita de las derivaciones de los demás. */
+  removeTreeNode: (codigo: string) => void;
 
   // ── Prototipado ──
   /** Insumo que otra herramienta le pasa al prototipado, a la espera de que el usuario lo confirme. */
@@ -204,6 +211,8 @@ export interface AppState {
   setPrototypeSeed: (seed: Pick<PrototypeBrief, 'origin' | 'topic' | 'context'> | null) => void;
   prototypes: PrototypePlan[];
   addPrototype: (plan: PrototypePlan) => void;
+  /** Corrige un plan: el grupo lo ajusta antes de pasar a la siguiente herramienta. */
+  updatePrototype: (id: string, patch: Partial<PrototypePlan>) => void;
   removePrototype: (id: string) => void;
   /** Plan que se está viendo en Prototipado; null = el módulo está limpio. Los planes viven en el Banco. */
   activePrototypeId: string | null;
@@ -335,10 +344,33 @@ export const useStore = create<AppState>()(
       treeGraph: null,
       setTreeResult: (request, markdown, sections, graph) =>
         set({ treeRequest: request, innovationTreeMarkdown: markdown, innovationTreeSections: sections, treeGraph: graph }),
+      replaceTreeSection: (index, section) =>
+        set((state) => {
+          const sections = state.innovationTreeSections.map((x, i) => (i === index ? section : x));
+          return { innovationTreeSections: sections, innovationTreeMarkdown: assembleParts(sections) };
+        }),
+      updateTreeNode: (codigo, patch) =>
+        set((state) =>
+          state.treeGraph ? { treeGraph: { ...state.treeGraph, nodos: state.treeGraph.nodos.map((n) => (n.codigo === codigo ? { ...n, ...patch } : n)) } } : {},
+        ),
+      removeTreeNode: (codigo) =>
+        set((state) =>
+          state.treeGraph
+            ? {
+                treeGraph: {
+                  ...state.treeGraph,
+                  nodos: state.treeGraph.nodos
+                    .filter((n) => n.codigo !== codigo)
+                    .map((n) => ({ ...n, deriva_de: n.deriva_de.filter((c) => c !== codigo), derivan: n.derivan.filter((c) => c !== codigo) })),
+                },
+              }
+            : {},
+        ),
       prototypeSeed: null,
       setPrototypeSeed: (seed) => set({ prototypeSeed: seed }),
       prototypes: [],
       addPrototype: (plan) => set((state) => ({ prototypes: [plan, ...state.prototypes], activePrototypeId: plan.id })),
+      updatePrototype: (id, patch) => set((state) => ({ prototypes: state.prototypes.map((p) => (p.id === id ? { ...p, ...patch } : p)) })),
       removePrototype: (id) =>
         set((state) => ({
           prototypes: state.prototypes.filter((p) => p.id !== id),
@@ -346,7 +378,7 @@ export const useStore = create<AppState>()(
         })),
       activePrototypeId: null,
       setActivePrototypeId: (id) => set({ activePrototypeId: id }),
-      savedStudies: [],
+      savedStudies: ESTUDIOS_TERRITORIALES_INICIALES,
       addSavedStudy: (study) => set((state) => ({ savedStudies: [study, ...state.savedStudies.filter((s) => s.id !== study.id)] })),
       removeSavedStudy: (id) => set((state) => ({ savedStudies: state.savedStudies.filter((s) => s.id !== id) })),
       savedIdeations: [],
@@ -510,6 +542,14 @@ export const useStore = create<AppState>()(
         anthropicModel: state.anthropicModel,
         providerModels: state.providerModels,
       }),
+      merge: (persistedState, currentState) => {
+        const typedPersisted = (persistedState ?? {}) as Partial<AppState>;
+        return {
+          ...currentState,
+          ...typedPersisted,
+          savedStudies: mergeInitialStudies(typedPersisted.savedStudies),
+        };
+      },
     },
   ),
 );

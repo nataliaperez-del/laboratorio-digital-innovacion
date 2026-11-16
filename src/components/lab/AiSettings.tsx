@@ -38,6 +38,8 @@ const StudioKeyField: React.FC<{ backup: boolean }> = ({ backup }) => {
     if (result.ok === false) return setState({ kind: 'error', text: result.message });
     setProviderModel('gemini', result.recommended);
     markAiUnknown();
+    // Con el modelo ya elegido se confirma la conexión de verdad, para que el punto no se quede en «Verificando…».
+    void checkAiConnection();
     setState({
       kind: 'ok',
       text: backup
@@ -219,6 +221,7 @@ export const AiSettings: React.FC = () => {
                   markAiUnknown();
                 }}
               >
+                {!config.models.some((m) => m.id === model) && <option value={model}>{model} (elegido con tu clave)</option>}
                 {config.models.map((m) => (
                   <option key={m.id} value={m.id}>
                     {m.label}

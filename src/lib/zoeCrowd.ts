@@ -1,7 +1,7 @@
 /**
  * Escuchar entre mucha gente. El reconocedor de voz del navegador entiende a cualquiera que hable
  * cerca, así que en una sala llena ZOE terminaba contestándole a otras conversaciones. Aquí están
- * las reglas para distinguir a quien le habla a ella:
+ * las reglas para distinguir a quien le habla a él:
  *
  *  - Banda de la voz: el volumen se mide solo entre 250 y 3800 Hz, donde está la voz humana, y sin
  *    la ganancia automática del micrófono (que en los silencios sube el ruido de fondo y borra la
@@ -27,7 +27,7 @@ const NAME = /(?:^|[^\p{L}])(zo[eé]y?|so[eé]|zoi|zoy|sohe|zohe)(?=$|[^\p{L}])/
 
 /**
  * Lo que la persona le dijo a ZOE: el texto que sigue a su nombre, o lo que lo precede si el nombre
- * va al final («¿qué es un árbol, ZOE?»). Devuelve null si no la nombró: no le hablaban a ella.
+ * va al final («¿qué es un árbol, ZOE?»). Devuelve null si no lo nombró: no le hablaban a él.
  */
 export function addressedText(transcript: string): string | null {
   const text = transcript.replace(/\s+/g, ' ').trim();

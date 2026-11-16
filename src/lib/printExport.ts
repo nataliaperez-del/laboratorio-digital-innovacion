@@ -5,6 +5,7 @@
  * página los pone el navegador al imprimir, así que los índices no los incluyen.
  */
 
+import { safeHref } from '@/lib/safeHref';
 import {
   formatSpanishDate,
   formatTerritory,
@@ -30,7 +31,8 @@ function inlineToHtml(nodes: readonly InlineNode[]): string {
       if (node.italic) html = `<em>${html}</em>`;
       if (node.strike) html = `<s>${html}</s>`;
       if (node.highlight) html = `<mark>${html}</mark>`;
-      if (node.href) html = `<a href="${escapeHtml(node.href)}">${html}</a>`;
+      const href = safeHref(node.href);
+      if (href) html = `<a href="${escapeHtml(href)}">${html}</a>`;
       return html;
     })
     .join('');

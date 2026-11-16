@@ -15,6 +15,11 @@
    "archivo": "CONTENEDOR_2/prompt_contenedor2_contexto_territorial.txt",
    "uso": "Contenedor 2 completo",
    "hash": "sha256-2446b7eced4fcaa6"
+  },
+  {
+   "archivo": "docs/taller/Guia de facilitacion - Taller de Innovacion con IA.docx",
+   "uso": "Guía de facilitación del taller",
+   "hash": "sha256-8502b67c1cfe0c24"
   }
  ],
  "glosario": [
@@ -2079,6 +2084,136 @@
    "fuente": "Contenedor 2 · prompt contenedor2 contexto territorial",
    "titulo": "Contenedor 2 · prompt contenedor2 contexto territorial · LO QUE NO DEBES HACER",
    "texto": "- No declares la vocación de servicio del territorio: eso corresponde al\n  prompt de Vocación Territorial, que se ejecuta después de este.\n- No des por buena la hipótesis del TEMA PREVISTO ni la conviertas en el\n  eje del diagnóstico. Si las fuentes no dicen nada sobre ella, el\n  veredicto es SIN EVIDENCIA SUFICIENTE; si el territorio apunta a otra\n  actividad, es CONTRADICHO POR EL TERRITORIO. Confirmarla sin datos es\n  la peor salida posible de este contenedor.\n- No selecciones ni redactes los tres temas estratégicos.\n- No construyas el árbol de innovación: eso corresponde al prompt de\n  Árbol de Innovación, que se ejecuta después de Vocación Territorial.\n- No uses CONTENEDOR_1 como fuente de contexto territorial; es\n  información institucional de la UNAD, no del territorio, y por eso no\n  se te envía.\n- No redactes los puntos 9 ni 12: los escribe la aplicación.\n- No inventes, estimes en silencio, ni redondees cifras sin decirlo.\n- No omitas un vacío de información: conviértelo siempre en alerta.\n- No cites contenedores, listados o resultados intermedios como fuente\n  final en formato APA 7."
+  },
+  {
+   "fuente": "Guía de facilitación del taller",
+   "titulo": "Guía del taller",
+   "texto": "LABORATORIO DE INNOVACIÓN EN LÍNEA\n\nGuía de facilitación del Taller de Innovación con IA\n\nCómo dirigir los 40 minutos con el apoyo de ZOE y del Laboratorio: primero Cami y yo, y después el equipo que nos acompaña.\n\nDónde se usaTrigésimo Encuentro de Líderes Unadistas Transformadores: «El Modelo Heutagógico Unadista y su praxis transformadora a través del Ecosistema de Inteligencia Artificial UNAD 5.0».Del lunes 23 de noviembre (3:00 p. m.) al viernes 27 de noviembre de 2026 (12:00 m.).Idea central del encuentro: cada líder trae una necesidad de su contexto y explora con sus colegas cómo responder a ella con las capacidades de IA, con juicio pedagógico y supervisión humana."
+  },
+  {
+   "fuente": "Guía de facilitación del taller",
+   "titulo": "Guía del taller · 1. De qué se trata el taller",
+   "texto": "En 40 minutos, grupos pequeños recorren las cuatro herramientas del Laboratorio, una tras otra, como un solo ejercicio: lo que sale de una herramienta alimenta a la siguiente. Al final cada grupo tiene un plan de prototipo para una necesidad de su territorio y ha practicado cómo usar la IA con criterio.\n\nLo más importante: la IA propone, el grupo decide. En cada fase hay una pausa humana donde se lee, se discute, se corrige y se valida antes de avanzar. Esa pausa es el corazón pedagógico del taller y es la parte que dirigimos nosotros, no la máquina."
+  },
+  {
+   "fuente": "Guía de facilitación del taller",
+   "titulo": "Guía del taller · 1. De qué se trata el taller · Qué se llevan los participantes",
+   "texto": "- Una cadena completa de trabajo: Identificar Oportunidades (Estudio Territorial) → Crear Conceptos (Ideación) → Validar Conceptos (Árbol de Innovación) → Desarrollar Soluciones (Prototipado).\n\n- En cada herramienta el grupo puede ver, corregir, copiar o borrar lo que salió antes de pasar a la siguiente.\n\n- Práctica de IA asistida con supervisión humana: leer, cuestionar y ajustar lo que la IA entrega.\n\n- Un resultado concreto por fase, socializado en el grupo y guardado para la ruta de apropiación 2027.\n\n- Su propia clave de AI Studio, con la que pueden seguir trabajando sin depender de nadie."
+  },
+  {
+   "fuente": "Guía de facilitación del taller",
+   "titulo": "Guía del taller · 2. El equipo humano",
+   "texto": "El taller lo conducimos Cami y yo. Cuando el equipo de apoyo se sume, cada persona toma uno de los roles de la tabla. Un rol puede cubrirlo más de una persona; una persona no debería cubrir más de dos a la vez.\n\nRol — Qué hace — Quién\n\nFacilitadora principal — Conduce el reloj, abre y cierra cada fase, hace las preguntas al grupo y decide cuándo pasar a la siguiente herramienta. — Natalia\n\nCo-facilitadora — Recorre las mesas, detecta grupos atascados, apoya con la pantalla y toma nota de lo que ocurre. — Cami\n\nSoporte técnico — Internet, equipos, claves de AI Studio, micrófono y sonido. Tiene a mano el plan B (sección 7).\n\nAnfitrión de mesa — Un apoyo por cada 2 o 3 grupos: ayuda a escribir la «Decisión del grupo» y cuida que todas las voces participen.\n\nRegistro — Fotos permitidas, tiempos reales por fase y observaciones para mejorar el taller."
+  },
+  {
+   "fuente": "Guía de facilitación del taller",
+   "titulo": "Guía del taller · 2. El equipo humano · Equipo de apoyo",
+   "texto": "Personas que nos acompañan en el encuentro. La columna «Rol» queda para asignar en la reunión previa.\n\nNombre — Vinculación — Rol\n\nDaniela Hernandez Contreras — Organizador\n\nGina Marcela Pacheco Ramos — Oficina\n\nJevis Yamyd Caro Pedreros — Oficina\n\nLaura Camila Barragan Lizarazo — Oficina\n\nAndres Ernesto Salinas Duarte\n\nLaura Marcela Patino Gutierrez\n\nLiliana Marcela Garcia Vega\n\nDaniel Sebastian Medina Parra\n\nCamilo Esteban Solano Hurtado\n\nDarleny Encarnacion Alonso\n\nDiana Marcela Ramirez Lopez\n\nLuz Miryam Moreno Rodriguez\n\nNatalia Elizabeth Perez Cab"
+  },
+  {
+   "fuente": "Guía de facilitación del taller",
+   "titulo": "Guía del taller · 3. Antes del taller · Una semana antes",
+   "texto": "- Entrar al Laboratorio con una cuenta institucional y recorrer las cuatro herramientas una vez completas (Cami y yo, con el mismo ejemplo que usará el taller).\n\n- Crear cada una su clave personal de AI Studio y validarla en el panel «IA». Ver el video «Crear API KEY para el taller de Innova IA» (1 min 54 s).\n\n- Ensayar el taller completo con 3 o 4 personas, con el reloj en la mano, y anotar cuánto tarda cada fase de verdad.\n\n- Probar el sonido y el micrófono en el salón real. Si hay muchas personas, activar el modo «Multitud» de ZOE.\n\n- Definir el territorio de ejemplo (o los territorios) y cargarlo del Banco de innovación: hay 24 estudios ya preparados (3 centros por cada una de las 8 zonas). Sus cifras son aproximadas: validarlas con el DANE antes de citarlas."
+  },
+  {
+   "fuente": "Guía de facilitación del taller",
+   "titulo": "Guía del taller · 3. Antes del taller · El día del taller (30 minutos antes)",
+   "texto": "- Internet probado y un segundo medio de respaldo (datos del celular).\n\n- Portal abierto en el computador de la facilitadora y proyectado; ZOE visible y con voz activa.\n\n- Punto de la IA en verde en la cabecera. Si está en rojo, validar la clave de AI Studio antes de empezar.\n\n- Copias del formato «Decisión del grupo» (anexo) por si falla la pantalla.\n\n- Cada grupo con un dispositivo y su sesión iniciada con correo institucional.\n\nRegla de oro del equipoNadie comparte su clave de AI Studio ni la pega en pantalla proyectada. Se escribe en el panel «IA», con el campo oculto."
+  },
+  {
+   "fuente": "Guía de facilitación del taller",
+   "titulo": "Guía del taller · 4. Los 40 minutos de un vistazo",
+   "texto": "Tiempo — Fase — Herramienta — Resultado del grupo\n\n0:00 – 0:02 — Apertura — ZOE y la facilitadora — Entienden la ruta y el reloj\n\n0:02 – 0:10 — Estudio — Identificar Oportunidades (Estudio Territorial) — Diagnóstico de su territorio y oportunidades\n\n0:10 – 0:18 — Ideación — Crear Conceptos (Ideación) — Una vocación y un tema elegidos\n\n0:18 – 0:27 — Árbol — Validar Conceptos (Árbol de Innovación) — Un fruto (idea) escogido del árbol\n\n0:27 – 0:35 — Prototipado — Desarrollar Soluciones (Prototipado) — Plan de solución con hipótesis\n\n0:35 – 0:40 — Cierre — Contenedor y conversación — Compromiso y aprendizaje compartido"
+  },
+  {
+   "fuente": "Guía de facilitación del taller",
+   "titulo": "Guía del taller · 4. Los 40 minutos de un vistazo · La rutina que se repite en cada fase",
+   "texto": "Cada fase sigue el mismo ritmo, para que los participantes se acostumbren y nosotros podamos controlar el tiempo.\n\nMomento — Duración — Qué hacemos\n\nAnticipar — 1 min — ZOE o la facilitadora dicen qué se va a hacer y qué se espera. Se lanza la herramienta.\n\nLeer — 2 min — En silencio y en el grupo, se lee lo que salió. Cada persona subraya una cosa que le llama la atención.\n\nSocializar — 3 min — El grupo conversa: ¿tiene sentido para nuestro territorio?, ¿qué falta?, ¿qué sobra? Se hacen los ajustes.\n\nDecidir y pasar — 1 – 2 min — Se escribe la «Decisión del grupo» y se responde a ZOE: «sí, revisamos y validamos». Recién ahí pasamos a la siguiente herramienta.\n\nRegla del reloj: si un grupo no alcanza, se le pide pasar con lo que tiene. Es preferible un resultado imperfecto y validado que un grupo que se queda en la fase anterior. Si la mayoría va atrasada, la facilitadora acorta la socialización a 2 minutos y lo dice en voz alta."
+  },
+  {
+   "fuente": "Guía de facilitación del taller",
+   "titulo": "Guía del taller · 5. Guion fase por fase · 0. Apertura · 2 minutos",
+   "texto": "Minuto — Qué pasa\n\n0:00 — La facilitadora da la bienvenida y conecta con el propósito del encuentro: traer una necesidad real y explorar cómo responder con la IA, con criterio humano.\n\n0:01 — ZOE se presenta y explica en 20 segundos cómo van a trabajar. La facilitadora cuenta la rutina de cada fase (anticipar, leer, socializar, decidir) y cómo se avisan los tiempos.\n\n«Hoy la IA propone y ustedes deciden. Cada vez que ZOE les diga que terminó, es el momento de ustedes: discutan, cambien lo que haga falta y validen. Sin validar, no avanzamos.»"
+  },
+  {
+   "fuente": "Guía de facilitación del taller",
+   "titulo": "Guía del taller · 5. Guion fase por fase · 1. Estudio Territorial · 8 minutos",
+   "texto": "Objetivo: Entender el territorio del grupo con un diagnóstico de 12 puntos y fuentes regionales, y salir con las oportunidades que parecen más prometedoras.\n\nMinuto — Qué pasa\n\n0:02 — Anticipar. Se elige o se escribe el municipio. Si el territorio ya está preparado, se carga al instante; si no, el grupo lo genera con la IA y espera.\n\n0:03 — Mientras la IA trabaja, ZOE narra qué está haciendo. La facilitadora aprovecha para que cada grupo nombre la necesidad que trae.\n\n0:04 — Leer. En silencio, cada persona marca una oportunidad que le llame la atención.\n\n0:06 — Socializar. ¿El diagnóstico se parece a lo que vivimos? ¿Qué dato nos sorprendió?\n\n0:09 — Decidir. El grupo escribe las oportunidades que lleva a la ideación y responde a ZOE.\n\nLo que deben tener al terminar: Un estudio territorial leído y comentado, con las oportunidades que pasan a la ideación.\n\nQué hace ZOE: Anuncia la fase, narra la espera, lee en voz alta el resumen del resultado y, al terminar, dice: «Ya terminamos. Ahora discútanlo en grupo, hagan los cambios que haga falta, valídenlo y vuelvan aquí».\n\nPreguntas que la facilitadora lanza al grupo:\n\n- ¿Qué parte del diagnóstico confirman por experiencia propia?\n\n- ¿Qué dato no se lo esperaban?\n\n- ¿Qué oportunidad elegirían primero y por qué?\n\nOjo: Los estudios hechos con IA pueden traer datos que conviene verificar. Pedir al grupo que marque una cifra o fuente para revisar después."
+  },
+  {
+   "fuente": "Guía de facilitación del taller",
+   "titulo": "Guía del taller · 5. Guion fase por fase · 2. Ideación · 8 minutos",
+   "texto": "Objetivo: Pasar de las oportunidades del territorio a una vocación productiva y a un tema concreto para trabajar.\n\nMinuto — Qué pasa\n\n0:10 — Anticipar. La ideación toma el estudio del paso anterior. Se lanza con las oportunidades elegidas.\n\n0:11 — Leer la vocación y los temas propuestos. Cada persona escoge uno.\n\n0:13 — Socializar. Cada persona defiende su tema en 20 segundos; el grupo cuestiona: ¿resuelve una necesidad real?\n\n0:16 — Decidir. Se elige un solo tema; se registra por qué y se responde a ZOE.\n\nLo que deben tener al terminar: Un tema elegido con su justificación.\n\nQué hace ZOE: Conecta con lo que salió del estudio, lee la vocación propuesta y los temas, y hace la pausa humana con la pregunta de cierre.\n\nPreguntas que la facilitadora lanza al grupo:\n\n- ¿Este tema resuelve la necesidad que trajimos o se desvió?\n\n- ¿Quién se beneficia y quién queda por fuera?\n\n- ¿Qué haría que este tema fuera inviable?\n\nOjo: Si el grupo se divide entre dos temas, no se extiende la discusión: se vota y se anota el segundo tema como «para después»."
+  },
+  {
+   "fuente": "Guía de facilitación del taller",
+   "titulo": "Guía del taller · 5. Guion fase por fase · 3. Árbol de Innovación · 9 minutos",
+   "texto": "Objetivo: Explorar el tema con tendencias globales, nacionales y territoriales, y escoger un fruto (idea concreta) para prototipar.\n\nMinuto — Qué pasa\n\n0:18 — Anticipar. El árbol se arma con el circuito de 10 tendencias globales, 5 de Colombia y 3 del territorio. El radar de tendencias alimenta esta herramienta.\n\n0:19 — Leer. Cada persona recorre las ramas y señala la tendencia que más conecta con el tema.\n\n0:21 — Socializar. ¿Qué tendencia cambia nuestra manera de ver el tema? ¿Cuál es el fruto más viable?\n\n0:25 — Decidir. El grupo elige un fruto y escribe qué lo hace pertinente. Responde a ZOE.\n\nLo que deben tener al terminar: Un árbol revisado y un fruto elegido.\n\nQué hace ZOE: Explica el circuito de ramas, narra la generación y, al final, pide el fruto elegido por el grupo antes de pasar.\n\nPreguntas que la facilitadora lanza al grupo:\n\n- ¿Qué tendencia nos obliga a pensar diferente?\n\n- ¿El fruto elegido es una idea o ya es una solución?\n\n- ¿Qué fruto dejamos pendiente?\n\nOjo: Es la fase más larga y con más lectura. La co-facilitadora circula para ayudar a los grupos que se pierden entre ramas."
+  },
+  {
+   "fuente": "Guía de facilitación del taller",
+   "titulo": "Guía del taller · 5. Guion fase por fase · 4. Prototipado · 8 minutos",
+   "texto": "Objetivo: Convertir el fruto elegido en un plan de solución con hipótesis y métricas, listo para probar en el territorio.\n\nMinuto — Qué pasa\n\n0:27 — Anticipar. El prototipado recibe el fruto del paso anterior y genera el plan de solución.\n\n0:28 — Leer. El grupo revisa el nombre, la hipótesis, las fases y las métricas propuestas.\n\n0:30 — Socializar. ¿La hipótesis se puede probar de verdad? ¿Quién haría la primera prueba y cuándo?\n\n0:33 — Decidir. Se ajusta la hipótesis y se define el primer paso concreto.\n\nLo que deben tener al terminar: Un plan de prototipo ajustado por el grupo, con su primer paso.\n\nQué hace ZOE: Lee el plan, resalta la hipótesis y las métricas, y hace la pregunta de validación: «¿lo revisaron y lo validaron?».\n\nPreguntas que la facilitadora lanza al grupo:\n\n- ¿Qué tendría que ser cierto para que esto funcione?\n\n- ¿Cuál sería la primera prueba pequeña y barata?\n\n- ¿Quién de este grupo lidera el primer paso?\n\nOjo: Hay que cuidar el tiempo: el grupo tiende a querer perfeccionar el plan. Se recuerda que es un prototipo, no un proyecto terminado."
+  },
+  {
+   "fuente": "Guía de facilitación del taller",
+   "titulo": "Guía del taller · 5. Guion fase por fase · 5. Cierre · 5 minutos",
+   "texto": "Minuto — Qué pasa\n\n0:35 — Cada grupo cuenta en 1 minuto su territorio, su tema y su fruto. La facilitadora no interpreta: pide una frase.\n\n0:38 — Conversación general: ¿qué decidió la IA y qué decidimos nosotros? ¿Dónde les faltó criterio humano? ¿Qué cambiarían de su práctica en 2027?\n\n0:39 — ZOE cierra agradeciendo. La facilitadora recuerda que lo trabajado queda guardado y conecta con la ruta de apropiación 2027.\n\nCómo cerrar bienCerrar siempre con la pregunta: «¿Qué decidieron ustedes que la IA no habría decidido por su cuenta?». Esa respuesta es el aprendizaje del encuentro."
+  },
+  {
+   "fuente": "Guía de facilitación del taller",
+   "titulo": "Guía del taller · 6. Qué hace ZOE y qué hacemos nosotros",
+   "texto": "ZOE acompaña el taller como guía, pero el criterio y el ritmo son humanos. Esta tabla deja claro quién hace qué.\n\nMomento — ZOE — Equipo humano\n\nAbrir una fase — Anuncia lo que se hará y lanza la herramienta cuando se lo piden. — Controla el reloj y decide cuándo empezar.\n\nMientras la IA trabaja — Narra lo que ocurre y se mueve para acompañar la espera. — Aprovecha para conversar con los grupos y revisar dudas.\n\nLeer el resultado — Explica con palabras sencillas lo que quedó en pantalla. — Pide leer con atención y marcar lo que llama la atención.\n\nPausa humana — Dice: «Ya terminamos. Discútanlo en grupo, hagan cambios, valídenlo y vuelvan aquí». — Conduce la conversación y cuida que hable todo el grupo.\n\nValidar para avanzar — Pregunta si ya están listos, si revisaron y validaron. Si dicen «sí», lo celebra con humor amable, confía en el grupo y pasa al siguiente paso. — Acompaña con una mirada a la «Decisión del grupo».\n\nCorregir el rumbo — Repite o vuelve atrás si se lo piden. — Decide si se acorta o se omite algo para cumplir el tiempo."
+  },
+  {
+   "fuente": "Guía de facilitación del taller",
+   "titulo": "Guía del taller · 6. Qué hace ZOE y qué hacemos nosotros · Cómo suena ZOE en la validación",
+   "texto": "La idea es que ZOE no sea un cronómetro frío, sino alguien cercano que celebra y a la vez pone la pausa humana. ZOE confía en el grupo: nunca pone en duda lo que validaron ni se ríe de ellos; el humor es sobre ella misma. Ejemplo del tono (tiene cuatro versiones que se alternan):\n\n«¿Ya revisaron y validaron los resultados? ¿Están listos para continuar?»\n\n«¡Excelente! Revisado, discutido y validado entre todos: así se trabaja en equipo. Hasta la cola de luz me bailó de la emoción. ¡Vamos por el siguiente paso!»\n\n«Qué orgullo de grupo. Con la validación humana hecha, la IA queda donde debe: acompañando. ¡Pasemos al siguiente paso!»\n\nEstado del sistemaZOE ya conversa por voz y por chat, guía un recorrido por las cuatro herramientas, puede hablar en modo «Multitud» y tiene su «modo taller».Modo taller: se activa diciendo o escribiendo «Taller de innovación». ZOE conoce el evento, guía las cuatro fases en orden, avisa el tiempo, pide discutir en grupo, hacer cambios y validar, y vuelve a preguntar cuando el grupo dice «ya volvimos». En la burbuja de ZOE hay botones para quien no quiera hablar: Listos, Terminamos, Ya volvimos, Sí validamos, Aún no, Repetir y Terminar.Cuidado: el modo taller se probó escribiendo en el chat. Falta ensayarlo con micrófono y voz en el salón real, con ruido y varias personas."
+  },
+  {
+   "fuente": "Guía de facilitación del taller",
+   "titulo": "Guía del taller · 6. Qué hace ZOE y qué hacemos nosotros · Cómo suena ZOE en la validación",
+   "texto": "Cómo trata ZOE a las personasZOE agradece las gracias y los halagos con sencillez, celebra el «por favor» y también lo usa. Cuenta chistes solo si se lo piden o si pregunta antes («¿te cuento un chiste?») y la charla lo permite; en lo serio, en el taller y en el recorrido no los propone."
+  },
+  {
+   "fuente": "Guía de facilitación del taller",
+   "titulo": "Guía del taller · 7. Si algo falla (plan B)",
+   "texto": "Qué pasa — Qué hacemos — Quién\n\nLa IA de la UNAD no responde — Cada persona usa su clave de AI Studio: el sistema pasa solo a esa clave si la institucional falla. Si el punto sigue en rojo, validar la clave en el panel «IA». — Soporte técnico\n\nNo hay clave de AI Studio — Mostrar el video tutorial (1 min 54 s) y crearla juntos. Si la cuenta institucional no deja, probar con otra cuenta de Google. — Soporte técnico y anfitriones\n\nNo hay internet — Cambiar a datos del celular. Como último recurso, trabajar con los estudios ya preparados y con el formato de papel. — Soporte técnico\n\nEl micrófono no sirve o hay mucho ruido — Usar el chat de ZOE, escribiendo. En sala llena, activar «Multitud»: ZOE solo atiende a quien la nombra y habla cerca del micrófono. — Facilitadora\n\nUn grupo se atrasa — Pedir que pase con lo que tiene; la co-facilitadora lo acompaña a la siguiente fase. — Cami\n\nTodos van atrasados — Acortar la socialización a 2 minutos y anunciarlo. — Facilitadora\n\nUn participante no se anima — El anfitrión le asigna un rol: lector, anotador o quien presenta. — Anfitrión de mesa"
+  },
+  {
+   "fuente": "Guía de facilitación del taller",
+   "titulo": "Guía del taller · 8. Cómo apoyan los demás",
+   "texto": "Cuando Cami y yo hayamos conducido el taller, el equipo de apoyo puede facilitar mesas. Para que todos conduzcan igual, esta es la guía corta."
+  },
+  {
+   "fuente": "Guía de facilitación del taller",
+   "titulo": "Guía del taller · 8. Cómo apoyan los demás · Antes de facilitar una mesa",
+   "texto": "- Hacer el ejercicio completo una vez como participante.\n\n- Leer esta guía y conocer la rutina de cada fase: anticipar, leer, socializar, decidir.\n\n- Tener claro el plan B de la sección 7."
+  },
+  {
+   "fuente": "Guía de facilitación del taller",
+   "titulo": "Guía del taller · 8. Cómo apoyan los demás · Qué sí hacemos en la mesa",
+   "texto": "- Cuidar el tiempo: avisar «quedan dos minutos» y mostrar el reloj.\n\n- Hacer preguntas en lugar de dar respuestas: «¿por qué elegirían ese?», «¿qué falta?».\n\n- Ayudar a escribir la «Decisión del grupo» con las palabras de ellos.\n\n- Mantener la pausa humana: sin validación, el grupo no avanza."
+  },
+  {
+   "fuente": "Guía de facilitación del taller",
+   "titulo": "Guía del taller · 8. Cómo apoyan los demás · Qué no hacemos",
+   "texto": "- No elegimos por el grupo ni corregimos el resultado de la IA por ellos.\n\n- No tocamos el teclado del grupo, salvo que lo pidan.\n\n- No compartimos ni pedimos claves personales.\n\n- No prometemos que la IA tiene siempre la razón: pedimos contrastar."
+  },
+  {
+   "fuente": "Guía de facilitación del taller",
+   "titulo": "Guía del taller · 9. Después del taller",
+   "texto": "- Los resultados quedan guardados en el sistema. El banco de insumos es solo para administradores por ahora.\n\n- Cada grupo se lleva su «Decisión del grupo» y su plan de prototipo.\n\n- Registrar en 10 minutos: tiempos reales por fase, qué falló, qué funcionó y qué cambiarían.\n\n- Conectar con la ruta de apropiación 2027: acciones concretas, responsables y compromisos verificables."
+  },
+  {
+   "fuente": "Guía de facilitación del taller",
+   "titulo": "Guía del taller · Anexo A. Formato «Decisión del grupo»",
+   "texto": "Un formato por fase. Si la pantalla falla, se llena en papel.\n\nCampo — Respuesta del grupo\n\nGrupo / territorio\n\nFase\n\nQué nos entregó la herramienta (en una frase)\n\nQué cambiamos\n\nQué decidimos\n\n¿Revisamos y validamos? (sí / falta algo)\n\nQuién presenta"
+  },
+  {
+   "fuente": "Guía de facilitación del taller",
+   "titulo": "Guía del taller · Anexo B. Preguntas comodín de la facilitadora",
+   "texto": "- ¿Qué parte de esto es una decisión de la IA y qué parte es una decisión de ustedes?\n\n- ¿Qué le diríamos a la IA para que lo haga mejor?\n\n- ¿Qué sabe alguien en esta mesa que la IA no puede saber?\n\n- ¿Quién se beneficia y quién queda por fuera?\n\n- ¿Qué es lo primero que probaríamos el lunes?"
   }
  ]
 }

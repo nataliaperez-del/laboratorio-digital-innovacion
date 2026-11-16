@@ -3,6 +3,7 @@
  * Observatorio y se alimenta de él: hoy, de las señales de su Radar (`/api/observatorio/radar`,
  * servido por includes/observatorio.php en producción y por Vite en desarrollo).
  */
+import { labAuthHeaders } from '@/services/labPass';
 import { keywordsFromText } from '@/lib/fichaIdentity';
 
 /** Sitio público del Observatorio InnovaHub360. */
@@ -85,7 +86,7 @@ export function loadRadarFeed(): Promise<RadarFeed> {
   feedPromise = (async () => {
     let res: Response;
     try {
-      res = await fetch('/api/observatorio/radar');
+      res = await fetch('/api/observatorio/radar', { headers: labAuthHeaders() });
     } catch {
       // «Failed to fetch»: el navegador no llegó al servidor (apagado, reiniciándose o sin red).
       throw new Error(

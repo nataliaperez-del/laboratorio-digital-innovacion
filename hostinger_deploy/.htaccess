@@ -61,9 +61,6 @@ ServerSignature Off
     # Concentrador de datos del Laboratorio (ingresos, uso, resultados e insumos de todos)
     RewriteRule ^api/lab/?(.*)$ includes/lab.php?ruta=$1 [L,QSA]
 
-    # Enrutamiento para API REST
-    RewriteRule ^api/data$ includes/api.php [L,QSA]
-
     # La configuración del servidor nunca se sirve por web
     RewriteRule ^config/ - [F,L]
 

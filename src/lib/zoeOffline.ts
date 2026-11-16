@@ -15,9 +15,10 @@
  * Son funciones puras (probadas en tests/zoeOffline.test.ts).
  */
 import type { ToolId } from '@/components/layout/Header';
-import { TOOL_HINTS, TOOL_NAMES, type ZoeWorkState } from '@/lib/zoeContext';
+import { isConfirmation, TOOL_HINTS, TOOL_NAMES, type ZoeWorkState } from '@/lib/zoeContext';
 import { MODULE_LABELS } from '@/lib/moduleLabels';
-import { glossaryAnswer, loadedUnadistaBank, type UnadistaBank } from '@/lib/zoeKnowledge';
+import { glossaryAnswer, guideAnswer, loadedUnadistaBank, type UnadistaBank } from '@/lib/zoeKnowledge';
+import { pickOfflineGreeting } from '@/lib/zoeGreetings';
 
 /** Una pregunta del banco con su respuesta y sus palabras clave. */
 export interface BankEntry {
@@ -34,6 +35,10 @@ export interface OfflineContext {
   random?: () => number;
   /** Banco unadista (glosario); si no se pasa, se usa el que ya esté cargado. */
   bank?: UnadistaBank | null;
+  /** Lo último que dijo ZOE: si fue «¿te cuento un chiste?», el sí o el no de ahora se refiere a eso. */
+  lastZoe?: string;
+  /** En el taller o el recorrido guiado no se propone ningún chiste. */
+  quiet?: boolean;
 }
 
 // ── Texto ──
@@ -311,6 +316,20 @@ const SCREEN_TITLES = Object.fromEntries(Object.entries(MODULE_LABELS).map(([id,
 
 const pick = (list: readonly string[], random: () => number) => list[Math.floor(random() * list.length)] ?? '';
 
+// ── Chistes: se piden, o ZOE los ofrece y espera el sí; después vuelve al trabajo con tacto ──
+/** Cómo ofrece un chiste. */
+export const JOKE_OFFERS: readonly string[] = ['¿Te cuento un chiste?', '¿Quieres que te cuente un chiste para despejar la cabeza?', '¿Te cuento un chiste, para empezar con buena energía?'];
+/** Reconoce que lo último que dijo ZOE fue ofrecer un chiste. */
+export const JOKE_OFFERED = /(te cuento un chiste|que te cuente un chiste|te cuente uno)/i;
+const JOKE_RETURN: readonly string[] = [
+  'Y ahora, con la sonrisa puesta, ¿retomamos lo que estábamos haciendo? Voy a tu ritmo.',
+  'Bueno, a lo nuestro, con calma: ¿seguimos con el trabajo cuando quieras? Aquí estoy contigo.',
+  'Con las orejas de luz más contentas, ¿volvemos al trabajo? Tú marcas el ritmo.',
+];
+const JOKE_DECLINE: readonly string[] = ['Claro que sí, sin problema. Cuando quieras uno, me avisas. ¿Seguimos con lo nuestro?', 'Entendido, no hay chiste. Aquí sigo contigo, a tu ritmo.'];
+/** ¿Hay trabajo en curso? Con trabajo, ZOE no propone chistes: va en serio. */
+const hasWork = (work?: ZoeWorkState) => Boolean(work && (work.studyBlocks || work.hasProposal || work.treeTheme || work.prototypes.length));
+
 /** Lo que ZOE ofrece cuando no tiene la respuesta: alternativas reales, sin culpas ni alarmas. */
 export const OFFLINE_FALLBACK =
   'Esa pregunta me pide la IA y ahora mismo no la alcanzo, pero no te quedas sin compañía. Puedo explicarte cualquier herramienta, contarte qué ruta seguir, llevarte a una pantalla, hacerte el recorrido guiado o moverme como me pidas. ¿Qué prefieres?';
@@ -319,25 +338,74 @@ export const OFFLINE_FALLBACK =
  * Responde sin IA: emociones, saludos, chistes, ánimo, siguiente paso, dónde está, rutas,
  * preguntas frecuentes y, si nada encaja, alternativas concretas. Nunca devuelve vacío.
  */
+/** Las palabras mágicas («por favor», «porfa») dentro de lo dicho. */
+const PLEASE = /\b(por favor|porfa|porfis|porfavor|por fa)\b/;
+/** Solo «por favor», sin pedir nada más. */
+const PLEASE_ONLY = /^(?:(?:si )?(?:por favor|porfa|porfis|porfavor|por fa)(?: (?:y )?(?:gracias|mil gracias))?)$/;
+/** Las gracias: «gracias», «muchas gracias», «te agradezco». */
+const THANKS = /\b(gracias|te agradezco|se agradece|muy amable)\b/;
+/** Un halago a ZOE. */
+const COMPLIMENT =
+  /\b(eres|estas|que)\s+(?:muy |tan |re |super |bien )?(?:lindo|linda|genial|increible|inteligente|maravilloso|bueno|buena|excelente|el mejor|la mejor|un crack|un tesoro|simpatico|divertido|chevere|fantastico|sabio|un amor|una maravilla|especial|adorable|tierno)\b|\b(buen trabajo|muy buen trabajo|buen perro|buen perrito|perrito lindo|buena respuesta|excelente respuesta|bien hecho|felicitaciones|me encantas|me caes bien|te quiero|te adoro|te amo|me ayudaste mucho|me sirvio mucho|eres de lo mejor|me gusta como piensas|me gusta tu forma)\b/;
+/** Frases cortas: si la persona además pregunta o pide algo largo, se atiende eso y no solo el halago. */
+const isShort = (t: string) => t.split(' ').filter(Boolean).length <= 9 && !/\b(como|cual|cuales|donde|cuando|quien|que es|porque|por que)\b/.test(t);
+
+/**
+ * Responde sin IA, con la memoria de ZOE. Además de lo que diga el contenido, reconoce las palabras mágicas:
+ * agradece las gracias y los halagos y, cuando la persona pide con «por favor», lo celebra con un «con gusto».
+ */
 export function offlineAnswer(text: string, markdown: string, ctx: OfflineContext): string {
+  const random = ctx.random ?? Math.random;
+  const t = normalizeText(text);
+  const short = isShort(t);
+  // Lo emocional y las crisis tienen su propio camino y van primero.
+  const pendingOffer = Boolean(ctx.lastZoe && JOKE_OFFERED.test(ctx.lastZoe));
+  // «No, gracias» sin nada pendiente: se acepta con cariño.
+  if (!pendingOffer && /^no,? (muchas |mil )?gracias$/.test(t)) return 'Claro que sí, sin problema. Aquí sigo contigo cuando me necesites.';
+  if (!pendingOffer && !/^no\b/.test(t) && !crisisReply(text) && !feelingReply(text, random)) {
+    // Solo «por favor» (o «por favor, gracias»): ZOE pregunta qué necesita.
+    if (PLEASE_ONLY.test(t)) return pick(sectionLines(markdown, /palabras m[aá]gicas/i).filter((l) => /necesitas/.test(l)), random) || 'Dime, por favor, ¿qué necesitas que haga?';
+    // Un halago corto (sin pregunta ni encargo): lo recibe con humildad y buen humor.
+    if (short && COMPLIMENT.test(t) && !THANKS.test(t)) return pick(sectionLines(markdown, /cuando te halagan/i), random) || '¡Qué amable! Gracias, me pongo a mover la cola.';
+    // Las gracias, solas o con un halago.
+    if (short && THANKS.test(t)) return pick(sectionLines(markdown, /cuando te dan las gracias/i), random) || '¡Con gusto! Para eso tengo estas orejas de luz.';
+  }
+  const reply = offlineAnswerCore(text, markdown, ctx);
+  // Con «por favor» y un pedido real, ZOE lo celebra antes de responder.
+  if (PLEASE.test(t) && reply && reply !== OFFLINE_FALLBACK && !/^(con gusto|claro que si|por supuesto)/i.test(normalizeText(reply))) {
+    const courtesy = pick(sectionLines(markdown, /palabras m[aá]gicas/i).filter((l) => !/necesitas/.test(l)), random) || 'Con gusto.';
+    return `${courtesy} ${reply}`;
+  }
+  return reply;
+}
+
+function offlineAnswerCore(text: string, markdown: string, ctx: OfflineContext): string {
   const random = ctx.random ?? Math.random;
   const crisis = crisisReply(text);
   if (crisis) return crisis;
   const feelingHit = feelingReply(text, random);
   if (feelingHit) return feelingHit.reply;
 
+  // Si acaba de ofrecer un chiste, el sí lo cuenta (y vuelve al trabajo con tacto) y el no se acepta con cariño.
+  if (ctx.lastZoe && JOKE_OFFERED.test(ctx.lastZoe)) {
+    const yes = isConfirmation(text);
+    if (yes === true) return `${pick(sectionLines(markdown, /Chistes/i), random)} ${pick(JOKE_RETURN, random)}`;
+    if (yes === false) return pick(JOKE_DECLINE, random);
+  }
+
   const t = normalizeText(text);
   if (/^(hola|buenas|buenos dias|buenas tardes|buenas noches|que mas|que tal|hey|saludos)\b/.test(t) && t.split(' ').length <= 5) {
-    return '¡Hola! Qué gusto escucharte. Aquí estoy contigo, sin prisa. ¿Todo listo para continuar?';
+    return pickOfflineGreeting(ctx.lastZoe ? [ctx.lastZoe] : [], random);
   }
   if (/\b(como estas|como te va|como vas|como amaneciste|como te sientes)\b/.test(t)) {
+    // En una charla sin trabajo, aprovecha para ofrecer un chiste (pidiendo permiso); en lo serio, no.
+    if (!ctx.quiet && !hasWork(ctx.work)) return `¡Muy bien, con las orejas de luz bien paradas! Gracias por preguntar. ${pick(JOKE_OFFERS, random)}`;
     return '¡Muy bien, con las orejas de luz bien paradas! Gracias por preguntar. ¿Y tú cómo vas hoy?';
   }
-  if (/\b(gracias|te quiero|eres lindo|eres genial|te adoro)\b/.test(t)) {
-    return pick(sectionLines(markdown, /Cariño/i), random) || '¡Con gusto! Para eso tengo estas orejas de luz.';
-  }
   if (/\b(chiste|hazme reir|algo gracioso|algo divertido|me haces reir)\b/.test(t)) {
-    return pick(sectionLines(markdown, /Chistes/i), random);
+    // Lo pidieron: lo cuenta y, con tacto, vuelve al trabajo si lo hay.
+    const joke = pick(sectionLines(markdown, /Chistes/i), random);
+    return hasWork(ctx.work) ? `${joke} ${pick(JOKE_RETURN, random)}` : joke;
   }
   if (/\b(motivame|animame|frase motivadora|frase motivacional|dame animo|necesito animo|una frase)\b/.test(t)) {
     return pick(sectionLines(markdown, /motivacionales/i), random);
@@ -353,10 +421,18 @@ export function offlineAnswer(text: string, markdown: string, ctx: OfflineContex
   if (/\b(que ruta|cual ruta|que camino|por donde empiezo|como empiezo|por donde comienzo|que orden)\b/.test(t)) {
     return `${ROUTES_TEXT} ¿Con cuál te quedas?`;
   }
+  // Preguntas de operación del taller (plan B, mesas, antes y después): la guía las responde mejor que la memoria general.
+  if (/\b(plan b|falla|fallan|no hay|sin internet|atrasa|atrasad|mesa|mesas|anfitrion|facilitad|apoyan|apoyo|decision del grupo|antes del taller|despues del taller|una semana antes|que hacemos|que no hacemos)\b/.test(t)) {
+    const operational = guideAnswer(ctx.bank === undefined ? loadedUnadistaBank() : ctx.bank, text);
+    if (operational) return operational;
+  }
   const entry = bestEntry(parseBank(markdown), text);
   if (entry) return entry.answer;
   // «¿Qué es la reticularidad?»: el diccionario del metalenguaje unadista también responde sin IA.
   const meaning = glossaryAnswer(ctx.bank === undefined ? loadedUnadistaBank() : ctx.bank, text);
   if (meaning) return meaning;
+  // Cómo se conduce el taller (plan B, tiempos, quién hace qué): lo dice la guía de facilitación.
+  const guide = guideAnswer(ctx.bank === undefined ? loadedUnadistaBank() : ctx.bank, text);
+  if (guide) return guide;
   return OFFLINE_FALLBACK;
 }

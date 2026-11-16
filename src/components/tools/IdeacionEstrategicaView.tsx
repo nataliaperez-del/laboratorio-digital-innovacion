@@ -25,6 +25,7 @@ import {
   type ProgressState,
   OfflineNotice,
 } from '@/components/lab/common';
+import { CopyButton, SectionsWorkbench } from '@/components/lab/ReviewActions';
 import { ObservatorioPicker } from '@/components/lab/ObservatorioPicker';
 import { RadarTrends } from '@/components/lab/RadarTrends';
 import type { ToolId } from '@/components/layout/Header';
@@ -331,6 +332,15 @@ export const IdeacionEstrategicaView: React.FC<Props> = ({ onNavigate }) => {
             onRegenerate={(i) => void regenerate(i)}
           />
 
+          <SectionsWorkbench
+            sections={vocationSections}
+            disabled={busy}
+            onReplace={(i, next) => replaceVocationSection(i, { ...next, status: next.markdown.trim() ? 'ok' : 'failed' })}
+            onClearSection={(i, sec) =>
+              replaceVocationSection(i, { ...sec, markdown: '', status: 'failed', issue: 'El grupo borró esta parte. Usa «Rehacer» si la necesitan de nuevo.' })
+            }
+          />
+
           {proposal ? (
             <>
               <section className="lab-panel lab-hero" aria-label="Vocación">
@@ -379,6 +389,7 @@ export const IdeacionEstrategicaView: React.FC<Props> = ({ onNavigate }) => {
                     Tema elegido: <strong className="text-white">{chosen.title}</strong>
                   </p>
                   <div className="flex flex-wrap gap-2">
+                    <CopyButton small={false} label="Copiar el tema" getText={() => `${chosen.title}\n\n${chosen.body}`.trim()} />
                     <button type="button" className="metal px-4 py-2 text-xs font-bold flex items-center gap-2" onClick={toTree}>
                       <Trees className="w-4 h-4" aria-hidden="true" /> Construir su Árbol <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
                     </button>

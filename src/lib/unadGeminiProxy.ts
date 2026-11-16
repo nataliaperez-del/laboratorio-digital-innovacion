@@ -4,6 +4,7 @@
  * para evitar CORS; el servidor Vite reenvía a chatbot-ia-360.unad.edu.co.
  */
 
+import { labAuthHeaders, reportPassRejected } from '@/services/labPass';
 import { sanitizeCredential } from '@/lib/sanitizeCredential';
 
 /** Modelo por defecto: mejor equilibrio calidad/velocidad que flash-lite para contenedores y documentos largos. */
@@ -77,9 +78,14 @@ function parseProxyResponse(rawText: string, status: number): UnadGeminiGenerate
           ? ' Suele deberse a un prompt demasiado grande para el proxy UNAD: reduce `VITE_MAX_COMBINED_SOURCE_CHARS` y `VITE_MAX_C2_PROMPT_DOC_CHARS`.'
           : status === 404
             ? ' La ruta /api/unad-gemini no existe en el servidor: revisa el .htaccess e includes/gemini_proxy.php.'
-            : status === 401 || status === 403
-              ? ' Revisa las credenciales: define UNAD_GEMINI_X_API_KEY y UNAD_GEMINI_BEARER en el servidor o escríbelas en el botón «IA» de la cabecera.'
-              : '';
+            : status === 429
+              ? ' Es el tope de solicitudes por hora de tu cuenta; también puedes usar tu propia clave en el botón «IA» de la cabecera.'
+              : status === 401
+                ? ' Tu ingreso venció o no es válido: cierra la sesión y vuelve a ingresar con tu cuenta institucional.'
+                : status === 403
+                  ? ' Revisa las credenciales: define UNAD_GEMINI_X_API_KEY y UNAD_GEMINI_BEARER en el servidor o escríbelas en el botón «IA» de la cabecera.'
+                  : '';
+      if (status === 401) reportPassRejected();
       throw new Error(`UNAD Gemini (${status}): ${msg}${hint}`);
     } catch (e) {
       if (e instanceof Error && e.message.startsWith('UNAD Gemini')) throw e;
@@ -120,7 +126,7 @@ export async function postToProxy(body: unknown, signal?: AbortSignal, wait = (m
     try {
       return await fetch('/api/unad-gemini', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...labAuthHeaders() },
         body: JSON.stringify(body),
         signal,
       });

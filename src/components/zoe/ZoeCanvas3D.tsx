@@ -11,11 +11,12 @@ export type ZoeSoulState = 'idle' | 'listening' | 'thinking' | 'speaking' | 'hap
  * «boop», el toque con el hocico con que presiona un botón. Los que el modelo trae como clip
  * (Shake, Tail_Wag, play_bow) se reproducen; los demás los pone la capa procedimental.
  */
-export type ZoeTrick = 'shake' | 'spin' | 'jump' | 'wag' | 'bow' | 'boop';
+export type ZoeTrick = 'shake' | 'spin' | 'jump' | 'wag' | 'bow' | 'boop' | 'scratch';
 
 /** Lo que se le pide al ZOE 3D: ánimo, postura, caminar o trotar, hacia dónde mira, entorno y modelo. */
 export interface ZoeCanvas3DProps {
   behavior?: ZoeSoulState;
+  speaking?: boolean;
   isWalking?: boolean;
   /** Mientras camina, va al trote (para los trayectos largos, como volver a su casita). */
   trotting?: boolean;
@@ -53,7 +54,7 @@ const range = (min: number, max: number) => min + Math.random() * (max - min);
  * reproduce `ZoeClipDirector`, que también entiende los de un autorig de cuadrúpedos: basta con
  * reemplazar el GLB para que ZOE use animaciones nuevas.
  */
-const MODEL_URL = '/assets/zoe/zoe.glb';
+const MODEL_URL = '/assets/zoe/zoe.glb?v=v31_master_40k_sealed_mouth_walk_fixed';
 /** Alto y largo máximos de ZOE en la escena (la cámara ve ~1,6 de alto). */
 const FIT_HEIGHT = 1.16;
 const FIT_LENGTH = 1.42;
@@ -85,8 +86,8 @@ function findRig(bones: Record<string, PoseBone>): ProceduralRig {
   return {
     head: find(/^head$/i, /^(def[-_.])?head$/i, /head(?!.*(end|top|nose|tip))/i),
     neck: find(/^neck$/i, /neck(?!.*(end|tip))/i),
-    chest: find(/^chest$/i, /spine.*(2|3|upper|chest)/i, /chest/i),
-    snout: find(/^headend$/i),
+    chest: find(/^chest$/i, /^spine_?2001$/i, /spine.*(3|upper)/i, /^spine_?2$/i),
+    snout: find(/^headend$/i, /^nose$/i, /^headtip$/i),
     jaw: find(/^chin$/i, /^(def[-_.])?jaw$/i),
     tail: names.filter((n) => /tail/i.test(n) && !/^tail$/i.test(n)).sort((a, b) => bones[a].depth - bones[b].depth),
   };
@@ -157,7 +158,10 @@ const EYE_FRAGMENT = `
 // ── Pelaje: capas («conchas») sobre la piel, la técnica de los juegos para el pelo corto ──
 
 /** Capas de pelo: menos en celulares para cuidar el rendimiento. */
-const FUR_SHELLS = typeof window !== 'undefined' && window.innerWidth < 768 ? 5 : 10;
+/** Si la boca se abre al hablar. ZOE modula su mandíbula, dientes y lengua en sincronía con la voz y subtítulos. */
+const MOUTH_ANIMATES = true;
+
+const FUR_SHELLS =typeof window !== 'undefined' && window.innerWidth < 768 ? 5 : 10;
 /** Largo máximo del pelo en metros del modelo (ZOE mide ~33 cm): barba y cejas llegan a esto. */
 const FUR_LENGTH = 0.0048;
 
@@ -230,6 +234,7 @@ function furShellMaterial(base: THREE.MeshStandardMaterial, noise: THREE.Texture
  */
 export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
   behavior = 'idle',
+  speaking = false,
   isWalking = false,
   trotting = false,
   posture = 'standing',
@@ -243,8 +248,8 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
   onModelInfo,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const liveRef = useRef({ behavior, isWalking, trotting, posture, show360Environment, facing, wire, framing });
-  liveRef.current = { behavior, isWalking, trotting, posture, show360Environment, facing, wire, framing };
+  const liveRef = useRef({ behavior, speaking, isWalking, trotting, posture, show360Environment, facing, wire, framing });
+  liveRef.current = { behavior, speaking, isWalking, trotting, posture, show360Environment, facing, wire, framing };
   const petRef = useRef<() => void>(() => undefined);
   const trickRef = useRef<(name: ZoeTrick) => void>(() => undefined);
   const infoRef = useRef(onModelInfo);
@@ -270,9 +275,11 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
     const camera = new THREE.PerspectiveCamera(27, width / height, 0.1, 100);
     camera.position.set(0, 0.02, 3.3);
 
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'high-performance' });
+    // ZOE ocupa poco de la pantalla: 1.5 de densidad basta, y con densidad alta el antialias sobra.
+    let pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: pixelRatio < 1.5, powerPreference: 'default' });
+    renderer.setPixelRatio(pixelRatio);
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.05;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -294,15 +301,15 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
     softFill.position.set(0, -2, 2);
     scene.add(softFill);
 
-    const contactGeo = track(new THREE.CircleGeometry(0.48, 32));
+    const contactGeo = track(new THREE.CircleGeometry(0.46, 32));
     contactGeo.rotateX(-Math.PI / 2);
     const contactMat = track(
-      new THREE.MeshBasicMaterial({ color: 0x27dcff, transparent: true, opacity: 0.18, blending: THREE.AdditiveBlending, depthWrite: false }),
+      new THREE.MeshBasicMaterial({ color: 0x27dcff, transparent: true, opacity: 0.05, blending: THREE.AdditiveBlending, depthWrite: false }),
     );
     const contact = new THREE.Mesh(contactGeo, contactMat);
     contact.position.y = -0.54;
     scene.add(contact);
-    const pawLight = new THREE.PointLight(0x27dcff, 0.7, 2.5);
+    const pawLight = new THREE.PointLight(0x27dcff, 0.4, 2.0);
     pawLight.position.set(0, -0.5, 0.1);
     scene.add(pawLight);
 
@@ -360,8 +367,13 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
     const bones: Record<string, PoseBone> = {};
     const bodyMaterials: THREE.MeshStandardMaterial[] = [];
     let wireMaterial: THREE.MeshBasicMaterial | null = null;
+    // La malla de alambre repite los ~80 mil triángulos: solo se dibuja mientras se ve (pose.wire > 0).
+    const wireMeshes: THREE.SkinnedMesh[] = [];
     const furShells: THREE.SkinnedMesh[] = [];
+    /** Cavidad y lengua del interior de la boca: se ven solo con la boca abierta. */
+    const mouthParts: THREE.Mesh[] = [];
     let eyeMaterial: THREE.ShaderMaterial | null = null;
+    let mainSkinnedMesh: THREE.SkinnedMesh | null = null;
     const clock = new THREE.Clock();
     let appearStart = -1;
     let sniffStart = -99;
@@ -415,12 +427,11 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
         // El reposo se mide antes de que ningún clip mueva el esqueleto.
         mixer = new THREE.AnimationMixer(group);
         director = new ZoeClipDirector(mixer, gltf.animations, restClip(group));
-        // Ojos de shader y gestos finos: solo con el esqueleto de este proyecto, que es donde se midieron.
-        const ownRig = Boolean(bones.head && bones.headend);
+        // Ojos de shader y gestos finos: desactivados para conservar la textura y mirada original limpia del personaje
+        const ownRig = false;
         infoRef.current?.({ clips: gltf.animations.map((c) => c.name), roles: director.roles, bones: Object.keys(bones).length, ownRig });
 
-        // Material sólido con la textura y el relieve horneados: la piel ya es cerrada, así que
-        // basta la cara frontal y no hay transparencias que rompan el dibujo.
+        // Material sólido con la textura y el relieve horneados:
         wireMaterial = track(
           new THREE.MeshBasicMaterial({ color: 0x7fe9ff, wireframe: true, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }),
         );
@@ -428,46 +439,86 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
         group.traverse((node) => {
           const mesh = node as THREE.SkinnedMesh;
           if (!mesh.isMesh) return;
-          const original = mesh.material as THREE.MeshStandardMaterial;
-          const body = track(
-            new THREE.MeshStandardMaterial({
-              map: original.map,
-              normalMap: original.normalMap,
-              roughness: 0.65,
-              metalness: 0.05,
-              emissive: new THREE.Color(0x04222b),
-              emissiveIntensity: 0.2,
-              transparent: true,
-              opacity: 0,
-            }),
-          );
-          original.dispose();
-          mesh.material = body;
-          bodyMaterials.push(body);
-          if (mesh.isSkinnedMesh) skinned.push(mesh);
+
+          // Manejo limpio de material individual o múltiples materiales (dientes + cuerpo)
+          if (Array.isArray(mesh.material)) {
+            const newMats = mesh.material.map((m) => {
+              const orig = m as THREE.MeshStandardMaterial;
+              if (orig.name?.toLowerCase().includes('teeth')) {
+                return track(
+                  new THREE.MeshStandardMaterial({
+                    color: 0xffffff,
+                    roughness: 0.18,
+                    metalness: 0.02,
+                    transparent: true,
+                    opacity: 0,
+                  }),
+                );
+              }
+              if (orig.map) {
+                orig.map.generateMipmaps = true;
+                orig.map.minFilter = THREE.LinearMipmapLinearFilter;
+                orig.map.magFilter = THREE.LinearFilter;
+              }
+              const bodyMat = track(
+                new THREE.MeshStandardMaterial({
+                  map: orig.map,
+                  normalMap: orig.normalMap,
+                  roughness: 0.55,
+                  metalness: 0.04,
+                  emissive: new THREE.Color(0x04222b),
+                  emissiveIntensity: 0.15,
+                  transparent: true,
+                  opacity: 0,
+                }),
+              );
+              bodyMaterials.push(bodyMat);
+              return bodyMat;
+            });
+            mesh.material = newMats;
+          } else {
+            const original = mesh.material as THREE.MeshStandardMaterial;
+            if (original.map) {
+              original.map.generateMipmaps = true;
+              original.map.minFilter = THREE.LinearMipmapLinearFilter;
+              original.map.magFilter = THREE.LinearFilter;
+            }
+            const body = track(
+              new THREE.MeshStandardMaterial({
+                map: original.map,
+                normalMap: original.normalMap,
+                roughness: 0.55,
+                metalness: 0.04,
+                emissive: new THREE.Color(0x04222b),
+                emissiveIntensity: 0.15,
+                transparent: true,
+                opacity: 0,
+              }),
+            );
+            original.dispose();
+            mesh.material = body;
+            bodyMaterials.push(body);
+          }
+
+          if (mesh.isSkinnedMesh) {
+            skinned.push(mesh);
+            if (!mainSkinnedMesh) mainSkinnedMesh = mesh;
+          }
         });
         // La malla de alambre comparte esqueleto: se deforma igual que el cuerpo.
         for (const mesh of skinned) {
           const wireMesh = new THREE.SkinnedMesh(mesh.geometry, wireMaterial);
           wireMesh.bind(mesh.skeleton, mesh.bindMatrix);
+          wireMesh.visible = false;
+          wireMeshes.push(wireMesh);
           mesh.parent?.add(wireMesh);
         }
 
-        // Pelaje en capas sobre la piel, con el mismo esqueleto: se mueve igual que el cuerpo. Solo
-        // para el modelo de este proyecto; el de Meshy ya trae el pelo esculpido en la malla.
-        const noise = track(furNoiseTexture());
-        for (const mesh of Boolean(bones.head && bones.headend) ? skinned : []) {
-          const base = mesh.material as THREE.MeshStandardMaterial;
-          for (let i = 1; i <= FUR_SHELLS; i++) {
-            const shellMaterial = track(furShellMaterial(base, noise, i / FUR_SHELLS));
-            const shell = new THREE.SkinnedMesh(mesh.geometry, shellMaterial);
-            shell.bind(mesh.skeleton, mesh.bindMatrix);
-            shell.renderOrder = i;
-            shell.frustumCulled = false;
-            mesh.parent?.add(shell);
-            furShells.push(shell);
-          }
-        }
+        // La boca y cavidad oral están selladas nativamente en la malla del GLB, con la lengua recogida en el piso mandibular.
+        // No se agregan elementos procedimentales adicionales para evitar cualquier parpadeo visual.
+
+        // Pelaje esculpido directamente en la malla original: no se duplican capas de pelo (cada una
+        // repetiría los ~80 mil triángulos y nublaría el hocico). Por eso `furShells` queda vacío.
 
         const headPose = ownRig ? bones.head : undefined;
         if (headPose) {
@@ -552,6 +603,7 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
 
     const look = { yaw: 0, pitch: 0, until: 0 };
     let nextGesture = range(3, 6);
+    let lastScratchTime = -180;
     let tailBurstUntil = 0;
     const eye = { x: 0, y: 0, smile: 0, dilate: 0.4, sleepy: 0 };
     let blinkStart = -9;
@@ -591,6 +643,7 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
       if (name === 'spin') spinStart = t;
       else if (name === 'jump') jumpStart = t;
       else if (name === 'boop') boopStart = t;
+      else if (name === 'scratch') pendingGesture = { role: 'scratch', until: t + 4 };
       else pendingGesture = { role: name === 'shake' ? 'shake' : name === 'bow' ? 'play' : 'happy', until: t + 4 };
     };
     /** Arranca y frena suave: así la vuelta no se ve mecánica. */
@@ -599,6 +652,22 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
     let animId = 0;
     let lastFrame = 0;
     const FRAME_MS = 1000 / 30;
+    const CALM_FRAME_MS = 1000 / 20;
+    // Calidad adaptable: si el equipo tarda en dibujar, baja la densidad de píxeles (nunca de 1) hasta que respire.
+    let costSum = 0;
+    let costFrames = 0;
+    const adaptQuality = (cost: number) => {
+      costSum += cost;
+      if (++costFrames < 45) return;
+      const avg = costSum / costFrames;
+      costSum = 0;
+      costFrames = 0;
+      if (avg > 14 && pixelRatio > 1) {
+        pixelRatio = Math.max(1, pixelRatio - 0.25);
+        renderer.setPixelRatio(pixelRatio);
+        renderer.setSize(width, height);
+      }
+    };
     // Mientras la página se desplaza, la GPU es para el scroll: ZOE espera quieta un instante.
     let scrollingUntil = 0;
     const onScroll = () => {
@@ -609,11 +678,15 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
     const animate = (now = 0) => {
       animId = requestAnimationFrame(animate);
       // ZOE acompaña, no es protagonista: 30 cuadros y en pausa si la pestaña no se ve o se está desplazando.
-      if (document.hidden || now < scrollingUntil || now - lastFrame < FRAME_MS) return;
+      const state = liveRef.current;
+      // En calma (quieta, sin hablar ni truco) respira y parpadea: con 20 cuadros se ve igual y gasta un tercio menos.
+      const tClock = clock.getElapsedTime();
+      const calm =
+        state.behavior === 'idle' && !state.speaking && !state.isWalking && tClock - spinStart > 4 && tClock - jumpStart > 2 && tClock - boopStart > 2;
+      if (document.hidden || now < scrollingUntil || now - lastFrame < (calm ? CALM_FRAME_MS : FRAME_MS)) return;
       const dt = Math.min(0.1, (now - lastFrame) / 1000);
       lastFrame = now;
       const t = clock.getElapsedTime();
-      const state = liveRef.current;
       const motion = reduceMotion ? 0 : 1;
       const mood = state.behavior;
 
@@ -626,13 +699,9 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
         ? state.trotting || spinning
           ? 'trot'
           : 'walk'
-        : mood === 'sleeping'
-          ? 'sleep'
-          : state.posture === 'lying'
-            ? 'lie'
-            : state.posture === 'sitting'
-              ? 'sit'
-              : 'stand';
+        : state.posture === 'sitting'
+          ? 'sit'
+          : 'stand';
       if (director) {
         director.setState(body, mood === 'listening');
         if (mood === 'happy' && lastMood !== 'happy') director.gesture('happy');
@@ -644,15 +713,19 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
       }
       lastMood = mood;
       pose.sit = damp(pose.sit, body === 'sit' ? 1 : 0, 3, dt);
-      pose.lie = damp(pose.lie, body === 'lie' || body === 'sleep' ? 1 : 0, 2, dt);
+      pose.lie = 0;
+      const seated = walking ? 0 : pose.sit;
       // Sin un «idle» propio en el modelo, la respiración y la cola las pone el código.
       const lively = !director?.hasIdle;
 
-      // Gestos en reposo: voltear a mirar algo, mover la cola, olfatear.
+      // Gestos en reposo: voltear a mirar algo, mover la cola, olfatear (rascarse solo de vez en cuando).
       if (mood === 'idle' && !walking && t > nextGesture && motion) {
         const roll = Math.random();
-        const gestures = (['scratch', 'shake', 'sniff', 'play'] as ZoeGesture[]).filter((g) => director?.has(g));
-        if (gestures.length && body === 'stand' && roll < 0.3) {
+        const gestures = (['shake', 'sniff', 'play'] as ZoeGesture[]).filter((g) => director?.has(g));
+        if (roll < 0.04 && t - lastScratchTime > 180 && director?.has('scratch') && body === 'stand') {
+          director?.gesture('scratch');
+          lastScratchTime = t;
+        } else if (gestures.length && body === 'stand' && roll < 0.28) {
           director?.gesture(gestures[Math.floor(Math.random() * gestures.length)]);
         } else if (roll < 0.5) {
           look.yaw = range(-0.4, 0.4);
@@ -745,11 +818,17 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
         const asleep = mood === 'sleeping';
         const breath = lively ? Math.sin(t * (asleep ? 0.85 : 1.55)) * (asleep ? 0.03 : 0.016) * motion : 0;
         // La mirada y el ánimo van encima de cualquier clip; el resto solo si el modelo no los trae.
-        turn(rig.chest, breath * 0.7, pose.yaw * 0.22, 0);
-        turn(rig.head, pose.pitch + breath * 0.5, pose.yaw * 0.78, pose.roll);
-        turn(rig.snout, sniffTwitch, 0, 0);
-        // Boca: se abre por sílabas mientras habla, con un ritmo irregular como el del habla real.
-        jawOpen = damp(jawOpen, mood === 'speaking' ? Math.max(0, Math.sin(t * 9.1) * 0.6 + Math.sin(t * 5.3) * 0.4) * 0.32 * motion : 0, 18, dt);
+        // No sumar respiración procedural al sentarse para no tensionar la columna ya flexionada (Punto 2 de Auditoría)
+        const sitRelief = Math.max(0, 1 - (seated || 0));
+        turn(rig.chest, breath * 0.7 * sitRelief, pose.yaw * 0.22 * sitRelief, 0);
+        const isSpeaking = Boolean(state.speaking || mood === 'speaking');
+        const speechNod = isSpeaking ? (Math.sin(t * 8.0) * 0.025 + Math.sin(t * 3.4) * 0.015) * motion : 0.0;
+        turn(rig.head, pose.pitch + breath * 0.5 + speechNod, pose.yaw * 0.78, pose.roll);
+        turn(rig.snout, sniffTwitch + speechNod * 0.8, 0, 0);
+        // Gesticulación del hocico al hablar (el hocico y la barbita modulan ampliamente con las sílabas, el interior y la lengua se quedan totalmente quietos)
+        const speechCadence = Math.max(0, Math.sin(t * 13.5) * 0.55 + Math.sin(t * 7.5) * 0.35 + Math.sin(t * 3.8) * 0.25);
+        const targetJaw = isSpeaking ? speechCadence * 0.46 * motion : 0.0;
+        jawOpen = damp(jawOpen, targetJaw, 30, dt);
         turn(rig.jaw, jawOpen, 0, 0);
         if (lively && !walking) {
           // Cola en cadena: la onda viaja de la base a la punta.
@@ -775,13 +854,12 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
       const jumpP = (t - jumpStart) / JUMP_S;
       const jump = jumpP >= 0 && jumpP < 1 ? Math.sin(jumpP * Math.PI) * 0.2 * motion : 0;
       zoeContainer.position.y = pose.hop + jump;
-      contactMat.opacity = pose.glow;
-      pawLight.intensity = 0.4 + pose.glow * 1.8;
+      contactMat.opacity = Math.min(0.06, pose.glow * 0.18);
+      pawLight.intensity = 0.2 + pose.glow * 0.6;
 
       // Encuadre: «close» acerca la cámara a la cara para la presentación.
       // Sentado o echado ocupa menos alto: la cámara se acerca para que no se vea diminuto.
       const low = walking ? 0 : pose.lie;
-      const seated = walking ? 0 : pose.sit;
       pose.camZ = damp(pose.camZ, state.framing === 'close' ? 1.7 : 3.2 - seated * 0.1 - low * 0.4, 2.5, dt);
       pose.camY = damp(pose.camY, state.framing === 'close' ? 0.28 : 0.02 - seated * 0.06 - low * 0.15, 2.5, dt);
       camera.position.set(0, pose.camY, pose.camZ);
@@ -837,6 +915,55 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
         u.uShine.value = 1 + Math.sin(t * 1.9) * 0.05 + Math.sin(t * 3.1) * 0.03;
       }
 
+      if (t > nextBlink) {
+        blinkStart = t;
+        doubleBlink = Math.random() < 0.22;
+        nextBlink = t + (mood === 'listening' ? range(3.5, 7) : mood === 'thinking' ? range(1.2, 3) : range(2.2, 5.5));
+      }
+      const BLINK = 0.22;
+      const since = t - blinkStart;
+      const pulse = (x: number) => (x >= 0 && x < BLINK ? Math.sin((x / BLINK) * Math.PI) : 0);
+      const blinkVal = Math.max(pulse(since), doubleBlink ? pulse(since - BLINK * 1.5) : 0);
+
+      // ── Gestos faciales orgánicos en la malla 3D de ZOE (Morph Targets) ──
+      if (mainSkinnedMesh?.morphTargetDictionary && mainSkinnedMesh?.morphTargetInfluences) {
+        const dict = mainSkinnedMesh.morphTargetDictionary;
+        const infl = mainSkinnedMesh.morphTargetInfluences;
+
+        // 1. PÁRPADOS: Parpadeo periódico y cierre completo al dormir (Punto 5 de Auditoría: velocidad damp 55)
+        if (dict['blink'] !== undefined) {
+          const targetBlink = mood === 'sleeping' ? 1.0 : blinkVal;
+          infl[dict['blink']] = damp(infl[dict['blink']], targetBlink, 55, dt);
+        }
+
+        // 2. COORDINACIÓN DEL HOCICO:
+        // El interior y la lengua permanecen completamente quietos en reposo dentro de la mandíbula.
+        // Lo que modula al hablar es únicamente el hocico exterior y la mandíbula.
+        const isSpeaking = mood === 'speaking' || Boolean(state.speaking);
+        const isSitting = (state.posture === 'sitting' || seated > 0.4) && !walking;
+
+        // La lengua permanece fija y quieta adentro (sin intermitencia)
+        if (dict['tongue_in'] !== undefined) {
+          infl[dict['tongue_in']] = 0.0;
+        }
+
+        // Modulación amplia del hocico al hablar
+        if (dict['mouth_open'] !== undefined) {
+          const syllable = Math.sin(t * 12.5) * 0.5 + Math.sin(t * 6.8) * 0.35 + Math.sin(t * 3.2) * 0.25;
+          const cadence = Math.sin(t * 1.8) * 0.2 + 0.8;
+          const targetOpen = MOUTH_ANIMATES && isSpeaking
+            ? Math.min(1.0, Math.max(0, syllable * cadence) * 1.35) * motion
+            : 0.0;
+          infl[dict['mouth_open']] = damp(infl[dict['mouth_open']], targetOpen, 32, dt);
+        }
+
+        // Sonrisa amigable
+        if (dict['smile'] !== undefined) {
+          const targetSmile = mood === 'happy' ? 0.85 : (isSitting && !isSpeaking) ? 0.45 : 0.0;
+          infl[dict['smile']] = damp(infl[dict['smile']], targetSmile, 10, dt);
+        }
+      }
+
       // Aparición gradual y paso de alambre a cuerpo sólido.
       pose.wire = damp(pose.wire, state.wire, 2.4, dt);
       if (appearStart >= 0) {
@@ -849,12 +976,16 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
           m.depthWrite = solid > 0.5;
         }
         if (wireMaterial) wireMaterial.opacity = pose.wire * 0.75 * appear;
+        const wireVisible = pose.wire * appear > 0.01;
+        for (const w of wireMeshes) w.visible = wireVisible;
         // El pelo aparece solo con el cuerpo sólido: durante la materialización estorbaría.
         for (const shell of furShells) shell.visible = solid > 0.98;
         if (eyeMaterial) eyeMaterial.uniforms.uOpacity.value = solid;
       }
 
+      const renderStart = performance.now();
       renderer.render(scene, camera);
+      adaptQuality(performance.now() - renderStart);
       for (let i = turned.length - 1; i >= 0; i--) turned[i][0].quaternion.copy(turned[i][1]);
       turned.length = 0;
     };

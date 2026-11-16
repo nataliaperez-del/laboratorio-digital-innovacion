@@ -34,9 +34,9 @@ raíz del dominio o subdominio (p. ej. la carpeta de laboratorio.innovahub360.ne
 │   └── ia.example.php          # Plantilla de credenciales de la IA → copiar como ia.php (Paso 4b)
 │
 ├── includes/                   # Lógica de servidor PHP 8.1+
-│   ├── api.php                 # Endpoints REST para persistencia en MySQL
-│   ├── gemini_proxy.php        # Proxy de la IA institucional UNAD (ruta /api/unad-gemini)
-│   └── observatorio.php        # Radar del Observatorio con caché (ruta /api/observatorio/radar)
+│   ├── lab.php                 # Concentrador de datos, pases de ingreso y límites (ruta /api/lab)
+│   ├── gemini_proxy.php        # Proxy de la IA institucional UNAD (ruta /api/unad-gemini; exige el pase de ingreso)
+│   └── observatorio.php        # Radar del Observatorio con caché (ruta /api/observatorio/radar; exige el pase de ingreso)
 │
 └── database/
     └── schema_laboratorio.sql  # Dump limpio para importar en phpMyAdmin
@@ -119,8 +119,8 @@ $db_pass = 'TuContraseñaSegura';
 
 ### Paso 7: Comprobación del Sistema en Producción
 Visitar en el navegador:
-- `https://tudominio.com/includes/api.php?action=status`
-  - Debe responder: `{"success":true,"sistema":"Laboratorio Digital de Innovación InnovaHub360","php_version":"8.x","db_connected":true}`
+- `https://tudominio.com/api/lab/nada` debe responder `{"error":"Ruta desconocida."}` en JSON (el concentrador está activo). El archivo viejo `includes/api.php` ya no existe: si sigue en el servidor, bórralo.
+- Entrar con una cuenta institucional: la IA y el Radar solo responden a quien ingresó (llevan el pase del ingreso).
 - **IA:** abrir el menú (☰) → botón **IA**. Se verifica solo y debe decir «IA conectada · UNAD». Si dice «La IA no está configurada en el servidor», falta o está incompleto `config/ia.php`; si dice 401/403, las credenciales no son válidas.
 - Navegar por las herramientas (Radar, Estudio, Ideación, Árbol, Prototipado y Banco) y conversar con ZOE.
 
@@ -162,7 +162,8 @@ No hay que importar nada: las tablas del concentrador (`lab_usuarios`, `lab_even
 
 ### Cómo se protege
 - Nada se guarda sin un pase, y el pase solo se entrega a una cuenta que Google confirma, del dominio institucional y emitida para este sitio.
-- Quién es administrador lo decide el servidor con `config/lab.php`, que el empaquetado genera con los correos de `VITE_ADMIN_EMAILS`. Para cambiar los administradores hay que volver a empaquetar o editar ese archivo en el servidor.
+- Quién es administrador lo decide solo el servidor, con la lista `administradores` de `config/lab.php` (o la variable de entorno `LAB_ADMINISTRADORES`, separada por comas). Los correos de los administradores **no están en el código público** de la aplicación: el empaquetado deja esa lista vacía y quien despliega la completa en el servidor. Mientras esté vacía, nadie ve el tablero global ni el botón «Administrar la IA» del menú.
+- La IA (`/api/unad-gemini`) y el Radar exigen el mismo pase que el concentrador, y cada cuenta tiene un tope de solicitudes por hora (IA: 400; eventos: 120; resultados: 120). Los topes están en las constantes `LAB_LIMITE_*` de `includes/lab.php`.
 - El banco de insumos no guarda quién hizo cada pieza. Por ahora solo lo consultan los administradores.
 - Se guardan el nombre y el correo institucional de cada persona: la pantalla de ingreso lo avisa. El texto de ese aviso debe revisarlo el responsable de protección de datos de la institución.
 

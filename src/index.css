@@ -92,9 +92,11 @@
 }
 
 [data-theme="light"] .g {
-  background: linear-gradient(160deg, rgba(255,255,255,0.92), rgba(255,255,255,0.65));
-  border: 1px solid rgba(4,47,60,0.14);
-  box-shadow: inset 0 1px 0 #FFFFFF, 0 18px 40px rgba(4,47,60,0.08);
+  background: linear-gradient(160deg, rgba(255,255,255,0.18), rgba(255,255,255,0.08));
+  border: 1px solid rgba(255,255,255,0.45);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 18px 40px rgba(4,47,60,0.03);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
   color: #042F3C;
 }
 
@@ -108,9 +110,11 @@
 }
 
 [data-theme="light"] .g2 {
-  background: linear-gradient(160deg, rgba(255,255,255,0.88), rgba(255,255,255,0.55));
-  border: 1px solid rgba(4,47,60,0.12);
-  box-shadow: inset 0 1px 0 #FFFFFF;
+  background: linear-gradient(160deg, rgba(255,255,255,0.22), rgba(255,255,255,0.10));
+  border: 1px solid rgba(255,255,255,0.48);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
   color: #042F3C;
 }
 
@@ -148,19 +152,32 @@
    El código escribe los textos pensando en fondo oscuro (text-white, text-white/60, tonos claros de marca);
    en modo claro se oscurecen aquí. Lo que es oscuro en ambos temas (tooltips, galería de insignias,
    barra de diapositivas…) lleva la clase `on-dark` y conserva sus colores claros. */
-[data-theme="light"] :is(h1, h2, h3, h4, .h2):not(.on-dark, .on-dark *) { color: #042F3C !important; }
+/* En tema claro los títulos conservan los colores de la versión oscura (no se sobreescriben a tonos oscuros ni uniformes) */
+[data-theme="light"] :is(h1, h2, h3, h4, .h2):not([style*="color"], [class*="text-[#"], .on-dark, .on-dark *) { color: #042F3C; }
+[data-theme="light"] :is(h1, h2, h3, h4, .h2)[style*="color"] { color: inherit !important; }
 [data-theme="light"] :is(p.bd, .bd):not(.on-dark, .on-dark *) { color: #2B3A45 !important; }
-[data-theme="light"] .text-white:not(.on-dark, .on-dark *) { color: #042F3C !important; }
+[data-theme="light"] .text-white:not(h1, h2, h3, h4, .h2, [class*="title"], [class*="portal-tool-name"], [style*="color"], .on-dark, .on-dark *) { color: #042F3C !important; }
 /* Blanco con transparencia: de más a menos fuerte, para no dejar texto blanco sobre fondo claro. */
 [data-theme="light"] [class*="text-white/"]:not(.on-dark, .on-dark *) { color: rgba(4, 47, 60, 0.82) !important; }
 [data-theme="light"] :is([class*="text-white/2"], [class*="text-white/3"], [class*="text-white/4"], [class*="text-white/5"]):not(.on-dark, .on-dark *) { color: rgba(4, 47, 60, 0.55) !important; }
 [data-theme="light"] [class*="hover:text-white"]:hover:not(.on-dark, .on-dark *) { color: #042F3C !important; }
 
-/* Tonos claros de marca, hechos para fondo oscuro: en claro pasan a su versión oscura (contraste ≥ 4.5). */
-[data-theme="light"] :is(.text-\[\#5EC2DD\], .text-\[\#27DCFF\], .text-\[\#00F5FF\], .text-\[\#9FD4E4\], .text-\[\#6FD3EA\], .text-\[\#A5F3FC\]):not(.on-dark, .on-dark *) { color: #035E73 !important; }
-[data-theme="light"] :is(.text-\[\#A8C63C\], .text-\[\#B8D95A\]):not(.on-dark, .on-dark *) { color: #4F6504 !important; }
-[data-theme="light"] :is(.text-\[\#FFD700\], .text-\[\#F3C26B\], .text-\[\#FFC107\], .text-\[\#FFD23F\]):not(.on-dark, .on-dark *) { color: #7A5200 !important; }
-[data-theme="light"] :is(.text-\[\#A78BFA\], .text-\[\#A98FD6\], .text-\[\#C4B5FD\]):not(.on-dark, .on-dark *) { color: #4A3480 !important; }
+/* Los títulos con colores de marca conservan exactamente el mismo color que la versión oscura */
+[data-theme="light"] :is(h1, h2, h3, h4, .h2, [class*="title"], [class*="heading"], .tool-subtitle):is(
+  .text-\[\#5EC2DD\], .text-\[\#27DCFF\], .text-\[\#00F5FF\], .text-\[\#9FD4E4\], .text-\[\#6FD3EA\], .text-\[\#A5F3FC\],
+  .text-\[\#A8C63C\], .text-\[\#B8D95A\],
+  .text-\[\#FFD700\], .text-\[\#F3C26B\], .text-\[\#FFC107\], .text-\[\#FFD23F\], .text-\[\#F29F05\],
+  .text-\[\#E024A5\],
+  .text-\[\#A78BFA\], .text-\[\#A98FD6\], .text-\[\#C4B5FD\]
+) {
+  color: unset !important;
+}
+
+/* En textos secundarios o párrafos de marca, se asegura contraste adecuado */
+[data-theme="light"] :is(.text-\[\#5EC2DD\], .text-\[\#27DCFF\], .text-\[\#00F5FF\], .text-\[\#9FD4E4\], .text-\[\#6FD3EA\], .text-\[\#A5F3FC\]):not(h1, h2, h3, h4, .h2, [class*="title"], [class*="heading"], .tool-subtitle, .on-dark, .on-dark *) { color: #035E73 !important; }
+[data-theme="light"] :is(.text-\[\#A8C63C\], .text-\[\#B8D95A\]):not(h1, h2, h3, h4, .h2, [class*="title"], [class*="heading"], .tool-subtitle, .on-dark, .on-dark *) { color: #4F6504 !important; }
+[data-theme="light"] :is(.text-\[\#FFD700\], .text-\[\#F3C26B\], .text-\[\#FFC107\], .text-\[\#FFD23F\]):not(h1, h2, h3, h4, .h2, [class*="title"], [class*="heading"], .tool-subtitle, .on-dark, .on-dark *) { color: #7A5200 !important; }
+[data-theme="light"] :is(.text-\[\#A78BFA\], .text-\[\#A98FD6\], .text-\[\#C4B5FD\]):not(h1, h2, h3, h4, .h2, [class*="title"], [class*="heading"], .tool-subtitle, .on-dark, .on-dark *) { color: #4A3480 !important; }
 [data-theme="light"] :is(.text-\[\#CFE0E6\], .text-\[\#B7CBD3\], .text-brand-textSecondary):not(.on-dark, .on-dark *) { color: #2B3A45 !important; }
 [data-theme="light"] :is(.text-\[\#A6C0CA\], .text-\[\#8FB6C4\], .text-brand-textMuted):not(.on-dark, .on-dark *) { color: #4B5A66 !important; }
 
@@ -228,37 +245,79 @@
   color: #EAF4F7;
 }
 
-/* Panel de bienvenida del portal: vidrio oscuro de noche, vidrio claro de día. */
+/* Panel de bienvenida del portal: vidrio translúcido con baja opacidad para que el fondo animado se vea nítidamente */
 [data-theme="light"] .portal-panel {
-  background: radial-gradient(ellipse 95% 90% at 50% 50%, rgba(255, 255, 255, 0.84) 0%, rgba(255, 255, 255, 0.62) 58%, rgba(255, 255, 255, 0.22) 86%, transparent 100%) !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
+  border: 1px solid rgba(255, 255, 255, 0.45) !important;
+  border-radius: 28px !important;
+  box-shadow: 0 16px 40px -12px rgba(4, 47, 60, 0.04), 0 2px 10px rgba(4, 47, 60, 0.02) !important;
 }
 
-/* Halos en Modo Claro */
+[data-theme="light"] .portal-panel .portal-halo,
+[data-theme="light"] .portal-panel .portal-lines {
+  display: none !important;
+}
+
+[data-theme="light"] .portal-panel h1 {
+  filter: none !important;
+  color: #042F3C !important;
+}
+
+[data-theme="light"] .portal-panel .portal-tool-card {
+  background-color: rgba(255, 255, 255, 0.18) !important;
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+  border: 1px solid rgba(255, 255, 255, 0.50) !important;
+  box-shadow: 0 4px 14px rgba(4, 47, 60, 0.02) !important;
+}
+
+[data-theme="light"] .portal-panel .portal-tool-card:hover {
+  background-color: rgba(255, 255, 255, 0.38) !important;
+  border-color: #035E73 !important;
+  box-shadow: 0 8px 24px rgba(3, 94, 115, 0.10) !important;
+}
+
+[data-theme="light"] .portal-panel .portal-bottom-btn {
+  background-color: rgba(255, 255, 255, 0.18) !important;
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+  border-color: rgba(4, 47, 60, 0.14) !important;
+  box-shadow: 0 2px 8px rgba(4, 47, 60, 0.02) !important;
+}
+
+/* Halos en Modo Claro: colores más ricos, vivos y nítidos flotando detrás de los paneles */
 [data-theme="light"] .halo {
-  opacity: 0.45;
-  filter: blur(16px);
+  opacity: 0.75;
+  filter: blur(22px);
 }
 
-/* Patrón de Malla en Modo Claro */
+/* Patrón de Malla en Modo Claro: nítido y visible a través de los paneles translúcidos */
 [data-theme="light"] #vmesh path,
 [data-theme="light"] #vmesh2 path,
 [data-theme="light"] #bannerGrid path {
   stroke: #035E73;
-  stroke-opacity: 0.22;
+  stroke-opacity: 0.42;
+  stroke-width: 1.25;
 }
 
 [data-theme="light"] #vmesh circle,
 [data-theme="light"] #vmesh2 circle,
 [data-theme="light"] #bannerGrid circle {
   fill: #035E73;
-  fill-opacity: 0.3;
+  fill-opacity: 0.48;
 }
 
 /* Controles de Formulario e Inputs en Modo Claro */
 [data-theme="light"] :is(input, textarea, select):not(.on-dark *) {
-  background-color: rgba(255, 255, 255, 0.95) !important;
+  background-color: rgba(255, 255, 255, 0.65) !important;
   color: #042F3C !important;
-  border-color: rgba(4, 47, 60, 0.20) !important;
+  border-color: rgba(4, 47, 60, 0.16) !important;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
 }
 
 [data-theme="light"] :is(input, textarea):not(.on-dark *)::placeholder {
@@ -421,11 +480,27 @@
   --lab-panel: rgba(17, 47, 57, 0.8);
 }
 [data-theme="light"] {
-  --lab-surface: rgba(255, 255, 255, 0.82);
-  --lab-surface-2: rgba(255, 255, 255, 0.92);
-  --lab-border: rgba(4, 47, 60, 0.16);
-  --lab-input: #FFFFFF;
-  --lab-panel: rgba(255, 255, 255, 0.88);
+  --lab-surface: rgba(255, 255, 255, 0.14);
+  --lab-surface-2: rgba(255, 255, 255, 0.18);
+  --lab-border: rgba(4, 47, 60, 0.10);
+  --lab-input: rgba(255, 255, 255, 0.35);
+  --lab-panel: rgba(255, 255, 255, 0.12);
+}
+
+[data-theme="light"] .lab-panel {
+  background: rgba(255, 255, 255, 0.12) !important;
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  border: 1px solid rgba(255, 255, 255, 0.45) !important;
+  box-shadow: 0 8px 32px 0 rgba(4, 47, 60, 0.03);
+}
+
+[data-theme="light"] .lab-card {
+  background: rgba(255, 255, 255, 0.18) !important;
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+  border: 1px solid rgba(255, 255, 255, 0.48) !important;
+  box-shadow: 0 2px 10px 0 rgba(4, 47, 60, 0.02);
 }
 /* Sin backdrop-filter: con 20 o más paneles por módulo, el navegador recalculaba el desenfoque
    de cada uno en cada cuadro del desplazamiento, y eso era lo que trababa el scroll. */
@@ -542,18 +617,18 @@ button.lab-card:hover { border-color: var(--brand-teal-text); }
    La esquina es de la casita de ZOE (ZoeDoghouse: 18 px de margen + 92 px de ancho): la firma
    queda a su izquierda, con aire, y ese espacio se respeta aunque ZOE esté afuera.
    Sin fondo propio, una sombra suave los mantiene legibles cuando el contenido pasa por debajo. */
-:root { --zoe-house-room: 126px; }
-.lab-credits { position: fixed; right: var(--zoe-house-room); bottom: 10px; z-index: 30; display: flex; align-items: center; gap: 12px; pointer-events: none; filter: drop-shadow(0 1px 3px rgba(0, 0, 0, .75)); }
+:root { --zoe-house-room: 97px; }
+.lab-credits { position: fixed; right: var(--zoe-house-room); bottom: 10px; z-index: 30; display: flex; align-items: center; gap: 10px; pointer-events: none; filter: drop-shadow(0 1px 3px rgba(0, 0, 0, .75)); }
 [data-theme="light"] .lab-credits { filter: drop-shadow(0 0 3px rgba(255, 255, 255, .95)); }
 .lab-credits img { pointer-events: auto; }
 /* Los logos son PNG listos para cada tema (unad_emblema_dark/light, viem_logo_dark/light): sin halos ni placas. */
-.lab-credits-unad { height: 40px; width: auto; object-fit: contain; }
-.lab-credits-viem { height: 34px; width: auto; object-fit: contain; }
-.lab-credits-names { margin: 0; text-align: right; font-size: 8.5px; font-style: italic; font-weight: 300; line-height: 1.35; color: var(--text-secondary); white-space: nowrap; }
-.lab-credits-names span { display: block; margin-bottom: 2px; font-size: 6.5px; font-style: normal; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #F29F05; }
+.lab-credits-unad { height: 54px; width: auto; object-fit: contain; }
+.lab-credits-viem { height: 38px; width: auto; object-fit: contain; }
+.lab-credits-names { margin: 0; text-align: right; opacity: .6; font-size: 9.5px; font-style: italic; font-weight: 300; line-height: 1.35; color: var(--text-secondary); white-space: nowrap; }
+.lab-credits-names span { display: block; margin-bottom: 2px; font-size: 7.3px; font-style: normal; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #F29F05; }
 @media (max-width: 767px) {
   /* En celulares la casita mide 70 px con 12 px de margen. */
-  :root { --zoe-house-room: 92px; }
+  :root { --zoe-house-room: 65px; }
 }
 @media (max-width: 767px) {
   /* En celulares la firma va al final de la página, no flotando sobre el contenido: así no tapa campos ni
@@ -561,10 +636,10 @@ button.lab-card:hover { border-color: var(--brand-teal-text); }
   .lab-credits { position: static; justify-content: center; margin-top: 6px; padding: 8px 8px calc(10px + env(safe-area-inset-bottom)) 8px; padding-right: var(--zoe-house-room); pointer-events: auto; filter: none; }
 }
 @media (max-width: 639px) {
-  .lab-credits { bottom: 8px; gap: 8px; }
-  .lab-credits-unad { height: 28px; }
-  .lab-credits-viem { height: 24px; }
-  .lab-credits-names { font-size: 7.5px; }
+  .lab-credits { bottom: 8px; gap: 6px; }
+  .lab-credits-unad { height: 35px; }
+  .lab-credits-viem { height: 25px; }
+  .lab-credits-names { font-size: 8.6px; }
 }
 @media print { .lab-credits { display: none; } }
 
@@ -584,7 +659,7 @@ button.lab-card:hover { border-color: var(--brand-teal-text); }
 .zoe-house-eyes { transform-box: fill-box; transform-origin: center; animation: zoe-house-blink 4.8s infinite; }
 .zoe-house-occupied:hover .zoe-house-eyes { animation: none; transform: scale(1.25); }
 @keyframes zoe-house-blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
-.zoe-house-zzz { position: absolute; right: 8%; top: 4%; color: #9FE8FF; font: 700 12px 'Space Grotesk', sans-serif; pointer-events: none; }
+.zoe-house-zzz { position: absolute; left: 8%; top: 4%; color: #9FE8FF; font: 700 12px 'Space Grotesk', sans-serif; pointer-events: none; }
 .zoe-house-zzz span { position: absolute; opacity: 0; animation: zoe-house-zzz 4s ease-out infinite; }
 .zoe-house-zzz span:nth-child(2) { animation-delay: 2s; font-size: 10px; }
 .zoe-house-occupied:hover .zoe-house-zzz { display: none; }
@@ -744,19 +819,20 @@ button.viz-hbar-row { cursor: pointer; }
 .viz-tip strong { font-size: 13px; color: var(--text-primary); }
 @media (prefers-reduced-motion: reduce) { .viz-hbar, .viz-col { transition: none; } }
 /* Chat flotante con ZOE: para cuando hay ruido o el micrófono falla. Mismo cristal que el globo de ZOE. */
-.zoe-chat { position: fixed; right: 16px; bottom: 16px; z-index: 60; display: flex; flex-direction: column; width: min(360px, calc(100vw - 24px)); max-height: min(70vh, 520px); border-radius: 16px; overflow: hidden; color: var(--text-primary); background: var(--bg-page); border: 1px solid rgba(39, 220, 255, .28); box-shadow: 0 10px 34px rgba(0, 0, 0, .3); }
+.zoe-chat { position: fixed; right: 16px; bottom: 16px; z-index: 60; display: flex; flex-direction: column; width: min(360px, calc(100vw - 24px)); height: min(44vh, 360px); border-radius: 22px; overflow: hidden; color: #EFF6FF; background: rgba(4, 34, 43, .46); -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2); border: 1px solid rgba(39, 220, 255, .28); box-shadow: 0 12px 38px rgba(0, 0, 0, .28), inset 0 1px 0 rgba(255, 255, 255, .08); }
 .zoe-chat-head { display: flex; align-items: center; justify-content: space-between; padding: 9px 12px; font-size: 13px; border-bottom: 1px solid rgba(39, 220, 255, .16); }
 .zoe-chat-tools { display: inline-flex; gap: 6px; }
-.zoe-chat-tools button { display: inline-flex; padding: 4px; border-radius: 8px; color: var(--brand-teal-text); cursor: pointer; }
+.zoe-chat-tools button { display: inline-flex; padding: 4px; border-radius: 8px; color: #7FE6FF; cursor: pointer; }
 .zoe-chat-tools button:hover { background: rgba(39, 220, 255, .12); }
 .zoe-chat-log { flex: 1; min-height: 120px; overflow-y: auto; padding: 10px 12px; display: flex; flex-direction: column; gap: 7px; }
-.zoe-chat-empty { font-size: 12px; color: var(--text-muted); }
+.zoe-chat-empty { font-size: 13px; color: rgba(239, 246, 255, .78); }
 .zoe-msg { max-width: 88%; padding: 7px 11px; border-radius: 14px; font-size: 13px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
-.zoe-msg-user { align-self: flex-end; background: rgba(39, 220, 255, .16); border-bottom-right-radius: 4px; }
-.zoe-msg-zoe { align-self: flex-start; background: rgba(168, 198, 60, .13); border-bottom-left-radius: 4px; }
-.zoe-msg-thinking { font-style: italic; color: var(--text-muted); animation: zoe-breathe 1.2s ease-in-out infinite; }
+.zoe-msg-user { align-self: flex-end; background: rgba(39, 220, 255, .28); border-bottom-right-radius: 6px; }
+.zoe-msg-zoe { align-self: flex-start; background: rgba(255, 255, 255, .13); border-bottom-left-radius: 6px; }
+.zoe-msg-thinking { font-style: italic; color: rgba(239, 246, 255, .7); animation: zoe-breathe 1.2s ease-in-out infinite; }
 .zoe-chat-form { display: flex; gap: 6px; padding: 8px 10px; border-top: 1px solid rgba(39, 220, 255, .16); }
-.zoe-chat-form input { flex: 1; min-width: 0; padding: 7px 11px; border-radius: 999px; font-size: 16px; color: var(--text-primary); background: transparent; border: 1px solid rgba(39, 220, 255, .28); }
+.zoe-chat-form input { flex: 1; min-width: 0; padding: 8px 14px; border-radius: 999px; font-size: 16px; color: #EFF6FF; background: rgba(255, 255, 255, .1); border: 1px solid rgba(39, 220, 255, .34); }
+.zoe-chat-form input::placeholder { color: rgba(239, 246, 255, .6); }
 .zoe-chat-form input:focus-visible { outline: 2px solid #27DCFF; outline-offset: 1px; }
 .zoe-chat-form button { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 999px; color: #04222B; background: #27DCFF; cursor: pointer; }
 .zoe-chat-form button:disabled { opacity: .4; cursor: default; }
@@ -780,6 +856,18 @@ button.viz-hbar-row { cursor: pointer; }
   .zoe-chat { left: 8px; right: 8px; width: auto; bottom: calc(8px + env(safe-area-inset-bottom)); max-height: min(60dvh, 460px); }
   .zoe-caption { max-height: 34dvh; font-size: 12.5px; }
 }
+/* ZOE se sienta sobre el chat con una transición suave, y la casita avisa cuando ZOE duerme. */
+.zoe-stage.zoe-docked { transition: left .5s ease, top .5s ease; }
+.zoe-wake-pop { position: absolute; left: 50%; top: -6px; z-index: 5; transform: translateX(-50%); padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; color: #04222B; background: #F3C26B; box-shadow: 0 4px 14px rgba(0, 0, 0, .35); cursor: pointer; pointer-events: auto; animation: zoe-pop-bob 1.8s ease-in-out infinite; }
+.zoe-wake-pop:hover { background: #FFD98A; }
+.zoe-house-pop { position: absolute; right: 4px; top: 2px; width: 22px; height: 22px; display: grid; place-items: center; border-radius: 999px; font-size: 14px; font-weight: 800; line-height: 1; color: #04222B; background: #F3C26B; box-shadow: 0 3px 10px rgba(0, 0, 0, .35); animation: zoe-pop-bob 1.8s ease-in-out infinite; pointer-events: none; }
+@keyframes zoe-pop-bob { 50% { transform: translateX(-50%) translateY(-3px); } }
+@media (prefers-reduced-motion: reduce) { .zoe-wake-pop, .zoe-house-pop { animation: none; } .zoe-stage.zoe-docked { transition: none; } }
+/* Video de la presentación de ZOE, grande y centrado. */
+.zoe-video-modal { position: fixed; inset: 0; z-index: 95; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(2, 8, 18, .86); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.zoe-video-player { max-width: min(1200px, 100%); max-height: 88vh; width: 100%; border-radius: 16px; background: #000; box-shadow: 0 0 40px rgba(39, 220, 255, .25); }
+.zoe-video-close { position: absolute; right: 16px; top: 14px; display: inline-flex; padding: 8px; border-radius: 999px; color: #EFF6FF; background: rgba(255, 255, 255, .14); cursor: pointer; }
+.zoe-video-close:hover { background: rgba(255, 255, 255, .26); }
 @media (max-height: 520px) {
   /* Celular en horizontal: el chat se pone a un lado y el globo de ZOE es más bajo. */
   .zoe-chat { left: auto; right: 8px; width: min(340px, 52vw); bottom: 8px; max-height: calc(100dvh - 72px); }

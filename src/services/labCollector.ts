@@ -10,6 +10,8 @@
  * - Los eventos se acumulan y salen en lotes; los resultados salen cuando dejan de cambiar.
  * - Nada se envía sin el pase que el servidor entrega tras verificar la cuenta con Google.
  */
+import { clearPass, currentPass, reportPassRejected, storePass, type LabPass } from '@/services/labPass';
+import { ownStudies } from '@/lib/estudioDelBanco';
 import { callAI, parseJsonResponse } from '@/services/ai';
 import { useStore, type AppState } from '@/store/useStore';
 import type { ReportModule } from '@/lib/labReports';
@@ -25,7 +27,6 @@ import {
 import { buildInsumosPrompt, fallbackInsumos, normalizeInsumos, type Insumo, type InsumosSelection, type InsumoType } from '@/lib/labInsumos';
 
 const API = '/api/lab';
-const PASS_KEY = 'lab-pase';
 const QUEUE_KEY = 'lab-cola-eventos';
 const SENT_KEY = 'lab-resultados-enviados';
 const MAX_QUEUE = 400;
@@ -34,13 +35,6 @@ const FLUSH_MS = 30_000;
 /** Un resultado se envía cuando lleva este tiempo sin cambiar: mientras se genera cambia a cada bloque. */
 const RESULT_SETTLE_MS = 20_000;
 const REQUEST_TIMEOUT_MS = 20_000;
-
-interface LabPass {
-  token: string;
-  /** Segundos epoch. */
-  expira: number;
-  admin: boolean;
-}
 
 /** El servidor no tiene concentrador (404 o respuesta que no es suya): no se insiste en esta visita. */
 let unavailable = false;
@@ -64,11 +58,6 @@ function write(key: string, value: unknown): void {
   } catch {
     /* Sin espacio: los datos de esta visita se pierden, el Laboratorio sigue. */
   }
-}
-
-function currentPass(): LabPass | null {
-  const pass = read<LabPass | null>(PASS_KEY, null);
-  return pass && pass.token && pass.expira * 1000 > Date.now() + 60_000 ? pass : null;
 }
 
 /** ¿Hay conexión verificada con el concentrador? */
@@ -96,7 +85,7 @@ async function request<T>(path: string, init: { method?: 'GET' | 'POST'; body?: 
   }
   const data = (await response.json().catch(() => null)) as (T & { error?: string }) | null;
   if (response.status === 401) {
-    localStorage.removeItem(PASS_KEY);
+    reportPassRejected();
     throw new LabUnavailableError(data?.error || 'El pase venció.');
   }
   if (!response.ok || !data) throw new Error(data?.error || `El servidor respondió ${response.status}.`);
@@ -112,7 +101,7 @@ async function request<T>(path: string, init: { method?: 'GET' | 'POST'; body?: 
 export async function openLabSession(accessToken: string, name: string): Promise<void> {
   try {
     const pass = await request<LabPass>('sesion', { method: 'POST', auth: false, body: { access_token: accessToken, nombre: name, consentimiento: true } });
-    write(PASS_KEY, { token: pass.token, expira: pass.expira, admin: pass.admin === true });
+    storePass(pass);
     track('ingreso');
     void flush();
   } catch (e) {
@@ -123,7 +112,7 @@ export async function openLabSession(accessToken: string, name: string): Promise
 /** Al salir: se envía lo pendiente y se olvida el pase. Lo que no alcance a salir se descarta para no atribuirlo a otra cuenta. */
 export function closeLabSession(): void {
   void flush(true).finally(() => {
-    localStorage.removeItem(PASS_KEY);
+    clearPass();
     localStorage.removeItem(QUEUE_KEY);
   });
 }
@@ -244,7 +233,7 @@ function queueResult(result: SavedResult): void {
 
 function savedResults(state: AppState): SavedResult[] {
   return [
-    ...state.savedStudies.map((item) => ({ modulo: 'estudio' as const, item })),
+    ...ownStudies(state.savedStudies).map((item) => ({ modulo: 'estudio' as const, item })),
     ...state.savedIdeations.map((item) => ({ modulo: 'ideacion' as const, item })),
     ...state.savedTrees.map((item) => ({ modulo: 'arbol' as const, item })),
     ...state.prototypes.map((item) => ({ modulo: 'prototipado' as const, item })),

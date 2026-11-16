@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
 import { ArrowRight, Layers, BrainCircuit, Trees, Rocket, Sparkles, FolderArchive, Trophy, Compass } from 'lucide-react';
 import { ToolId } from '../layout/Header';
 import { MODULE_LABELS } from '@/lib/moduleLabels';
@@ -11,51 +11,8 @@ interface PortalCatalogProps {
   onOpenBadges?: () => void;
 }
 
-/** Segundos que se ve cada diapositiva del inicio antes de pasar a la otra. */
-const BANNER_INTERVAL_MS = 22_000;
-
-/** Inicio: presentación del Laboratorio, sus herramientas, el video de ZOE y accesos rápidos. */
+/** Inicio: presentación del Laboratorio, sus herramientas y accesos rápidos. El video de ZOE se abre con su carita. */
 export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOpenZoe, onOpenBadges }) => {
-  // 0: Presentación del LAB, 1: Video Proyección Holográfica de ZOE
-  const [slideIndex, setSlideIndex] = useState<0 | 1>(0);
-  /** Cada vez que alguien elige una diapositiva (incluso la que ya se ve) se vuelve a contar el tiempo. */
-  const [resetCount, setResetCount] = useState(0);
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  const goTo = (next: 0 | 1) => {
-    setSlideIndex(next);
-    setResetCount((n) => n + 1);
-  };
-  const advance = () => {
-    setSlideIndex((prev) => (prev === 0 ? 1 : 0));
-    setResetCount((n) => n + 1);
-  };
-
-  // Alterna entre las dos diapositivas cada 22 segundos, de ida y de vuelta, sin detenerse nunca: cada
-  // cambio programa el siguiente. Si el video termina antes (o falla), se pasa a la presentación enseguida.
-  useEffect(() => {
-    const timer = window.setTimeout(advance, BANNER_INTERVAL_MS);
-    return () => window.clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slideIndex, resetCount]);
-
-  // Manejo de reproducción de video sincronizada con el slide
-  useEffect(() => {
-    if (slideIndex === 1 && videoRef.current) {
-      videoRef.current.currentTime = 0;
-      videoRef.current.play().catch(() => {
-        // Silenciar autoplay si el navegador lo bloquea con sonido
-        if (videoRef.current) {
-          videoRef.current.muted = true;
-          // Si ni silenciado deja reproducir, queda el póster del video: no es un error que mostrar.
-          videoRef.current.play().catch(() => undefined);
-        }
-      });
-    } else if (slideIndex === 0 && videoRef.current) {
-      videoRef.current.pause();
-    }
-  }, [slideIndex]);
-
   const auth = useAuth();
   const allTools = [
     {
@@ -103,11 +60,7 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
           SLIDE 1: PRESENTACIÓN OFICIAL DEL LABORATORIO
           Cubre toda la sección con bordes holográficos desvanecidos hacia el fondo
           ========================================================================= */}
-      <div
-        className={`absolute inset-0 w-full h-full flex flex-col justify-center items-center transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-          slideIndex === 0 ? 'opacity-100 translate-x-0 pointer-events-auto z-10' : 'opacity-0 -translate-x-full pointer-events-none z-0'
-        }`}
-      >
+      <div className="absolute inset-0 w-full h-full flex flex-col justify-center items-center z-10">
         <section
           className="portal-panel relative w-full h-full flex flex-col justify-between p-5 pb-28 sm:p-10 sm:pb-24 md:p-12 md:pb-12 overflow-y-auto overflow-x-hidden md:overflow-hidden"
           style={{
@@ -120,7 +73,7 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
         >
           {/* Halo sutil de luz holográfica central */}
           <div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] pointer-events-none rounded-full opacity-25"
+            className="portal-halo absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] pointer-events-none rounded-full opacity-25"
             style={{
               background: 'radial-gradient(ellipse, rgba(39,220,255,0.35) 0%, rgba(4,34,43,0) 70%)',
             }}
@@ -128,7 +81,7 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
 
           {/* Líneas tenues de holograma que se desvanecen */}
           <div
-            className="absolute inset-0 pointer-events-none opacity-15"
+            className="portal-lines absolute inset-0 pointer-events-none opacity-15"
             style={{
               backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(39,220,255,0.06) 3px, rgba(39,220,255,0.06) 4px)',
             }}
@@ -159,7 +112,7 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
                       key={t.id}
                       type="button"
                       onClick={() => onSelectTool(t.id)}
-                      className="p-4 rounded-2xl bg-white/[0.04] backdrop-blur-md hover:bg-[#27DCFF]/10 transition-all text-left flex flex-col justify-between group cursor-pointer hover:scale-[1.02] shadow-sm hover:shadow-[0_0_20px_rgba(39,220,255,0.25)]"
+                      className="portal-tool-card p-4 rounded-2xl bg-white/[0.04] backdrop-blur-md hover:bg-[#27DCFF]/10 transition-all text-left flex flex-col justify-between group cursor-pointer hover:scale-[1.02] shadow-sm hover:shadow-[0_0_20px_rgba(39,220,255,0.25)]"
                     >
                       <div className="flex items-center justify-between mb-2.5">
                         <div
@@ -174,7 +127,7 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
                         <ArrowRight className="w-4 h-4 text-white/40 group-hover:text-[#27DCFF] group-hover:translate-x-1 transition-all" />
                       </div>
                       <div>
-                        <span className="text-base font-bold text-white sy group-hover:text-[#5EC2DD] transition-colors block">{t.name}</span>
+                        <span className="portal-tool-name text-base font-bold sy block transition-colors" style={{ color: t.color }}>{t.name}</span>
                         <span className="text-xs text-[#A6C0CA] block mt-1 leading-snug">{t.desc}</span>
                       </div>
                     </button>
@@ -189,7 +142,7 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
             <button
               type="button"
               onClick={onOpenBadges}
-              className="px-4 py-2 rounded-full bg-white/5 backdrop-blur-md text-xs font-semibold text-[#FFD700] border border-[#FFD700]/30 hover:bg-[#FFD700]/15 flex items-center gap-2 cursor-pointer transition-all shadow-sm"
+              className="portal-bottom-btn px-4 py-2 rounded-full bg-white/5 backdrop-blur-md text-xs font-semibold text-[#FFD700] border border-[#FFD700]/30 hover:bg-[#FFD700]/15 flex items-center gap-2 cursor-pointer transition-all shadow-sm"
               title="Abrir Vitrina de Insignias y Logros"
             >
               <Trophy className="w-3.5 h-3.5 text-[#FFD700]" />
@@ -201,7 +154,7 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
               <button
                 type="button"
                 onClick={() => onOpenZoe('Muéstrame el laboratorio')}
-                className="px-4 py-2.5 rounded-full bg-white/5 backdrop-blur-md text-xs font-semibold text-[#A8C63C] border border-[#A8C63C]/40 hover:bg-[#A8C63C]/15 flex items-center gap-2 cursor-pointer transition-all shadow-sm"
+                className="portal-bottom-btn px-4 py-2.5 rounded-full bg-white/5 backdrop-blur-md text-xs font-semibold text-[#A8C63C] border border-[#A8C63C]/40 hover:bg-[#A8C63C]/15 flex items-center gap-2 cursor-pointer transition-all shadow-sm"
               >
                 <Compass className="w-3.5 h-3.5 text-[#A8C63C]" aria-hidden="true" />
                 <span>Recorrido guiado con ZOE</span>
@@ -209,7 +162,7 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
               <button
                 type="button"
                 onClick={() => onOpenZoe()}
-                className="px-4 py-2.5 rounded-full bg-white/5 backdrop-blur-md text-xs font-semibold text-[#27DCFF] border border-[#27DCFF]/40 hover:bg-[#27DCFF]/15 flex items-center gap-2 cursor-pointer transition-all shadow-sm"
+                className="portal-bottom-btn px-4 py-2.5 rounded-full bg-white/5 backdrop-blur-md text-xs font-semibold text-[#27DCFF] border border-[#27DCFF]/40 hover:bg-[#27DCFF]/15 flex items-center gap-2 cursor-pointer transition-all shadow-sm"
               >
                 <Sparkles className="w-3.5 h-3.5 text-[#27DCFF]" />
                 <span>Hablar con ZOE</span>
@@ -219,75 +172,6 @@ export const PortalCatalog: React.FC<PortalCatalogProps> = ({ onSelectTool, onOp
         </section>
       </div>
 
-      {/* =========================================================================
-          SLIDE 2: VIDEO DE ZOE (Proyección Holográfica Flotante a Pantalla Completa)
-          Cubre toda la pantalla con bordes desvanecidos hacia el espacio exterior
-          ========================================================================= */}
-      <div
-        className={`absolute inset-0 w-full h-full flex flex-col justify-center items-center transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-          slideIndex === 1 ? 'opacity-100 translate-x-0 pointer-events-auto z-10' : 'opacity-0 translate-x-full pointer-events-none z-0'
-        }`}
-      >
-        <section
-          className="relative w-full h-full flex items-center justify-center p-2 sm:p-4 overflow-hidden"
-          style={{
-            // Desvanecimiento suave en los bordes para eliminar cualquier línea dura o borde tosco
-            background: 'radial-gradient(ellipse 95% 90% at 50% 50%, rgba(4, 34, 43, 0.70) 0%, rgba(2, 20, 26, 0.50) 65%, transparent 100%)',
-            WebkitMaskImage: 'radial-gradient(ellipse 98% 95% at 50% 50%, black 80%, transparent 100%)',
-            maskImage: 'radial-gradient(ellipse 98% 95% at 50% 50%, black 80%, transparent 100%)',
-          }}
-        >
-          {/* Contenedor del Video a pantalla completa dentro de la sección sin barras invasivas */}
-          <div className="relative z-20 w-full h-full flex items-center justify-center my-auto overflow-hidden">
-            {/* Scanlines holográficas muy sutiles sobre el video */}
-            <div
-              className="absolute inset-0 pointer-events-none opacity-15 z-30"
-              style={{
-                backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(39,220,255,0.05) 3px, rgba(39,220,255,0.05) 4px)',
-              }}
-            />
-
-            <video
-              ref={videoRef}
-              src="/assets/zoe/zoe_presentation.mp4"
-              controls
-              playsInline
-              // Si el video termina o falla, vuelve a la presentación; solo si el video es el que se ve.
-              onEnded={() => slideIndex === 1 && goTo(0)}
-              onError={() => slideIndex === 1 && goTo(0)}
-              className="w-full h-full max-h-[85vh] object-contain drop-shadow-[0_0_30px_rgba(39,220,255,0.25)]"
-              title="Proyección Holográfica Oficial de ZOE"
-            >
-              Tu navegador no soporta reproducción de video.
-            </video>
-          </div>
-        </section>
-      </div>
-
-      {/* =========================================================================
-          CONTROLES DE PAGINACIÓN: ÚNICAMENTE LOS PUNTOS PARA AVANZAR Y RETROCEDER
-          Alternan con animación cada 22 segundos o al hacer clic
-          ========================================================================= */}
-      <div className="on-dark absolute bottom-2.5 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-black/45 backdrop-blur-md border border-white/10 shadow-[0_4px_16px_rgba(0,0,0,0.5)]">
-        <button
-          type="button"
-          onClick={() => goTo(0)}
-          className={`transition-all rounded-full cursor-pointer ${
-            slideIndex === 0 ? 'w-7 h-2.5 bg-[#27DCFF] shadow-[0_0_12px_#27DCFF]' : 'w-2.5 h-2.5 bg-white/30 hover:bg-white/60'
-          }`}
-          title="Diapositiva 1: Presentación del Laboratorio"
-          aria-label="Ir a presentación"
-        />
-        <button
-          type="button"
-          onClick={() => goTo(1)}
-          className={`transition-all rounded-full cursor-pointer ${
-            slideIndex === 1 ? 'w-7 h-2.5 bg-[#27DCFF] shadow-[0_0_12px_#27DCFF]' : 'w-2.5 h-2.5 bg-white/30 hover:bg-white/60'
-          }`}
-          title="Diapositiva 2: Video Proyección de ZOE"
-          aria-label="Ir a video"
-        />
-      </div>
     </div>
   );
 };

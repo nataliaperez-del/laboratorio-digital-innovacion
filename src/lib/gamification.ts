@@ -1,3 +1,4 @@
+import { ownStudies } from '@/lib/estudioDelBanco';
 import { Compass, BrainCircuit, Trees, Rocket, FolderArchive, Sparkles, Award, Crown, type LucideIcon } from 'lucide-react';
 import type { AppState } from '@/store/useStore';
 
@@ -75,7 +76,7 @@ export const INNOVATION_BADGES: BadgeDefinition[] = [
     id: 'vinculo_cognitivo',
     title: 'Vínculo Cognitivo',
     subtitle: 'Interacción con ZOE 3D',
-    description: 'Activó o consultó estrategias con ZOE, la asistente holográfica del laboratorio.',
+    description: 'Activó o consultó estrategias con ZOE, el asistente holográfico del laboratorio.',
     howToUnlock: 'Abre el asistente ZOE e interactúa con su presencia 3D.',
     category: 'ZOE',
     color: '#27DCFF',
@@ -169,9 +170,11 @@ export function evaluateGamification(state: {
   zoeInteractions?: number;
 }): GamificationState {
   const unlocked = new Set<string>();
+  // Los estudios del banco inicial vienen de fábrica: no cuentan como trabajo de la persona.
+  const savedStudies = ownStudies(state.savedStudies);
 
   // 1. Pionero Territorial
-  if ((state.containerData && state.containerData.trim().length > 100) || (state.savedStudies && state.savedStudies.length > 0)) {
+  if ((state.containerData && state.containerData.trim().length > 100) || savedStudies.length > 0) {
     unlocked.add('pionero_territorial');
   }
 
@@ -192,7 +195,7 @@ export function evaluateGamification(state: {
 
   // 5. Custodio del Conocimiento
   const totalSaved =
-    (state.savedStudies?.length || 0) + (state.savedIdeations?.length || 0) + (state.savedTrees?.length || 0) + (state.prototypes?.length || 0);
+    savedStudies.length + (state.savedIdeations?.length || 0) + (state.savedTrees?.length || 0) + (state.prototypes?.length || 0);
   if (totalSaved > 0) {
     unlocked.add('custodio_conocimiento');
   }

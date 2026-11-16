@@ -11,6 +11,9 @@ declare(strict_types=1);
  * Laboratorio nunca presenta datos inventados como resultado de IA.
  *
  * Credenciales: variables de entorno o config/ia.php (ver config/ia.example.php).
+ *
+ * Seguridad: solo atiende a quien trae el pase del Laboratorio (encabezado X-Lab-Token, el mismo
+ * del concentrador de datos) y limita las solicitudes por cuenta y por hora.
  */
 
 header('Content-Type: application/json; charset=utf-8');
@@ -25,6 +28,17 @@ function responder(int $codigo, array $cuerpo): void
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     responder(405, ['error' => 'Método no permitido. Use POST.']);
+}
+
+// Sin pase válido no hay IA: antes de leer nada de la solicitud.
+define('LAB_SOLO_FUNCIONES', true);
+try {
+    require_once __DIR__ . '/lab.php';
+    $usuario_lab = lab_usuario();
+    lab_limitar($usuario_lab['id'], 'ia', LAB_LIMITE_IA_HORA);
+} catch (Throwable $e) {
+    error_log('[Laboratorio · IA] ' . $e->getMessage());
+    responder(503, ['error' => 'No se pudo verificar tu ingreso: el servicio de acceso no está disponible. Intenta de nuevo en un momento.']);
 }
 
 $entrada = json_decode((string) file_get_contents('php://input'), true);

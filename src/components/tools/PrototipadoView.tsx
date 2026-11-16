@@ -30,6 +30,8 @@ import {
   ToolHeader,
   type ProgressState,
 } from '@/components/lab/common';
+import { CopyButton, ResultToolbar } from '@/components/lab/ReviewActions';
+import { planPatchFromText, planToCopyText, planToEditText } from '@/lib/reviewEdit';
 import { ObservatorioPicker } from '@/components/lab/ObservatorioPicker';
 import { RadarTrends } from '@/components/lab/RadarTrends';
 import type { ToolId } from '@/components/layout/Header';
@@ -201,6 +203,7 @@ export const PrototipadoView: React.FC<Props> = ({ onNavigate }) => {
     removePrototype,
     activePrototypeId,
     clearPrototipado,
+    updatePrototype,
   } = useStore();
   const offline = useAiOffline();
   const formRef = useRef<HTMLElement>(null);
@@ -529,6 +532,16 @@ export const PrototipadoView: React.FC<Props> = ({ onNavigate }) => {
               </button>
             </div>
           </header>
+          <div className="space-y-2">
+            <ResultToolbar
+              noun={`el plan «${active.name}»`}
+              text={planToEditText(active)}
+              disabled={busy}
+              hint="Escribe cada dato después de su etiqueta; en Entregables, Métricas y Supuestos, un renglón por cada uno, empezando con un guion (-)."
+              onSave={(text) => updatePrototype(active.id, planPatchFromText(text))}
+            />
+            <CopyButton small={false} label="Copiar el plan completo" getText={() => planToCopyText(active)} />
+          </div>
           <PlanView plan={active} />
         </article>
       )}

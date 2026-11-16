@@ -18,7 +18,7 @@ const hasPhp = (() => {
   }
 })();
 
-const PORT = 8137;
+const PORT = 8140 + Math.floor(Math.random() * 50);
 const BASE = `http://127.0.0.1:${PORT}/api/lab`;
 let server: ChildProcess | undefined;
 let folder = '';
@@ -145,6 +145,28 @@ describe.skipIf(!hasPhp)('concentrador de datos (PHP)', () => {
     expect(JSON.stringify(bank)).not.toMatch(/ana@unad|Ana Pérez/);
     expect((await call('insumos?tipo=brecha', { token: admin })).data.total).toBe(0);
   });
+
+  it('la IA y el Radar solo atienden a quien trae el pase', async () => {
+    const SITE = `http://127.0.0.1:${PORT}`;
+    const ia = (token?: string, body: unknown = {}) =>
+      fetch(`${SITE}/api/unad-gemini`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...(token ? { 'X-Lab-Token': token } : {}) }, body: JSON.stringify(body) });
+    // Sin pase y con un pase alterado: se rechaza antes de mirar la solicitud.
+    expect((await ia()).status).toBe(401);
+    expect((await ia(`${user}x`)).status).toBe(401);
+    // Con pase pasa la puerta: el cuerpo vacío ya se rechaza por su formato (400), no por falta de ingreso.
+    expect((await ia(user)).status).toBe(400);
+    const radar = await fetch(`${SITE}/api/observatorio/radar`);
+    expect(radar.status).toBe(401);
+    expect((await radar.json()).error).toMatch(/pase/i);
+  });
+
+  it('cada cuenta tiene un tope de solicitudes por hora y las demás no se ven afectadas', async () => {
+    const abusiva = (await signIn('abusiva@unad.edu.co')).token;
+    let ultimo = 0;
+    for (let i = 0; i < 121; i++) ultimo = (await call('eventos', { token: abusiva, body: { eventos: [] } })).status;
+    expect(ultimo).toBe(429);
+    expect((await call('eventos', { token: user, body: { eventos: [] } })).status).toBe(200);
+  }, 15000);
 
   it('los datos de todos son solo para administradores', async () => {
     for (const route of ['tablero', 'resultados', 'resultado?id=1', 'insumos']) expect((await call(route, { token: user })).status, route).toBe(403);

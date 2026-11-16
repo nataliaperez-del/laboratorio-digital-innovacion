@@ -10,6 +10,7 @@ import { arbolReport } from '@/lib/labReports';
 import { MODULE_LABELS } from '@/lib/moduleLabels';
 import { INNOVATION_TREE_PARTS } from '@/prompts/themeAndInnovationPrompts';
 import { Disclosure, RichDocument } from '@/components/lab/RichDocument';
+import { nodePatchFromText, nodeToText } from '@/lib/reviewEdit';
 import {
   BancoStatus,
   ClearButton,
@@ -24,6 +25,7 @@ import {
   type ProgressState,
   OfflineNotice,
 } from '@/components/lab/common';
+import { ResultToolbar, SectionsWorkbench } from '@/components/lab/ReviewActions';
 import { ObservatorioPicker } from '@/components/lab/ObservatorioPicker';
 import { RadarTrends } from '@/components/lab/RadarTrends';
 import type { ToolId } from '@/components/layout/Header';
@@ -121,12 +123,14 @@ const NodeLinks: React.FC<{ label: string; codes: string[]; graph: TreeGraph; on
     </div>
   ) : null;
 
-const NodePanel: React.FC<{ node: TreeNode | null; graph: TreeGraph; onSelect: (c: string) => void; onPrototype: (n: TreeNode) => void }> = ({
-  node,
-  graph,
-  onSelect,
-  onPrototype,
-}) => {
+const NodePanel: React.FC<{
+  node: TreeNode | null;
+  graph: TreeGraph;
+  onSelect: (c: string) => void;
+  onPrototype: (n: TreeNode) => void;
+  onEdit: (codigo: string, patch: ReturnType<typeof nodePatchFromText>) => void;
+  onDelete: (codigo: string) => void;
+}> = ({ node, graph, onSelect, onPrototype, onEdit, onDelete }) => {
   if (!node) {
     return (
       <div className="space-y-3">
@@ -182,6 +186,13 @@ const NodePanel: React.FC<{ node: TreeNode | null; graph: TreeGraph; onSelect: (
           <span>{node.alertas.join(' · ')}</span>
         </div>
       )}
+      <ResultToolbar
+        noun={`el nodo «${node.nombre}»`}
+        text={nodeToText(node)}
+        hint="Escribe cada dato después de su etiqueta (Nombre:, Descripción:, Solución:, Impacto esperado:)."
+        onSave={(text) => onEdit(node.codigo, nodePatchFromText(text))}
+        onDelete={() => onDelete(node.codigo)}
+      />
       <NodeLinks label="Deriva de" codes={node.deriva_de} graph={graph} onSelect={onSelect} />
       <NodeLinks label="De aquí derivan" codes={node.derivan} graph={graph} onSelect={onSelect} />
       {(node.nivel === 'fruto' || node.nivel === 'hoja') && (
@@ -254,6 +265,9 @@ export const ArbolInnovacionView: React.FC<Props> = ({ onNavigate }) => {
     setTreeResult,
     setPrototypeSeed,
     clearArbol,
+    updateTreeNode,
+    removeTreeNode,
+    replaceTreeSection,
   } = useStore();
   const inBank = useStore((st) => st.savedTrees.some((entry) => entry.id === st.bankIds.arbol));
 
@@ -512,7 +526,17 @@ export const ArbolInnovacionView: React.FC<Props> = ({ onNavigate }) => {
             <div className="grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-5 items-start">
               <TreeCanvas graph={treeGraph} selected={selected} filter={filter} onSelect={setSelected} />
               <aside className="lab-panel xl:sticky xl:top-4 xl:max-h-[90vh] xl:overflow-y-auto" aria-live="polite">
-                <NodePanel node={selectedNode} graph={treeGraph} onSelect={setSelected} onPrototype={toPrototype} />
+                <NodePanel
+                  node={selectedNode}
+                  graph={treeGraph}
+                  onSelect={setSelected}
+                  onPrototype={toPrototype}
+                  onEdit={updateTreeNode}
+                  onDelete={(codigo) => {
+                    removeTreeNode(codigo);
+                    setSelected(null);
+                  }}
+                />
               </aside>
             </div>
           ) : (
@@ -525,6 +549,15 @@ export const ArbolInnovacionView: React.FC<Props> = ({ onNavigate }) => {
               }}
             />
           )}
+
+          <SectionsWorkbench
+            sections={innovationTreeSections}
+            disabled={busy}
+            onReplace={(i, next) => replaceTreeSection(i, { ...next, status: next.markdown.trim() ? 'ok' : 'failed' })}
+            onClearSection={(i, sec) =>
+              replaceTreeSection(i, { ...sec, markdown: '', status: 'failed', issue: 'El grupo borró esta parte. Usa «Rehacer» si la necesitan de nuevo.' })
+            }
+          />
 
           <SectionReview
             title="Revisión automática"

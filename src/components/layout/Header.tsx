@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { AiSettings } from '@/components/lab/AiSettings';
-import { Sparkles, Sun, Moon, Layers, Compass, Trees, BrainCircuit, Rocket, Menu, X, Home, FolderArchive, Trophy, Radar } from 'lucide-react';
+import { Sparkles, Sun, Moon, Layers, Compass, Trees, BrainCircuit, Rocket, Menu, X, Home, FolderArchive, Trophy, Radar, ShieldCheck } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { evaluateGamification, INNOVATION_BADGES } from '@/lib/gamification';
 import { MODULE_LABELS } from '@/lib/moduleLabels';
 import { AiStatusDot } from './AiStatusDot';
 import { endSession, useAuth } from '@/components/auth/AuthGate';
+import { isAuthDisabled } from '@/services/auth';
 
 /** Identificador de cada pantalla del Laboratorio. */
 export type ToolId = 'portal' | 'radar' | 'estudio' | 'ideacion' | 'arbol' | 'prototipado' | 'banco';
@@ -235,6 +236,19 @@ export const Header: React.FC<HeaderProps> = ({ currentTool, onSelectTool, theme
                       Cerrar sesión
                     </button>
                   </div>
+                )}
+
+                {/* Panel de administración de la IA: solo lo ve quien el servidor reconoce como administrador */}
+                {auth.signedIn && auth.role === 'admin' && !isAuthDisabled() && (
+                  <a
+                    href="/admin/"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white text-xs font-semibold transition-all cursor-pointer"
+                    title="Abre el panel de administración de la IA"
+                  >
+                    <ShieldCheck className="w-4 h-4 text-[#27DCFF]" />
+                    Administrar la IA
+                  </a>
                 )}
 
                 {/* 0. Insignias de Innovación */}

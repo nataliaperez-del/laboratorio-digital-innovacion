@@ -48,6 +48,9 @@ hostinger_deploy/assets/badges_original_backup/
 .vercel
 .env*
 !.env.example
+__pycache__/
+*.blend1
+.claude/
 
 # Resultados de pruebas de carga y del recorrido automático
 resultados-pruebas/

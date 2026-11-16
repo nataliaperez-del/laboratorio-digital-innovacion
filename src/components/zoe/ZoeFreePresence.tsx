@@ -1,10 +1,33 @@
 import { varyClosing } from '@/lib/zoeClosings';
+import {
+  pickComeOutGreeting,
+  pickInitialGreeting,
+  pickReadyYes,
+  pickReadyNo,
+} from '@/lib/zoeGreetings';
 import React, { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Compass, Dog, Footprints, Globe, Heart, House, MessageSquare, Mic, Moon, Volume2, VolumeX, X } from 'lucide-react';
+import { Compass, Dog, House, MessageSquare, Mic, Volume2, VolumeX, X } from 'lucide-react';
 import type { ZoeSoulState, ZoeTrick } from './ZoeCanvas3D';
 import { splitSentences, useZoeVoice, type ZoeListenFailure } from './useZoeVoice';
-import { doghouseDoor, ZoeDoghouse } from './ZoeDoghouse';
+import { DOGHOUSE, doghouseDoor, ZoeDoghouse } from './ZoeDoghouse';
 import { ZoeChat, type ZoeChatMessage } from './ZoeChat';
+import { ZoeVideoModal } from './ZoeVideoModal';
+import {
+  CONFIRM_NO,
+  CONFIRM_QUESTIONS,
+  CONFIRM_YES,
+  isTallerCommand,
+  parseTallerReply,
+  reviewPrompt,
+  TALLER_CLOSING,
+  TALLER_PHASES,
+  TALLER_START_QUESTION,
+  TALLER_STOP,
+  TALLER_WELCOME,
+  timeReminder,
+  type TallerReply,
+  type TallerStage,
+} from '@/lib/zoeTaller';
 import { splitBarks } from '@/lib/zoeBark';
 import type { ToolId } from '../layout/Header';
 import { askZoe, currentWork } from '@/services/zoeAi';
@@ -81,14 +104,14 @@ const STAGE = {
 };
 const POSITION_KEY = 'innovahub_zoe_pos_v2';
 /** Alto de la franja de la firma y la casita, abajo a la derecha. */
-const CORNER_HEIGHT = 64;
+const CORNER_HEIGHT = Math.max(64, DOGHOUSE.height + DOGHOUSE.margin);
 /** Las patas de ZOE quedan casi al pie de su escenario. */
 const FEET = 0.97;
 /** Dónde queda el hocico cuando ZOE mira de lado: fracción del ancho y del alto del escenario. */
 const SNOUT_X = 0.8;
 const SNOUT_Y = 0.4;
-const WALK_SPEED = 90; // píxeles por segundo; acorde al tamaño, para que las patas no parezcan patinar
-const TROT_SPEED = 230;
+const WALK_SPEED = 150; // píxeles por segundo; paso alegre y fluido sincronizado con el ciclo de caminata
+const TROT_SPEED = 280;
 /** Desde esta distancia va al trote: caminando, cruzar la pantalla tomaría demasiado. */
 const TROT_FROM = 320;
 /** Lo más que una acción espera a que ZOE llegue junto al control. */
@@ -138,6 +161,7 @@ const MOVE_LINES: Record<ZoeMove, string[]> = {
   jump: ['¡Hop!', '¡Un salto de emoción!'],
   wag: ['¡Mira cómo muevo la cola!', 'La cola no me deja mentir: estoy feliz.'],
   bow: ['Te hago una reverencia, como buen anfitrión.', '¡A tus órdenes, con reverencia y todo!'],
+  scratch: ['¡Uff, justo ahí me picaba la orejita!', '¡Qué alivio rascarse un ratito!'],
   still: ['Quieto como estatua.', 'Me quedo quieto aquí.'],
 };
 
@@ -370,6 +394,7 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
   const tourRef = useRef<{ step: number } | null>(null);
   const tourRun = useRef(0);
   const [touring, setTouring] = useState(false);
+  const [videoOpen, setVideoOpen] = useState(false);
 
   const [position, setPosition] = useState(initialPosition);
   const positionRef = useRef(position);
@@ -391,12 +416,12 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
    * Camina hasta un punto. `free`: sin los márgenes de siempre, para llegar hasta la puerta de la
    * casita. `speed`: para llegar rápido a un botón sin que la conversación espere.
    */
+  /** Camina hasta un punto. `free`: sin los márgenes de siempre. Solo trota si se le pide velocidad expresa. */
   const walkTo = useCallback((x: number, y: number, free = false, speed?: number) => {
     return new Promise<void>((resolve) => {
       walkTarget.current = free ? { x, y } : clampPosition(x, y);
-      const { x: fromX, y: fromY } = positionRef.current;
-      const trot = speed ? speed > WALK_SPEED * 1.5 : Math.hypot(walkTarget.current.x - fromX, walkTarget.current.y - fromY) > TROT_FROM;
-      speedRef.current = speed ?? (trot ? TROT_SPEED : WALK_SPEED);
+      const trot = speed ? speed > WALK_SPEED * 1.5 : false;
+      speedRef.current = speed ?? WALK_SPEED;
       setTrotting(trot);
       onArrive.current = resolve;
       setIsWalking(true);
@@ -429,53 +454,39 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
     setFacing(0);
   }, []);
 
-  /** Se levanta, busca un sitio olfateando, da unas vueltas, se echa y duerme un momento. */
+  /** Paseo amigable en vez de acostarse forzadamente: pasea por el espacio, olfatea y se sienta o se rasca. */
   const nap = useCallback(async () => {
     stopRoutine();
     const id = routine.current;
     const alive = () => id === routine.current;
-    setNapping(true);
     setBehavior('idle');
     setPosture('standing');
-    await pause(900);
+    await pause(600);
     if (!alive()) return;
     const from = positionRef.current;
     const spot = findQuietSpot(from.x);
-    await walkTo((from.x + spot.x) / 2, (from.y + spot.y) / 2);
-    if (!alive()) return;
-    setPetCounter((n) => n + 1); // El olfateo.
-    await pause(1500);
-    if (!alive()) return;
     await walkTo(spot.x, spot.y);
-    if (!alive()) return;
-    // Como todo perro, da un par de pasos sobre el sitio antes de echarse.
-    const side = spot.x > window.innerWidth / 2 ? -1 : 1;
-    await walkTo(spot.x + side * 34, spot.y);
-    if (!alive()) return;
-    await walkTo(spot.x, spot.y);
-    if (!alive()) return;
-    setPosture('lying');
-    await pause(2200);
-    if (!alive()) return;
-    setBehavior('sleeping');
-    await pause(30000 + Math.random() * 25000);
-    if (!alive()) return;
-    setBehavior('idle');
-    await pause(1200);
     if (!alive()) return;
     setPosture('sitting');
-    setNapping(false);
-  }, [stopRoutine, walkTo]);
+    await pause(400);
+    if (!alive()) return;
+    if (Math.random() < 0.06) {
+      playTrick('scratch');
+    } else {
+      playTrick('wag');
+    }
+  }, [playTrick, stopRoutine, walkTo]);
 
-  /** Camina hasta otro punto del piso y se queda ahí, casi siempre sentado. */
+  /** Camina hasta otro punto cercano paso a paso sin alejarse de más y se queda ahí sentado. */
   const stroll = useCallback(async () => {
     stopRoutine();
     const id = routine.current;
     const { x, y } = positionRef.current;
-    const span = Math.max(240, window.innerWidth * 0.3) * (0.5 + Math.random() * 0.5);
+    // Recorrido libre y visible a través de la pantalla con pasos activos de sus patitas
+    const span = 160 + Math.random() * 160;
     setPosture('standing');
     await walkTo(x + (x > window.innerWidth / 2 ? -span : span), y);
-    if (id === routine.current) setPosture(Math.random() < 0.7 ? 'sitting' : 'standing');
+    if (id === routine.current) setPosture(Math.random() < 0.6 ? 'sitting' : 'standing');
   }, [stopRoutine, walkTo]);
 
   /** «Ven»: llega al frente y al centro de la pantalla, se sienta y mueve la cola. */
@@ -560,7 +571,13 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
   const showCaption = useCallback((text: string, ms?: number) => {
     window.clearTimeout(captionTimer.current);
     setCaption(text);
-    if (ms) captionTimer.current = window.setTimeout(() => setCaption(null), ms);
+    setBehavior((b) => (b === 'idle' ? 'speaking' : b));
+    if (ms) {
+      captionTimer.current = window.setTimeout(() => {
+        setCaption(null);
+        setBehavior((b) => (b === 'speaking' ? 'idle' : b));
+      }, ms);
+    }
   }, []);
 
   // ── La conversación: escuchar → pensar → hablar → volver a escuchar ──
@@ -865,6 +882,157 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
     [endTour, remember, runTourStep, say, startTalking],
   );
 
+  // ── Modo «Taller de innovación» ──
+  const tallerRef = useRef<{ step: number; stage: TallerStage } | null>(null);
+  const tallerRun = useRef(0);
+  const tallerTimers = useRef<number[]>([]);
+  const [tallerState, setTallerState] = useState<{ step: number; stage: TallerStage } | null>(null);
+
+  const setTallerStage = useCallback((stage: TallerStage) => {
+    if (!tallerRef.current) return;
+    tallerRef.current = { ...tallerRef.current, stage };
+    setTallerState(tallerRef.current);
+  }, []);
+
+  const endTaller = useCallback(() => {
+    tallerRun.current += 1;
+    tallerRef.current = null;
+    setTallerState(null);
+    tallerTimers.current.forEach((t) => window.clearTimeout(t));
+    tallerTimers.current = [];
+  }, []);
+
+  /** Dice una frase del taller y, si el modo sigue activo, vuelve a escuchar. */
+  const tallerSay = useCallback(
+    async (line: string, run: number) => {
+      remember(null, line);
+      await sayAndWait(line);
+      if (run === tallerRun.current) afterSpeech(voice.canListen);
+    },
+    [afterSpeech, remember, sayAndWait, voice.canListen],
+  );
+
+  const runTallerPhase = useCallback(
+    async (step: number) => {
+      const phase = TALLER_PHASES[step];
+      if (!phase) return;
+      const run = ++tallerRun.current;
+      tallerTimers.current.forEach((t) => window.clearTimeout(t));
+      tallerTimers.current = [];
+      tallerRef.current = { step, stage: 'working' };
+      setTallerState(tallerRef.current);
+      startTalking();
+      voice.stopListening();
+      readyAsked.current = false;
+      wake();
+      setPosture('standing');
+      if (toolRef.current !== phase.tool) {
+        onSelectTool(phase.tool);
+        await pause(900); // Que la pantalla nueva alcance a dibujarse.
+        if (run !== tallerRun.current) return;
+      }
+      window.scrollTo({ top: 0, behavior: reduceMotion() ? 'auto' : 'smooth' });
+      // Aviso de tiempo a tres minutos del final de la fase, si el grupo sigue trabajando.
+      if (phase.minutes > 3) {
+        tallerTimers.current.push(
+          window.setTimeout(() => {
+            const cur = tallerRef.current;
+            if (run === tallerRun.current && cur?.step === step && cur.stage === 'working') void tallerSay(timeReminder(phase, 3), run);
+          }, (phase.minutes - 3) * 60_000),
+        );
+      }
+      await tallerSay(phase.intro, run);
+    },
+    [onSelectTool, startTalking, tallerSay, voice, wake],
+  );
+
+  const startTaller = useCallback(() => {
+    endTour();
+    awaitingRoute.current = false;
+    const run = ++tallerRun.current;
+    tallerRef.current = { step: 0, stage: 'start' };
+    setTallerState(tallerRef.current);
+    startTalking();
+    voice.stopListening();
+    wake();
+    setPosture('standing');
+    void tallerSay(`${TALLER_WELCOME} ${TALLER_START_QUESTION}`, run);
+  }, [endTour, startTalking, tallerSay, voice, wake]);
+
+  const advanceTaller = useCallback(
+    async (step: number) => {
+      if (step + 1 >= TALLER_PHASES.length) {
+        const run = tallerRun.current;
+        await tallerSay(TALLER_CLOSING, run);
+        if (run === tallerRun.current) endTaller();
+        return;
+      }
+      await runTallerPhase(step + 1);
+    },
+    [endTaller, runTallerPhase, tallerSay],
+  );
+
+  /** Lo dicho o tocado durante el taller: «terminamos», «ya volvimos», «sí», «repite», «atrás», «terminar taller». */
+  const tallerControl = useCallback(
+    (reply: TallerReply) => {
+      const cur = tallerRef.current;
+      if (!cur) return;
+      if (reply === 'stop') {
+        endTaller();
+        say(TALLER_STOP);
+        return;
+      }
+      startTalking();
+      const run = tallerRun.current;
+      const phase = TALLER_PHASES[cur.step];
+      if (reply === 'wait') {
+        say(pickOne(TOUR_WAIT));
+        return;
+      }
+      if (reply === 'back') {
+        void runTallerPhase(Math.max(0, cur.step - (cur.stage === 'start' ? 0 : 1)));
+        return;
+      }
+      if (reply === 'repeat') {
+        if (cur.stage === 'start') void tallerSay(`${TALLER_WELCOME} ${TALLER_START_QUESTION}`, run);
+        else if (cur.stage === 'working') void runTallerPhase(cur.step);
+        else if (cur.stage === 'discussing') void tallerSay(reviewPrompt(phase), run);
+        else void tallerSay(pickOne(CONFIRM_QUESTIONS), run);
+        return;
+      }
+      if (reply === 'next') {
+        void advanceTaller(cur.stage === 'start' ? -1 : cur.step);
+        return;
+      }
+      if (cur.stage === 'start' && reply === 'yes') {
+        void runTallerPhase(0);
+        return;
+      }
+      if (cur.stage === 'working' && reply === 'done') {
+        setTallerStage('discussing');
+        void tallerSay(reviewPrompt(phase), run);
+        return;
+      }
+      if (cur.stage === 'discussing' && reply === 'done') {
+        setTallerStage('confirm');
+        void tallerSay(pickOne(CONFIRM_QUESTIONS), run);
+        return;
+      }
+      if (cur.stage === 'confirm' && reply === 'yes') {
+        void (async () => {
+          await tallerSay(pickOne(CONFIRM_YES), run);
+          if (run === tallerRun.current) await advanceTaller(cur.step);
+        })();
+        return;
+      }
+      if (cur.stage === 'confirm' && reply === 'no') {
+        setTallerStage('discussing');
+        void tallerSay(pickOne(CONFIRM_NO), run);
+      }
+    },
+    [advanceTaller, endTaller, runTallerPhase, say, setTallerStage, startTalking, tallerSay],
+  );
+
   /** Un movimiento pedido de viva voz (`speak`) o por la IA con la acción «animar» (sin frase propia). */
   const doMove = useCallback(
     async (move: ZoeMove, speak: boolean) => {
@@ -899,7 +1067,7 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
         case 'lie':
         case 'still':
           wake();
-          if (move !== 'still') setPosture(move === 'sit' ? 'sitting' : move === 'stand' ? 'standing' : 'lying');
+          if (move !== 'still') setPosture(move === 'stand' ? 'standing' : 'sitting');
           if (line) say(line);
           return;
         default: {
@@ -922,7 +1090,13 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
   /** Sin IA: contesta con el banco del documento maestro, sin alarmas y sin cortar la charla. */
   const answerOffline = useCallback(
     (text: string) => {
-      const reply = offlineAnswer(text, MASTER_DOCUMENT, { tool: toolRef.current, work: currentWork() });
+      const lastZoe = [...historyRef.current].reverse().find((t) => t.role === 'zoe')?.text;
+      const reply = offlineAnswer(text, MASTER_DOCUMENT, {
+        tool: toolRef.current,
+        work: currentWork(),
+        lastZoe,
+        quiet: Boolean(tallerRef.current || tourRef.current),
+      });
       const notice = offlineNoticed.current ? '' : `${OFFLINE_NOTICE} `;
       offlineNoticed.current = true;
       remember(text, reply);
@@ -1006,6 +1180,19 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
         }
       }
 
+      // En el taller: «terminamos», «ya volvimos», «sí», «repite», «atrás», «terminar taller».
+      if (tallerRef.current) {
+        const reply = parseTallerReply(text, tallerRef.current.stage);
+        if (reply) {
+          tallerControl(reply);
+          return;
+        }
+      }
+      if (isTallerCommand(text)) {
+        startTaller();
+        return;
+      }
+
       // En el recorrido: «sigamos», «repite», «atrás», «espera», «terminar».
       if (tourRef.current) {
         const reply = parseTourReply(text);
@@ -1026,12 +1213,12 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
         }
       }
 
-      // «¿Todo listo para continuar?»: el sí y el no se contestan aquí, sin hacer esperar.
+      // Saludos y preguntas de inicio: el sí y el no se contestan con variedad y sin hacer esperar.
       if (readyAsked.current) {
         const ready = isConfirmation(text);
         if (ready !== null) {
           readyAsked.current = !ready;
-          const line = ready ? READY_YES : READY_NO;
+          const line = ready ? pickReadyYes() : pickReadyNo();
           remember(text, line);
           say(line);
           return;
@@ -1139,7 +1326,9 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
       request,
       say,
       sayAndWait,
+      startTaller,
       startTour,
+      tallerControl,
       theme,
       tourControl,
       voice,
@@ -1251,8 +1440,10 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
     else if (historyRef.current.length) listenRef.current();
     else {
       readyAsked.current = true;
-      remember(null, GREETING);
-      say(GREETING);
+      const recentZoe = historyRef.current.filter((t) => t.role === 'zoe').map((t) => t.text);
+      const greeting = pickInitialGreeting(recentZoe);
+      remember(null, greeting);
+      say(greeting);
     }
   }, [onListenFail, openChat, remember, say, startTalking, voice, wake]);
 
@@ -1333,7 +1524,7 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
     showCaption(TOOL_HINTS[currentTool], 5000);
   }, [currentTool, isOpen, showCaption]);
 
-  // ── Vida propia: de vez en cuando pasea, cambia de postura o busca dónde dormir ──
+  // ── Vida propia: camina libremente por el espacio, cambia de postura, se rasca o mueve la colita ──
   useEffect(() => {
     if (!isOpen || reduceMotion() || window.innerWidth < 768) return;
     let timer: number;
@@ -1342,18 +1533,53 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
         () => {
           if (!busyRef.current && !drag.current && !document.hidden) {
             const roll = Math.random();
-            if (roll < 0.35) void nap();
-            else if (roll < 0.8) void stroll();
-            else setPosture((p) => (p === 'sitting' ? 'standing' : 'sitting'));
+            if (roll < 0.65) {
+              void stroll();
+            } else if (roll < 0.85) {
+              setPosture('sitting');
+              if (Math.random() < 0.08) {
+                playTrick('scratch');
+              } else {
+                playTrick('wag');
+              }
+            } else {
+              setPosture((p) => (p === 'sitting' ? 'standing' : 'sitting'));
+            }
           }
           schedule();
         },
-        28000 + Math.random() * 32000,
+        8000 + Math.random() * 9000,
       );
     };
     schedule();
     return () => window.clearTimeout(timer);
-  }, [isOpen, nap, stroll]);
+  }, [isOpen, playTrick, stroll]);
+
+  // ── Inactividad: cuando no hay interacción por unos minutos, ZOE se va a su casita ──
+  useEffect(() => {
+    if (!isOpen || homeTrip !== 'none') return;
+    const INACTIVITY_MS = 150_000; // 2.5 minutos de inactividad
+    let idleTimer: number;
+
+    const resetInactivity = () => {
+      window.clearTimeout(idleTimer);
+      idleTimer = window.setTimeout(() => {
+        if (!busyRef.current && !drag.current && homeTrip === 'none') {
+          showCaption('Me voy a descansar a mi casita. ¡Tócame cuando me necesites!', 4500);
+          void goHome();
+        }
+      }, INACTIVITY_MS);
+    };
+
+    resetInactivity();
+    const events = ['pointerdown', 'keydown', 'wheel', 'touchstart'];
+    events.forEach((ev) => window.addEventListener(ev, resetInactivity, { passive: true }));
+
+    return () => {
+      window.clearTimeout(idleTimer);
+      events.forEach((ev) => window.removeEventListener(ev, resetInactivity));
+    };
+  }, [isOpen, homeTrip, goHome, showCaption]);
 
   // Desplazamiento mientras camina (también al pedírselo con el botón).
   useEffect(() => {
@@ -1388,8 +1614,14 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
         return;
       }
       if (Math.abs(dx) > 2) setFacing(dx > 0 ? 1 : -1);
-      const stride = Math.min(1, (speedRef.current * dt) / distance);
-      setPosition((p) => ({ x: p.x + dx * stride, y: p.y + dy * stride }));
+      // Pulso de paso sincronizado con la cadencia de la caminata (1.35x)
+      const stepCadence = 0.70 + 0.30 * Math.sin((now / 1000) * Math.PI * 4 * 1.35);
+      const stride = Math.min(1, (speedRef.current * stepCadence * dt) / distance);
+      const nextX = positionRef.current.x + dx * stride;
+      const nextY = positionRef.current.y + dy * stride;
+      // Actualización síncrona inmediata para que cada cuadro avance paso a paso con las patitas
+      positionRef.current = { x: nextX, y: nextY };
+      setPosition({ x: nextX, y: nextY });
     };
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
@@ -1467,9 +1699,26 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
       if (!alive()) return;
       setHomeTrip('none');
       setPosture('sitting');
-      showCaption('¡Aquí estoy!', 2500);
+      const comeOutGreeting = pickComeOutGreeting();
+      showCaption(comeOutGreeting, 3500);
     })();
   }, [homeTrip, modelReady, showCaption, walkTo]);
+
+  // Con el chat abierto, ZOE se sienta justo arriba de él (en pantallas amplias) y al cerrarlo vuelve a su sitio.
+  const chatDock = useRef<{ x: number; y: number } | null>(null);
+  useEffect(() => {
+    if (!chatOpen || window.innerWidth < 768 || window.innerHeight < 560) return;
+    const chatWidth = Math.min(360, window.innerWidth - 24);
+    const chatHeight = Math.min(window.innerHeight * 0.44, 360);
+    chatDock.current = positionRef.current;
+    setPosition(
+      clampPosition(window.innerWidth - 16 - chatWidth / 2 - STAGE.width / 2, window.innerHeight - 16 - chatHeight - STAGE.height * FEET + 26),
+    );
+    return () => {
+      if (chatDock.current) setPosition(chatDock.current);
+      chatDock.current = null;
+    };
+  }, [chatOpen]);
 
   const onModelLoaded = useCallback(() => setModelReady(true), []);
 
@@ -1486,11 +1735,27 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
       color: '#27DCFF',
     },
     {
+      label: voice.muted ? 'Activar la voz de ZOE' : 'Silenciar la voz de ZOE',
+      icon: voice.muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />,
+      onClick: voice.toggleMuted,
+      pressed: voice.muted,
+      color: '#5EC2DD',
+    },
+    {
       label: chatOpen ? 'Cerrar el chat con ZOE' : 'Escribirle a ZOE',
       icon: <MessageSquare className="w-4 h-4" />,
       onClick: () => (chatOpen ? closeChat() : openChat()),
       pressed: chatOpen,
       color: '#5EC2DD',
+    },
+    {
+      label: 'Ver la presentación de ZOE',
+      icon: <Dog className="w-4 h-4" />,
+      onClick: () => {
+        voice.stopSpeaking();
+        setVideoOpen(true);
+      },
+      color: '#F29F05',
     },
     {
       label: touring ? 'Terminar el recorrido guiado' : 'Recorrido guiado por el Laboratorio',
@@ -1499,44 +1764,6 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
       pressed: touring,
       color: '#A8C63C',
     },
-    {
-      label: voice.muted ? 'Activar la voz de ZOE' : 'Silenciar la voz de ZOE',
-      icon: voice.muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />,
-      onClick: voice.toggleMuted,
-      pressed: voice.muted,
-      color: '#5EC2DD',
-    },
-    {
-      label: posture === 'sitting' ? 'Poner de pie a ZOE' : 'Sentar a ZOE',
-      icon: <Dog className="w-4 h-4" />,
-      onClick: () => {
-        wake();
-        setPosture(posture === 'sitting' ? 'standing' : 'sitting');
-      },
-      color: '#F29F05',
-    },
-    {
-      label: isWalking ? 'Detener la caminata' : 'Poner a caminar a ZOE',
-      icon: <Footprints className="w-4 h-4" />,
-      onClick: () => (isWalking ? wake() : void stroll()),
-      pressed: isWalking,
-      color: '#A8C63C',
-    },
-    {
-      label: napping ? 'Despertar a ZOE' : 'Que ZOE busque dónde dormir',
-      icon: <Moon className="w-4 h-4" />,
-      onClick: () => (napping ? wake() : void nap()),
-      pressed: napping,
-      color: '#B85EFF',
-    },
-    {
-      label: show360 ? 'Quitar el entorno 360°' : 'Activar el entorno 360°',
-      icon: <Globe className="w-4 h-4" />,
-      onClick: () => setShow360((v) => !v),
-      pressed: show360,
-      color: '#27DCFF',
-    },
-    { label: 'Acariciar a ZOE', icon: <Heart className="w-4 h-4" />, onClick: pet, color: '#F29F05' },
     { label: 'Mandar a ZOE a su casita', icon: <House className="w-4 h-4" />, onClick: () => void goHome(), color: '#F3C26B' },
   ];
   const tripClass = homeTrip === 'entering' ? 'zoe-entering' : homeTrip === 'leaving' ? (modelReady ? 'zoe-leaving' : 'invisible') : '';
@@ -1556,8 +1783,9 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
           onClose={closeChat}
         />
       )}
+      {videoOpen && <ZoeVideoModal onClose={() => setVideoOpen(false)} />}
       <div
-        className={`zoe-stage fixed z-40 group ${tripClass}`}
+        className={`zoe-stage fixed z-40 group ${tripClass}${chatOpen ? ' zoe-docked' : ''}`}
         style={{
           left: position.x,
           top: position.y,
@@ -1567,7 +1795,7 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
         }}
       >
         {/* Subtítulos: lo que ZOE dice, también para quien no puede oírlo. No es un chat. */}
-        {(caption || status || heard || touring) && (!chatOpen || touring) && (
+        {(caption || status || heard || touring || tallerState) && (!chatOpen || touring) && (
           <div
             className={`zoe-caption ${position.x < window.innerWidth / 2 ? 'zoe-caption-left' : ''}`}
             // Frente a la casita el escenario sale un poco de la pantalla: el globo no se corta.
@@ -1634,7 +1862,39 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
                 </button>
               </div>
             )}
+            {tallerState && (
+              // El taller también se maneja tocando: con ruido o sin micrófono, el grupo avanza con estos botones.
+              <div className="zoe-tour-controls" role="group" aria-label="Taller de innovación">
+                <span className="zoe-tour-step">
+                  Taller {tallerState.step + 1}/{TALLER_PHASES.length}
+                </span>
+                <button
+                  type="button"
+                  className="zoe-tour-next"
+                  onClick={() => tallerControl(tallerState.stage === 'working' || tallerState.stage === 'discussing' ? 'done' : 'yes')}
+                >
+                  {tallerState.stage === 'start' ? 'Listos' : tallerState.stage === 'working' ? 'Terminamos' : tallerState.stage === 'discussing' ? 'Ya volvimos' : 'Sí, validamos'}
+                </button>
+                {tallerState.stage === 'confirm' && (
+                  <button type="button" onClick={() => tallerControl('no')}>
+                    Aún no
+                  </button>
+                )}
+                <button type="button" onClick={() => tallerControl('repeat')}>
+                  Repetir
+                </button>
+                <button type="button" onClick={() => tallerControl('stop')}>
+                  Terminar
+                </button>
+              </div>
+            )}
           </div>
+        )}
+
+        {(behavior === 'sleeping' || (napping && posture === 'lying')) && (
+          <button type="button" className="zoe-wake-pop" onClick={wake}>
+            ZOE duerme · clic aquí para despertarlo
+          </button>
         )}
 
         {behavior === 'sleeping' && (
@@ -1650,6 +1910,7 @@ export const ZoeFreePresence: React.FC<Props> = ({ currentTool, onSelectTool, th
             <CanvasBoundary>
               <ZoeCanvas3D
                 behavior={behavior}
+                speaking={behavior === 'speaking' || Boolean(caption)}
                 isWalking={isWalking}
                 trotting={trotting}
                 facing={facing}

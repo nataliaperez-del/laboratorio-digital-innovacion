@@ -60,7 +60,7 @@ export function describeWork(work: ZoeWorkState): string {
  * Movimientos que ZOE hace cuando se los piden: por voz (sin pasar por la IA) o la IA con la
  * acción «animar». `home` y `sleep` terminan la conversación; los demás no la interrumpen.
  */
-export const ZOE_MOVES = ['sit', 'stand', 'lie', 'sleep', 'walk', 'come', 'move', 'home', 'shake', 'spin', 'jump', 'wag', 'bow', 'still'] as const;
+export const ZOE_MOVES = ['sit', 'stand', 'lie', 'sleep', 'walk', 'come', 'move', 'home', 'shake', 'spin', 'jump', 'wag', 'bow', 'scratch', 'still'] as const;
 /** Un movimiento de ZOE (sentarse, sacudirse, dar vueltas, ir a su casita…). */
 export type ZoeMove = (typeof ZOE_MOVES)[number];
 
@@ -73,6 +73,7 @@ export const AI_MOVES: Record<string, ZoeMove> = {
   venir: 'come',
   apartarse: 'move',
   sacudirse: 'shake',
+  rascarse: 'scratch',
   girar: 'spin',
   saltar: 'jump',
   cola: 'wag',
@@ -126,6 +127,7 @@ const MOVE_ORDERS: Array<[RegExp, ZoeMove]> = [
   [/^(lev[aá]ntate|p[aá]rate|de\s+pie|arriba|levantarte|pararte|te\s+levantes|te\s+pares|ponte\s+de\s+pie|ponerte\s+de\s+pie)(?![\wáéíóúñü])/i, 'stand'],
   [/^(mueve|mover|muevas|menea|menear|batir|bate)\s+(la\s+)?col(a|ita)(?![\wáéíóúñü])|^colita(?![\wáéíóúñü])/i, 'wag'],
   [/^(sac[uú]dete|sacudirte|te\s+sacudas|sac[uú]dase|sacude)(?![\wáéíóúñü])/i, 'shake'],
+  [/^(r[aá]scate|rascarte|te\s+rasques|r[aá]scase|rasca|rascarse)(?![\wáéíóúñü])/i, 'scratch'],
   [
     /^((da(r)?|des|haz|hacer|hagas)\s+(una\s+|unas\s+|un\s+)?(vueltas?|vueltitas?|giros?|giritos?|maromas?)|gira|girar|gires|gira\s+sobre\s+ti|persigue\s+tu\s+cola|perseguir\s+tu\s+cola|ru[eé]date|rodar)(?![\wáéíóúñü])/i,
     'spin',

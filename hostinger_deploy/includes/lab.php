@@ -37,6 +37,10 @@ const LAB_MODULOS = ['estudio', 'ideacion', 'arbol', 'prototipado'];
 const LAB_TIPOS = ['ingreso', 'generacion', 'encuesta', 'descarga', 'zoe', 'insignia'];
 const LAB_TIPOS_INSUMO = ['oportunidad', 'brecha', 'tendencia', 'tema', 'solucion', 'hipotesis'];
 const LAB_MAX_INSUMOS = 8;
+/** Solicitudes por cuenta y por hora. Un taller entero queda muy por debajo. */
+const LAB_LIMITE_EVENTOS_HORA = 120;
+const LAB_LIMITE_RESULTADOS_HORA = 120;
+const LAB_LIMITE_IA_HORA = 400;
 
 function lab_responder(int $estado, array $cuerpo): never
 {
@@ -156,6 +160,14 @@ function lab_crear_tablas(PDO $pdo): void
         origen VARCHAR(10) NOT NULL DEFAULT 'ia',
         creado_en DATETIME NOT NULL
     )$fin");
+    // Cuántas solicitudes ha hecho cada cuenta por hora (límites contra abuso).
+    $pdo->exec("CREATE TABLE IF NOT EXISTS lab_limites (
+        usuario_id INT NOT NULL,
+        clave VARCHAR(20) NOT NULL,
+        ventana INT NOT NULL,
+        total INT NOT NULL DEFAULT 0,
+        PRIMARY KEY (usuario_id, clave, ventana)
+    )$fin");
     // Índices para el tablero. «IF NOT EXISTS» no existe en MySQL para índices: se intenta y, si ya está, se ignora.
     foreach ([
         'CREATE INDEX idx_lab_eventos_tipo ON lab_eventos (tipo, ocurrido_en)',
@@ -234,6 +246,36 @@ function lab_usuario(): array
     if (!is_array($datos) || ($datos['e'] ?? 0) < time()) lab_error(401, 'El pase venció. Vuelve a ingresar.');
     $correo = (string)($datos['c'] ?? '');
     return ['id' => (int)($datos['u'] ?? 0), 'correo' => $correo, 'admin' => in_array($correo, lab_config()['administradores'], true)];
+}
+
+/**
+ * Tope de solicitudes por cuenta y por hora. Pasado el tope responde 429 y le dice cuánto esperar.
+ * Protege el disco y la base de datos del servidor (y la cuota de la IA) de una cuenta que se desboque.
+ */
+function lab_limitar(int $usuarioId, string $clave, int $maximo): void
+{
+    $ventana = intdiv(time(), 3600);
+    $pdo = lab_db();
+    $sumar = $pdo->prepare('UPDATE lab_limites SET total = total + 1 WHERE usuario_id = ? AND clave = ? AND ventana = ?');
+    $sumar->execute([$usuarioId, $clave, $ventana]);
+    if ($sumar->rowCount() === 0) {
+        try {
+            $pdo->prepare('INSERT INTO lab_limites (usuario_id, clave, ventana, total) VALUES (?, ?, ?, 1)')->execute([$usuarioId, $clave, $ventana]);
+        } catch (Throwable) {
+            // Dos solicitudes a la vez: la otra creó la fila.
+            $sumar->execute([$usuarioId, $clave, $ventana]);
+        }
+        if (random_int(1, 50) === 1) {
+            $pdo->prepare('DELETE FROM lab_limites WHERE ventana < ?')->execute([$ventana - 2]);
+        }
+    }
+    $leer = $pdo->prepare('SELECT total FROM lab_limites WHERE usuario_id = ? AND clave = ? AND ventana = ?');
+    $leer->execute([$usuarioId, $clave, $ventana]);
+    if ((int)$leer->fetchColumn() > $maximo) {
+        $espera = max(1, ($ventana + 1) * 3600 - time());
+        header('Retry-After: ' . $espera);
+        lab_error(429, 'Hiciste demasiadas solicitudes en esta hora. Intenta de nuevo en ' . max(1, (int)ceil($espera / 60)) . ' minutos.');
+    }
 }
 
 function lab_admin(): array
@@ -316,6 +358,7 @@ function lab_ruta_sesion(): never
 function lab_ruta_eventos(): never
 {
     $usuario = lab_usuario();
+    lab_limitar($usuario['id'], 'eventos', LAB_LIMITE_EVENTOS_HORA);
     $eventos = lab_cuerpo()['eventos'] ?? null;
     if (!is_array($eventos)) lab_error(400, 'Falta la lista de eventos.');
     if (count($eventos) > LAB_MAX_EVENTOS) lab_error(413, 'Demasiados eventos en un solo envío.');
@@ -344,6 +387,7 @@ function lab_ruta_eventos(): never
 function lab_ruta_resultado_guardar(): never
 {
     $usuario = lab_usuario();
+    lab_limitar($usuario['id'], 'resultados', LAB_LIMITE_RESULTADOS_HORA);
     $cuerpo = lab_cuerpo();
     $id = lab_texto($cuerpo['id'] ?? '', 80);
     $modulo = lab_texto($cuerpo['modulo'] ?? '', 20);
@@ -600,6 +644,12 @@ function lab_ruta_resultado_leer(): never
 }
 
 // ── Entrada ───────────────────────────────────────────────────────────────────
+
+// Otros archivos (la IA y el Radar) usan estas funciones para pedir el mismo pase: definen
+// LAB_SOLO_FUNCIONES antes de incluir este archivo y aquí no se atiende ninguna ruta.
+if (defined('LAB_SOLO_FUNCIONES')) {
+    return;
+}
 
 // Solo el propio sitio puede llamar: un origen distinto se rechaza.
 $origen = $_SERVER['HTTP_ORIGIN'] ?? '';

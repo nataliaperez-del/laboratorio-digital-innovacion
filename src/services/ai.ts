@@ -11,6 +11,7 @@ import { generateContentUnadGemini } from '@/lib/unadGeminiProxy';
 import { ETHICS_PREAMBLE, EthicsBlockedError, extractEthicsRefusal } from '@/lib/ethicsGuard';
 import { reportAiDown, reportAiFallback, reportAiOk, useAiStatus } from '@/store/aiStatus';
 import { FALLBACK_WINDOW_MS, isProviderOutage } from '@/lib/studioKey';
+import { validateStudioKey } from '@/services/studio';
 import { cargarTextoFamilia, cargarTextoGrupo } from '@/repositorio/cargarRepositorio';
 import type { GrupoRepositorio } from '@/repositorio/tipos';
 
@@ -175,7 +176,8 @@ function abortableWait(ms: number, signal: AbortSignal): Promise<void> {
 /** Gemini comercial, directo con el SDK de Google y la clave de la persona. */
 const callGeminiDirect: ProviderCall = async ({ prompt, maxOut, googleSearch, thinkingBudget, signal, state }) => {
   const aiClient = getGeminiAI(state.apiKeys.gemini);
-  const geminiModel = (state.providerModels?.gemini || import.meta.env.VITE_GEMINI_MODEL || 'gemini-2.5-flash').trim();
+  let geminiModel = (state.providerModels?.gemini || import.meta.env.VITE_GEMINI_MODEL || 'gemini-2.5-flash').trim();
+  let modelRetried = false;
   // El SDK no expone la señal de aborto: se corta con una carrera contra el botón «Detener».
   const abortPromise = new Promise<never>((_, reject) => {
     signal.addEventListener('abort', () => reject(new GenerationCancelledError()), { once: true });
@@ -206,6 +208,18 @@ const callGeminiDirect: ProviderCall = async ({ prompt, maxOut, googleSearch, th
     } catch (e: unknown) {
       lastError = e;
       const msg = e instanceof Error ? e.message : String(e);
+      // Google retira modelos: si este ya no está para la clave, se busca el mejor que sí y se reintenta.
+      if (!modelRetried && /"code"\s*:\s*404|NOT_FOUND|no longer available/i.test(msg)) {
+        modelRetried = true;
+        const check = await validateStudioKey(state.apiKeys.gemini || '').catch(() => null);
+        if (check && check.ok && check.recommended !== geminiModel) {
+          console.warn(`Modelo ${geminiModel} no disponible; se cambia a ${check.recommended}.`);
+          geminiModel = check.recommended;
+          useStore.getState().setProviderModel('gemini', check.recommended);
+          attempt--;
+          continue;
+        }
+      }
       const isTransient = /"code"\s*:\s*(503|429)|UNAVAILABLE|RESOURCE_EXHAUSTED|high demand|overloaded/i.test(msg);
       if (!isTransient || attempt === maxAttempts) throw e;
       const waitMs = 3000 * attempt;

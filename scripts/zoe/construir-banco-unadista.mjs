@@ -10,6 +10,9 @@
  *  - El marco institucional estable del Contenedor 1 (Parte I): identidad, metasistema,
  *    estructura, MHUS 5.0, responsabilidades sustantivas, horizonte UNAD 5.0, ODS y referencias.
  *  - Todo el Contenedor 2: su método (MDVT), fuentes, ejes y reglas.
+ *  - La guía de facilitación del taller (`docs/taller/Guia de facilitacion - Taller de Innovacion con IA.docx`):
+ *    cómo se conduce el taller, quién hace qué, el plan B y los guiones. Si alguien edita ese Word, la próxima
+ *    compilación (o `npm run zoe:banco`) la vuelve a leer y ZOE queda al día, con y sin IA.
  *
  * ZOE lo usa como banco de información (consulta), nunca como instrucciones: ver
  * `src/lib/zoeKnowledge.ts`. Corre solo antes de `npm run dev` y `npm run build`; también con
@@ -19,6 +22,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import mammoth from 'mammoth';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const REPO = path.join(ROOT, 'public', 'REPOSITORIO_CIP_DF');
@@ -184,6 +188,62 @@ for (const file of c2Files) {
     } else body.push(line);
   }
   flush();
+}
+
+// ── Guía de facilitación del taller (Word): ZOE la conoce para acompañar al equipo ──
+
+const GUIDE_FILE = path.join(ROOT, 'docs', 'taller', 'Guia de facilitacion - Taller de Innovacion con IA.docx');
+export const GUIDE_SOURCE = 'Guía de facilitación del taller';
+const decode = (t) =>
+  t
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, '&');
+const plain = (html) => decode(html.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '')).replace(/\s+/g, ' ').trim();
+
+/** El Word en texto, por secciones: cada título de la guía abre un pasaje; las tablas van fila por fila. */
+async function guideSections(file) {
+  const { value: html } = await mammoth.convertToHtml({ path: file });
+  const withRows = html
+    .replace(/<tr[^>]*>([\s\S]*?)<\/tr>/gi, (_, row) => {
+      const cells = [...row.matchAll(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi)].map((m) => plain(m[1])).filter(Boolean);
+      return cells.length ? `<p>${cells.join(' — ')}</p>` : '';
+    })
+    .replace(/<li[^>]*>([\s\S]*?)<\/li>/gi, (_, item) => `<p>- ${plain(item)}</p>`);
+  const out = [];
+  let h1 = '';
+  let h2 = '';
+  let lines = [];
+  const flush = () => {
+    const text = lines.join('\n\n').trim();
+    if (text) out.push({ title: ['Guía del taller', h1, h2].filter(Boolean).join(' · '), text });
+    lines = [];
+  };
+  for (const block of withRows.matchAll(/<(h[1-6]|p)[^>]*>([\s\S]*?)<\/\1>/gi)) {
+    const text = plain(block[2]);
+    if (!text) continue;
+    if (/^h[12]$/i.test(block[1])) {
+      flush();
+      if (/^h1$/i.test(block[1])) {
+        h1 = text;
+        h2 = '';
+      } else h2 = text;
+    } else lines.push(text);
+  }
+  flush();
+  return out;
+}
+
+if (existsSync(GUIDE_FILE)) {
+  const bytes = readFileSync(GUIDE_FILE);
+  const sections = await guideSections(GUIDE_FILE);
+  if (sections.length < 5) fail('la guía de facilitación del taller se leyó con menos de 5 secciones; revisa el Word');
+  fuentes.push({ archivo: 'docs/taller/Guia de facilitacion - Taller de Innovacion con IA.docx', uso: GUIDE_SOURCE, hash: fingerprint(bytes.toString('base64')) });
+  // Los pendientes del equipo son gestión interna: no entran al conocimiento de ZOE.
+  for (const s of sections.filter((x) => !/pendientes/i.test(x.title))) pasajes.push(...chunk(s.title, s.text, GUIDE_SOURCE));
 }
 
 const banco = {

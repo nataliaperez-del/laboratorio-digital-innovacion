@@ -25,8 +25,10 @@ import {
   type ProgressState,
   OfflineNotice,
 } from '@/components/lab/common';
+import { CopyButton, ResultToolbar } from '@/components/lab/ReviewActions';
 import type { ToolId } from '@/components/layout/Header';
 import { RadarTrends } from '@/components/lab/RadarTrends';
+import { findStudyInBank } from '@/lib/bancoInicial';
 
 const ZONAS_UNAD = [
   'Zona Amazonía Orinoquía (ZAO)',
@@ -346,6 +348,7 @@ export const EstudioTerritorialView: React.FC<Props> = ({ onNavigate }) => {
     institutionalDriveBundle,
     setIdeationResult,
     clearEstudio,
+    savedStudies,
   } = useStore();
   const inBank = useStore((st) => st.savedStudies.some((entry) => entry.id === st.bankIds.estudio));
 
@@ -379,6 +382,11 @@ export const EstudioTerritorialView: React.FC<Props> = ({ onNavigate }) => {
   const municipalities = form.department ? DIVIPOLA_LOCATIONS[form.department] || [] : [];
   const fuentesListas = fuentesMode === 'sin_fuentes' || Boolean(fuentesConexion);
 
+  const bankMatch = useMemo(
+    () => findStudyInBank(savedStudies, editing ? form.municipality : prompt0Data.municipality, editing ? form.department : prompt0Data.department),
+    [savedStudies, editing, form.municipality, form.department, prompt0Data.municipality, prompt0Data.department],
+  );
+
   const saveFicha = (e: React.FormEvent) => {
     e.preventDefault();
     const territoryChanged = form.municipality !== prompt0Data.municipality || form.department !== prompt0Data.department;
@@ -394,6 +402,18 @@ export const EstudioTerritorialView: React.FC<Props> = ({ onNavigate }) => {
   const generate = async () => {
     if (busy) return;
     if (hasStudy && !window.confirm('Esto reconstruye los 12 bloques desde cero. Si solo uno quedó mal, usa «Rehacer». ¿Continuar?')) return;
+
+    // Si el territorio ya tiene un estudio consolidado en el Banco, se carga directamente evitando saturar la IA en el evento
+    const match = findStudyInBank(savedStudies, prompt0Data.municipality, prompt0Data.department);
+    if (match && !hasStudy) {
+      setPrompt0Data({ ...match.prompt0Data });
+      setContainerData(match.containerData);
+      setContenedor2Sections(match.sections);
+      setEditing(false);
+      setActive(1);
+      return;
+    }
+
     setError(null);
     setProgress({ current: 1, total: CONTENEDOR2_SECTIONS.length, title: 'Preparando fuentes' });
     try {
@@ -464,6 +484,7 @@ export const EstudioTerritorialView: React.FC<Props> = ({ onNavigate }) => {
         description="Diagnóstico de un territorio en doce puntos de entrega con la metodología MDVT: caracterización productiva, lectura por pilares, matriz FODA y contraste con fuentes propias. Funciona solo y puede alimentar a Crear Conceptos y a Validar Conceptos."
       >
         {hasStudy && inBank && <BancoStatus color="#A8C63C" onOpen={() => onNavigate('banco')} />}
+        {hasStudy && <CopyButton small={false} label="Copiar el estudio" getText={() => containerData} />}
         {hasStudy && <ReportActions disabled={busy} getReport={() => estudioReport(prompt0Data, containerData)} />}
         {hasStudy && <ClearButton disabled={busy} onClear={clearAll} />}
         {hasStudy && (
@@ -578,7 +599,11 @@ export const EstudioTerritorialView: React.FC<Props> = ({ onNavigate }) => {
                   value={form.capitalSede || ''}
                   onChange={(e) => setForm({ ...form, capitalSede: e.target.value })}
                   placeholder="Ej: Tunja"
+                  aria-describedby="ficha-enlace-ayuda"
                 />
+                <p id="ficha-enlace-ayuda" className="text-[11px] opacity-70 mt-1">
+                  Opcional: si no la conoces, déjala en blanco.
+                </p>
               </div>
               <div>
                 <label className="lab-label" htmlFor="ficha-lugar">
@@ -590,7 +615,11 @@ export const EstudioTerritorialView: React.FC<Props> = ({ onNavigate }) => {
                   value={form.specificLocation || ''}
                   onChange={(e) => setForm({ ...form, specificLocation: e.target.value })}
                   placeholder="Vereda, localidad o sede"
+                  aria-describedby="ficha-lugar-ayuda"
                 />
+                <p id="ficha-lugar-ayuda" className="text-[11px] opacity-70 mt-1">
+                  Opcional: si no la conoces, déjala en blanco.
+                </p>
               </div>
               <label className="flex items-center gap-2 text-xs text-white self-end pb-2.5 cursor-pointer">
                 <input type="checkbox" checked={Boolean(form.isCapital)} onChange={(e) => setForm({ ...form, isCapital: e.target.checked })} />
@@ -633,6 +662,34 @@ export const EstudioTerritorialView: React.FC<Props> = ({ onNavigate }) => {
       </section>
 
       <OwnSources disabled={busy} onError={setError} />
+
+      {bankMatch && !hasStudy && (
+        <div className="p-4 rounded-xl bg-[#A8C63C]/10 border border-[#A8C63C]/30 flex flex-wrap items-center justify-between gap-3">
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-2 text-xs font-bold text-[#A8C63C] uppercase tracking-wider">
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Estudio consolidado disponible en el Banco</span>
+            </div>
+            <p className="text-xs text-white/90">
+              <strong>{bankMatch.territoryName}</strong> ({bankMatch.department} · {bankMatch.zonaUNAD}) ya cuenta con un diagnóstico territorial oficial de 12 bloques verificado. Puedes cargarlo al instante para comenzar a trabajar.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setPrompt0Data({ ...bankMatch.prompt0Data });
+              setForm({ ...bankMatch.prompt0Data });
+              setContainerData(bankMatch.containerData);
+              setContenedor2Sections(bankMatch.sections);
+              setEditing(false);
+              setActive(1);
+            }}
+            className="lab-btn lab-btn-sm text-[#A8C63C] border-[#A8C63C]/50 hover:bg-[#A8C63C]/20 shadow-sm font-bold flex items-center gap-1.5"
+          >
+            Cargar del Banco (Instantáneo) <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-xs text-brand-textMuted flex items-center gap-2">
@@ -741,6 +798,33 @@ export const EstudioTerritorialView: React.FC<Props> = ({ onNavigate }) => {
                   <RefreshCw className={`w-3 h-3 ${busyIndex === active - 1 ? 'animate-spin' : ''}`} aria-hidden="true" /> Rehacer bloque
                 </button>
               </header>
+              {section && (
+                <ResultToolbar
+                  noun={`el bloque «${meta.title}»`}
+                  text={section.markdown}
+                  disabled={busy}
+                  hint="Puedes escribir con títulos (#) y listas (-). Lo que guardes es lo que pasa a Crear Conceptos y al informe."
+                  onSave={(text) =>
+                    replaceContenedor2Section(active - 1, {
+                      ...section,
+                      markdown: text,
+                      status: text.trim() ? 'ok' : 'failed',
+                      issue: text.trim() ? undefined : 'El bloque quedó vacío. Usa «Rehacer bloque».',
+                    })
+                  }
+                  onDelete={
+                    section.markdown.trim()
+                      ? () =>
+                          replaceContenedor2Section(active - 1, {
+                            ...section,
+                            markdown: '',
+                            status: 'failed',
+                            issue: 'El grupo borró este bloque. Usa «Rehacer bloque» si lo necesitan de nuevo.',
+                          })
+                      : undefined
+                  }
+                />
+              )}
               {section?.markdown.trim() ? (
                 <>
                   <BlockContent number={active} markdown={section.markdown} />

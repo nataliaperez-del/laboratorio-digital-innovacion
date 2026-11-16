@@ -1,8 +1,16 @@
 import React from 'react';
 
-/** Tamaño de la casita; en celulares, más pequeña. */
-export const DOGHOUSE =
-  typeof window !== 'undefined' && window.innerWidth < 768 ? { width: 70, height: 66, margin: 12 } : { width: 92, height: 86, margin: 18 };
+/**
+ * Tamaño de la casita: del mismo alto que los logos de la firma, así nunca es
+ * más alta que ZOE. En celulares ambos son más pequeños.
+ */
+const houseSize = () => {
+  if (typeof window === 'undefined') return { width: 92, height: 86, margin: 18 };
+  // La casita mide lo mismo que los logos de la firma (UNAD y VIEM): 70 px en computador, 46 en celular.
+  const height = window.innerWidth < 768 || window.innerHeight < 520 ? 46 : 70;
+  return { width: Math.round((height * 92) / 86), height, margin: window.innerWidth < 768 ? 12 : 18 };
+};
+export const DOGHOUSE = houseSize();
 
 /**
  * Dónde queda la puerta en pantalla: ZOE camina hasta aquí para entrar y sale desde aquí.
@@ -90,8 +98,11 @@ export const ZoeDoghouse: React.FC<Props> = ({ occupied, onCall }) => {
       style={style}
       onClick={onCall}
       aria-label="Llamar a ZOE: está en su casita"
-      title="ZOE está en su casita · Tócala para llamarla"
+      title="ZOE duerme · clic aquí para llamarla"
     >
+      <span className="zoe-house-pop" aria-hidden="true">
+        ?
+      </span>
       {art}
       <span className="zoe-house-zzz" aria-hidden="true">
         <span>z</span>

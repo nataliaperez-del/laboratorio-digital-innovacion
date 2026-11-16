@@ -569,7 +569,7 @@ export function useZoeVoice() {
             inCrowd,
           );
           if (inCrowd) {
-            // Hay que nombrarla: «ZOE, …». Sin su nombre, no le hablaban a ella y sigue escuchando.
+            // Hay que nombrarlo: «ZOE, …». Sin su nombre, no le hablaban a él y sigue escuchando.
             const addressed = addressedText(heard);
             if (!addressed) return;
             heard = addressed;

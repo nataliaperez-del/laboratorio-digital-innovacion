@@ -8,6 +8,7 @@
  *
  * Funciones puras (probadas en tests/contenedorMetrics.test.ts).
  */
+import { ownStudies } from '@/lib/estudioDelBanco';
 import { netPromoterScore, npsReading } from '@/lib/satisfaction';
 import type { ReportModule } from '@/lib/labReports';
 import type { PrototypePlan } from '@/services/prototyping';
@@ -139,7 +140,7 @@ export function computeMetrics(input: MetricsInput, filters: MetricsFilters, now
   const inPeriod = (iso: string) => time(iso) >= since;
   const wants = (m: ReportModule) => filters.module === null || filters.module === m;
 
-  const studies = input.savedStudies.filter((s) => inPeriod(s.createdAt));
+  const studies = ownStudies(input.savedStudies).filter((s) => inPeriod(s.createdAt));
   const ideations = input.savedIdeations.filter((s) => inPeriod(s.createdAt));
   const trees = input.savedTrees.filter((s) => inPeriod(s.createdAt));
   const plans = input.prototypes.filter((s) => inPeriod(s.createdAt));

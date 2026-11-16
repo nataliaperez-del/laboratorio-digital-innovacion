@@ -79,7 +79,7 @@ export function restClip(root: THREE.Object3D): THREE.AnimationClip {
   return new THREE.AnimationClip('reposo', 1, tracks);
 }
 
-const FADE = 0.45;
+const FADE = 0.55;
 /** Un clip más corto que esto es una pose fija (como «sit» del modelo actual), no un movimiento. */
 const POSE_CLIP = 0.25;
 
@@ -89,6 +89,7 @@ interface Step {
   direction: 1 | -1;
   loop: boolean;
   fade: number;
+  timeScale?: number;
 }
 
 /** Elige y encadena los clips del GLB según el estado del cuerpo (de pie, caminando, sentado, echado, dormido), con fundidos y transiciones naturales. */
@@ -158,18 +159,20 @@ export class ZoeClipDirector {
 
   /** Clip que se repite mientras el cuerpo está en un estado. */
   private loopOf(state: ZoeBodyState): Step {
-    const loop = (role: ClipRole | 'rest', fade = FADE): Step => ({
+    const loop = (role: ClipRole | 'rest', fade = FADE, timeScale = 1.0): Step => ({
       action: this.actions.get(role) ?? this.actions.get('rest')!,
       direction: 1,
       loop: true,
       fade,
+      timeScale,
     });
     const hold = (role: ClipRole): Step => ({ action: this.actions.get(role)!, direction: 1, loop: false, fade: FADE });
     switch (state) {
       case 'walk':
-        return loop(this.has('walk') ? 'walk' : 'rest', 0.3);
+        // Caminata alegre y fluida a 1.35x para que no se sienta pesada ni lenta
+        return loop(this.has('walk') ? 'walk' : 'rest', 0.3, 1.35);
       case 'trot':
-        return this.has('trot') ? loop('trot', 0.3) : this.loopOf('walk');
+        return this.has('trot') ? loop('trot', 0.3, 1.25) : this.loopOf('walk');
       case 'sit':
         return this.has('sitIdle') ? loop('sitIdle') : this.has('sit') ? hold('sit') : loop('rest');
       case 'lie':
@@ -184,6 +187,10 @@ export class ZoeClipDirector {
   /** Pasos para ir de un estado a otro, como lo haría un perro: se levanta antes de echarse, etc. */
   private route(from: ZoeBodyState, to: ZoeBodyState): Step[] {
     const steps: Step[] = [];
+    // Al empezar a caminar o trotar, el perro arranca de inmediato con el ciclo de pasos para que las patitas se muevan al instante
+    if (to === 'walk' || to === 'trot') {
+      return [this.loopOf(to, 0.22)];
+    }
     const settle = from === 'walk' || from === 'trot' ? 'stand' : from;
     // Primero, volver a estar de pie si hace falta.
     if ((settle === 'sit' && to !== 'sit') || ((settle === 'lie' || settle === 'sleep') && to !== 'lie' && to !== 'sleep')) {
@@ -238,7 +245,7 @@ export class ZoeClipDirector {
     action.enabled = true;
     action.setLoop(loop ? THREE.LoopRepeat : THREE.LoopOnce, loop ? Infinity : 1);
     action.clampWhenFinished = !loop;
-    action.timeScale = direction;
+    action.timeScale = (step.timeScale ?? 1.0) * direction;
     action.time = direction < 0 ? duration : 0;
     action.setEffectiveWeight(1);
     if (this.current && this.current !== action) {

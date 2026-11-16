@@ -8,6 +8,7 @@
  * entradas en caché para que el documento se lea aunque no se acepte actualizar.
  */
 
+import { safeHref } from '@/lib/safeHref';
 import {
   AlignmentType,
   BorderStyle,
@@ -71,11 +72,12 @@ function runsFrom(nodes: readonly InlineNode[], overrides: { size?: number; colo
       strike: node.strike,
       font: node.code ? 'Consolas' : undefined,
       highlight: node.highlight ? 'yellow' : undefined,
-      color: node.href ? '1155CC' : overrides.color,
-      underline: node.href ? {} : undefined,
+      color: safeHref(node.href) ? '1155CC' : overrides.color,
+      underline: safeHref(node.href) ? {} : undefined,
       size: overrides.size,
     });
-    children.push(node.href ? new ExternalHyperlink({ children: [run], link: node.href }) : run);
+    const href = safeHref(node.href);
+    children.push(href ? new ExternalHyperlink({ children: [run], link: href }) : run);
   }
   return children;
 }

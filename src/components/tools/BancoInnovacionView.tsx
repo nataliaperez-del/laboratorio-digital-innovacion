@@ -99,6 +99,15 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
   const [selectedIdeationId, setSelectedIdeationId] = useState<string | null>(savedIdeations[0]?.id ?? (themeProposalMarkdown.trim() ? 'current' : null));
   const [selectedTreeId, setSelectedTreeId] = useState<string | null>(savedTrees[0]?.id ?? (treeGraph ? 'current' : null));
   const [selectedPrototypeId, setSelectedPrototypeId] = useState<string | null>(prototypes[0]?.id ?? null);
+  const [studyFilter, setStudyFilter] = useState('');
+
+  const filteredStudies = React.useMemo(() => {
+    if (!studyFilter.trim()) return savedStudies;
+    const q = studyFilter.toLowerCase().trim();
+    return savedStudies.filter(
+      (s) => s.territoryName.toLowerCase().includes(q) || s.department.toLowerCase().includes(q) || (s.zonaUNAD || '').toLowerCase().includes(q),
+    );
+  }, [savedStudies, studyFilter]);
 
   const tabs = [
     {
@@ -217,10 +226,24 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
               {/* Lista lateral de estudios archivados */}
               <aside className="lg:col-span-4 space-y-2.5">
-                <span className="text-[11px] uppercase tracking-wider text-[#A8C63C] font-bold block mb-1">Estudios Registrados</span>
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <span className="text-[11px] uppercase tracking-wider text-[#A8C63C] font-bold block">
+                    Estudios Registrados ({filteredStudies.length})
+                  </span>
+                </div>
+
+                <div className="mb-2">
+                  <input
+                    type="search"
+                    value={studyFilter}
+                    onChange={(e) => setStudyFilter(e.target.value)}
+                    placeholder="Filtrar por municipio o zona (ej: ZCAR, Pitalito)..."
+                    className="lab-input text-xs py-1.5 px-3 w-full bg-white/5 border-white/10 rounded-lg placeholder:text-white/30"
+                  />
+                </div>
 
                 {/* Si hay un estudio en la sesión actual pero no guardado formalmente */}
-                {containerData.trim() && (
+                {containerData.trim() && !studyFilter && (
                   <div
                     onClick={() => setSelectedStudyId('current')}
                     className={`p-3.5 rounded-xl border transition-all cursor-pointer ${
@@ -239,7 +262,7 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
                   </div>
                 )}
 
-                {savedStudies.map((st) => (
+                {filteredStudies.map((st) => (
                   <div
                     key={st.id}
                     onClick={() => setSelectedStudyId(st.id)}
@@ -250,7 +273,14 @@ export const BancoInnovacionView: React.FC<Props> = ({ onNavigate, defaultTab = 
                     }`}
                   >
                     <div className="flex items-center justify-between text-xs font-bold text-white mb-1">
-                      <span className="line-clamp-1">{st.territoryName}</span>
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className="line-clamp-1">{st.territoryName}</span>
+                        {st.zonaUNAD && (
+                          <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-[#A8C63C]/15 text-[#A8C63C] border border-[#A8C63C]/30 shrink-0">
+                            {st.zonaUNAD}
+                          </span>
+                        )}
+                      </div>
                       <button
                         type="button"
                         onClick={(e) => {

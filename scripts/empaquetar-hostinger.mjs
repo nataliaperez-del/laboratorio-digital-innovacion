@@ -32,9 +32,14 @@ cpSync(path.join(DIST, 'index.html'), path.join(DEPLOY, 'index.html'));
 cpSync(path.join(DIST, 'sw.js'), path.join(DEPLOY, 'sw.js'));
 // Copias de respaldo que no se usan y no deben viajar.
 rmSync(path.join(assets, 'badges_original_backup'), { recursive: true, force: true });
+// Versiones antiguas del modelo y referencias de diseño: la aplicación solo carga zoe.glb (≈ 28 MB menos al desplegar).
+for (const unused of ['zoe_animado.glb', 'zoe_corregido.glb', 'zoe_backup_original.glb', 'zoe_avatar.png', 'zoe_soul_reference.jpg']) {
+  rmSync(path.join(assets, 'zoe', unused), { force: true });
+}
 
-// Concentrador de datos: quién administra, qué dominios entran y para qué cliente de Google se emiten
-// los ingresos. Son los mismos valores con los que se compiló la aplicación; ninguno es secreto.
+// Concentrador de datos: qué dominios entran y para qué cliente de Google se emiten los ingresos. Son los
+// mismos valores con los que se compiló la aplicación; ninguno es secreto. Los administradores NO se escriben
+// aquí: los define quien despliega, en el servidor.
 const env = loadEnv('production', ROOT, 'VITE_');
 const lista = (raw, fallback = []) => {
   const items = (raw ?? '')
@@ -54,8 +59,10 @@ declare(strict_types=1);
  * Lo genera el empaquetado con los valores de la compilación. El .htaccess impide leerlo desde la web.
  */
 return [
-    // Cuentas que pueden ver los datos de todos (tablero global, resultados y banco de insumos).
-    'administradores' => ${php(lista(env.VITE_ADMIN_EMAILS))},
+    // Cuentas que pueden ver los datos de todos (tablero global, resultados y banco de insumos) y el
+    // botón «Administrar la IA». Quien despliega la completa AQUÍ, en el servidor: no está en el código
+    // público. También sirve la variable de entorno LAB_ADMINISTRADORES (correos separados por coma).
+    'administradores' => [],
     // Dominios de correo que pueden ingresar.
     'dominios' => ${php(lista(env.VITE_ALLOWED_EMAIL_DOMAINS, ['unad.edu.co']))},
     // ID de cliente de Google de este sitio: solo se aceptan ingresos emitidos para él.
@@ -63,7 +70,7 @@ return [
 ];
 `,
 );
-if (!lista(env.VITE_ADMIN_EMAILS).length) console.warn('! VITE_ADMIN_EMAILS está vacío: nadie podrá ver el tablero global.');
+console.warn('! config/lab.php sale sin administradores a propósito: quien despliega los define en el servidor (lista «administradores»).');
 if (!env.VITE_GOOGLE_CLIENT_ID?.trim()) console.warn('! Falta VITE_GOOGLE_CLIENT_ID: el ingreso con Google no funcionará.');
 
 // El paquete es solo para Hostinger: no puede nombrar otros servicios de despliegue.

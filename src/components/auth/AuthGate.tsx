@@ -5,11 +5,12 @@ import {
   getAllowedEmailDomains,
   getSessionIdleLimitMs,
   isAuthDisabled,
-  roleForEmail,
   signInWithInstitutionalGoogle,
   signOutInstitutional,
 } from '@/services/auth';
 import type { Role } from '@/lib/roles';
+import { isLabAdmin } from '@/services/labCollector';
+import { passExpired, PASS_REJECTED_EVENT } from '@/services/labPass';
 
 /** Eventos que cuentan como actividad para el temporizador de inactividad. */
 const ACTIVITY_EVENTS: (keyof WindowEventMap)[] = ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart'];
@@ -27,7 +28,8 @@ export function useAuth(): { signedIn: boolean; email: string | null; name: stri
   const session = useStore((s) => s.session);
   if (isAuthDisabled()) return { signedIn: true, email: null, name: 'Desarrollo', role: 'admin' };
   if (!session) return { signedIn: false, email: null, name: null, role: 'user' };
-  return { signedIn: true, email: session.email, name: session.name, picture: session.picture, role: roleForEmail(session.email) };
+  // El rol lo decide el servidor y llega en el pase; sin pase nadie es administrador.
+  return { signedIn: true, email: session.email, name: session.name, picture: session.picture, role: isLabAdmin() ? 'admin' : 'user' };
 }
 
 /** Vigilante de inactividad: solo se monta con sesión activa. */
@@ -61,6 +63,15 @@ function InactivityWatcher() {
 /** Mantiene vigilada la sesión mientras esté abierta. Se monta una vez, en la raíz. */
 export const SessionKeeper: React.FC = () => {
   const { signedIn } = useAuth();
+  useEffect(() => {
+    if (!signedIn || isAuthDisabled()) return;
+    const notice = 'Tu ingreso venció. Vuelve a ingresar con tu cuenta institucional.';
+    // Si el servidor ya había dado un pase y venció, o lo rechaza, la sesión no sirve: se pide ingresar otra vez.
+    if (passExpired()) endSession(notice);
+    const onRejected = () => endSession(notice);
+    window.addEventListener(PASS_REJECTED_EVENT, onRejected);
+    return () => window.removeEventListener(PASS_REJECTED_EVENT, onRejected);
+  }, [signedIn]);
   return signedIn && !isAuthDisabled() ? <InactivityWatcher /> : null;
 };
 

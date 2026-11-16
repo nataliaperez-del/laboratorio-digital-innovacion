@@ -1,6 +1,5 @@
 import { loadGoogleIdentityScript } from '@/services/institutionalDrive';
 import type { InstitutionalSession } from '@/store/useStore';
-import { roleOf, type Role } from '@/lib/roles';
 import { closeLabSession, openLabSession } from '@/services/labCollector';
 
 /**
@@ -28,11 +27,6 @@ export function getSessionIdleLimitMs(): number {
 /** Salta el ingreso en desarrollo local (VITE_AUTH_DISABLED=true), con rol de administrador. Nunca en producción. */
 export function isAuthDisabled(): boolean {
   return import.meta.env.VITE_AUTH_DISABLED?.trim().toLowerCase() === 'true';
-}
-
-/** Rol de una cuenta según la lista VITE_ADMIN_EMAILS. */
-export function roleForEmail(email: string | undefined | null): Role {
-  return roleOf(email, import.meta.env.VITE_ADMIN_EMAILS);
 }
 
 function emailDomainAllowed(email: string): boolean {

@@ -15,10 +15,23 @@ declare(strict_types=1);
 header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 
+// Solo atiende a quien trae el pase del Laboratorio.
+define('LAB_SOLO_FUNCIONES', true);
+try {
+    require_once __DIR__ . '/lab.php';
+    lab_usuario();
+} catch (Throwable $e) {
+    error_log('[Laboratorio · Radar] ' . $e->getMessage());
+    http_response_code(503);
+    echo json_encode(['error' => 'No se pudo verificar tu ingreso. Intenta de nuevo en un momento.'], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
 const RADAR_URL = 'https://observatorio.innovahub360.net/index.php?route=%2Fradar';
 const RADAR_TTL = 6 * 3600;
 
-$cache = sys_get_temp_dir() . '/innovahub_lab_radar.json';
+// La copia temporal lleva un nombre propio de este sitio: no se puede adivinar desde fuera.
+$cache = sys_get_temp_dir() . '/innovahub_lab_radar_' . substr(hash('sha256', __DIR__), 0, 16) . '.json';
 if (is_file($cache) && filemtime($cache) > time() - RADAR_TTL) {
     readfile($cache);
     exit;
