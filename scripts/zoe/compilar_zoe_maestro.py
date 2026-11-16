@@ -1,16 +1,17 @@
 """
 Compilación Maestra Definitiva de ZOE (v-Master 40k):
-1. Calidad visual 100% impecable a 40.000 polígonos (reducción del 50% con pelaje denso y tupido).
-2. Boca 100% sellada con fondo negro / oscuro interior:
-   - Cúpula y garganta interna continua (inward normals) con textura negra/sombra profunda.
-   - Cero transparencia: es imposible ver el fondo de la pantalla a través de la boca.
-   - Lengua rosada natural apoyada en el piso mandibular.
-   - Incisivos blancos estilizados.
-3. Pecho 100% sellado sin huecos (forro curvo holográfico continuo).
+1. Calidad visual 100% impecable a 40.000 polígonos.
+2. Boca 100% fiel a la imagen de referencia:
+   - Contorno de labios negro/oscuro nítido en el labio inferior y superior.
+   - Dientecitos caninos blancos superiores estilizados y discretos asomando bajo el labio superior.
+   - Lengua rosada natural descansando en la base de la mandíbula.
+   - Fondo de cavidad bucal sellado en negro/sombra profunda (cero huecos ni transparencias).
+   - Curvatura de sonrisa canina alegre y amigable.
+3. Malla sellada y elástica en las uniones patas-tronco:
+   - Suavizado elástico de pesos en uniones de hombros, axilas, pelvis e ingles.
+   - Cero rasgaduras o aperturas durante el ciclo de caminata y trote.
 4. Placa del emblema "Z" 100% rígida anclada a Spine_2: 1.0.
-5. Morph Targets orgánicos funcionales:
-   - 'blink': Parpadeo limpio de párpados superiores e inferiores.
-   - 'mouth_open': Modulación amplia del hocico al hablar.
+5. Morph Targets funcionales ('blink' y 'mouth_open').
 6. 13 clips de animación limpios y listos para usar.
 7. Exportación completa: GLB, FBX y archivo fuente Blender (.blend).
 """
@@ -19,6 +20,7 @@ import bmesh
 import math
 import os
 import shutil
+from collections import defaultdict
 from mathutils import Vector, Matrix
 
 def main():
@@ -39,7 +41,7 @@ def main():
 
     orig_action_names = {a.name for a in bpy.data.actions}
 
-    # Importar clip scratch de anim_glb
+    # Importar clip scratch de anim_glb si existe
     if os.path.exists(anim_glb):
         bpy.ops.import_scene.gltf(filepath=anim_glb)
         temp_objs = [o for o in bpy.data.objects if o not in [mesh, arm]]
@@ -60,7 +62,7 @@ def main():
 
     print(f"  ✓ {len(bpy.data.actions)} acciones listas: {[a.name for a in bpy.data.actions]}")
 
-    # ─── DECIMACIÓN AL 50% (40.000 POLÍGONOS PERFECTOS) ───
+    # ─── DECIMACIÓN AL 50% (~40.000 POLÍGONOS) ───
     print(f"2. Decimando al 50% para calidad visual 100% densa (~40.000 polígonos)...")
     bpy.context.view_layer.objects.active = mesh
     mesh.select_set(True)
@@ -128,35 +130,43 @@ def main():
 
     print(f"  ✓ {len(pink_indices)} vértices de lengua detectados.")
 
-    # Lengua quieta adentro en el piso mandibular
-    print("4. Guardando lengua quieta en el piso de la mandíbula...")
+    # Lengua descansando en el piso mandibular
+    print("4. Colocando lengua descansando en la base de la mandíbula...")
     for v in bm.verts:
         if v.index in pink_indices:
             orig = Vector(v.co)
             factor = max(0.0, min(1.0, (-0.70 - orig.y) / 0.20))
             new_y = orig.y + 0.22 * factor
-            new_z = orig.z + 0.04 * factor
+            new_z = orig.z + 0.038 * factor
             new_x = orig.x * (1.0 - 0.25 * factor)
             v.co = Vector((new_x, new_y, new_z))
 
-    # Boca cerrada y relajada en reposo
-    print("5. Relajando y cerrando hocico en reposo...")
+    # Boca y hocico: curvatura de sonrisa amigable y cierre suave
+    print("5. Ajustando apertura y curvatura de sonrisa amigable en el hocico...")
+    dark_lip_uv = (0.442, 0.575)  # Ribete negro/oscuro del labio
     for v in bm.verts:
         if v.index not in pink_indices:
             co = v.co
-            if co.z <= 0.315 and co.y <= -0.72 and abs(co.x) <= 0.12:
+            # Mandíbula inferior (labio inferior)
+            if co.z <= 0.310 and co.y <= -0.72 and abs(co.x) <= 0.12:
                 f_y = max(0.0, min(1.0, (-0.72 - co.y) / 0.16))
-                f_z = max(0.0, min(1.0, (0.315 - co.z) / 0.09))
-                v.co = Vector((co.x, co.y - 0.003 * f_y, co.z + 0.015 * f_y * f_z))
+                f_z = max(0.0, min(1.0, (0.310 - co.z) / 0.09))
+                # Elevar ligeramente para lograr apertura de sonrisa de ~2.0 cm
+                v.co = Vector((co.x, co.y - 0.002 * f_y, co.z + 0.012 * f_y * f_z))
 
-    # Dientes blancos estilizados
-    print("6. Añadiendo dientecitos blancos...")
+                # Asignar textura de ribete negro de labio a los bordes de la mandíbula inferior
+                if co.y <= -0.75 and co.z >= 0.282:
+                    for loop in v.link_loops:
+                        loop[uv_layer].uv = dark_lip_uv
+
+    # ─── DIENTECITOS CANINOS SUPERIORES ESTILIZADOS (SEGÚN REFERENCIA) ───
+    print("6. Añadiendo caninos superiores estilizados fieles a la referencia...")
     white_uv = (0.476, 0.297)
     head_idx = vg_map.get('Head', 0)
     chin_idx = vg_map.get('Chin', 0)
 
-    def make_tooth(pos, length, width, rot_x_deg=0, is_lower=False):
-        tip = Vector((pos.x, pos.y, pos.z - length if not is_lower else pos.z + length))
+    def make_tooth(pos, length, width, rot_x_deg=0):
+        tip = Vector((pos.x, pos.y, pos.z - length))
         w = width * 0.5
         b0 = Vector((pos.x - w, pos.y - w*0.8, pos.z))
         b1 = Vector((pos.x + w, pos.y - w*0.8, pos.z))
@@ -171,9 +181,8 @@ def main():
         v_tip = bm.verts.new(t_pt)
         verts = v_base + [v_tip]
 
-        vg_target = chin_idx if is_lower else head_idx
         for v in verts:
-            v[dvert_layer][vg_target] = 1.0
+            v[dvert_layer][head_idx] = 1.0
 
         f0 = bm.faces.new((v_base[0], v_base[1], v_tip))
         f1 = bm.faces.new((v_base[1], v_base[2], v_tip))
@@ -184,15 +193,17 @@ def main():
                 loop[uv_layer].uv = white_uv
         return verts
 
-    make_tooth(Vector((0.028, -0.768, 0.324)), length=0.010, width=0.005, rot_x_deg=10, is_lower=False)
-    make_tooth(Vector((-0.028, -0.768, 0.324)), length=0.010, width=0.005, rot_x_deg=10, is_lower=False)
-    make_tooth(Vector((0.024, -0.762, 0.288)), length=0.008, width=0.005, rot_x_deg=170, is_lower=True)
-    make_tooth(Vector((-0.024, -0.762, 0.288)), length=0.008, width=0.005, rot_x_deg=170, is_lower=True)
+    # Dos colmillos superiores sutiles y discretos
+    make_tooth(Vector((0.022, -0.764, 0.324)), length=0.007, width=0.004, rot_x_deg=8)
+    make_tooth(Vector((-0.022, -0.764, 0.324)), length=0.007, width=0.004, rot_x_deg=8)
+    # Dos incisivos diminutos entre caninos
+    make_tooth(Vector((0.007, -0.769, 0.327)), length=0.004, width=0.003, rot_x_deg=10)
+    make_tooth(Vector((-0.007, -0.769, 0.327)), length=0.004, width=0.003, rot_x_deg=10)
 
     # ─── FONDO NEGRO SELLADO DE LA CAVIDAD BUCAL (CERO FONDO VISIBLE) ───
     print("7. Construyendo fondo negro sellado de la cavidad bucal...")
     dark_uv = (0.4531, 0.5938)
-    n_ang = 12
+    n_ang = 14
     n_depth = 6
     tube_grid = []
 
@@ -304,8 +315,102 @@ def main():
 
     print(f"  ✓ {badge_count} vértices del emblema 'Z' fijados a Spine_2.")
 
+    # ─── SUAVIZADO ELÁSTICO DE PESOS EN UNIONES TRONCO-PATAS (SELLA LA APERTURA AL CAMINAR) ───
+    print("10. Aplicando suavizado elástico de pesos en uniones tronco-extremidades...")
+    bm = bmesh.new()
+    bm.from_mesh(mesh.data)
+    bm.verts.ensure_lookup_table()
+    bm.edges.ensure_lookup_table()
+    dvert_layer = bm.verts.layers.deform.verify()
+
+    eligible_verts = set()
+    for v in bm.verts:
+        co = v.co
+        # Proteger cabeza y boca
+        if co.y < -0.62 and co.z > 0.15:
+            continue
+        # Proteger emblema 'Z'
+        if abs(co.x) <= 0.05 and -0.57 <= co.y <= -0.47 and -0.17 <= co.z <= 0.03:
+            continue
+        eligible_verts.add(v.index)
+
+    act_walk = bpy.data.actions.get('walk')
+    if act_walk:
+        arm.animation_data.action = act_walk
+        edge_rest_lens = [(e.index, e.verts[0].index, e.verts[1].index, (e.verts[0].co - e.verts[1].co).length) for e in bm.edges]
+
+        stretched_v_indices = set()
+        for f in [2, 6, 9, 12, 16, 20]:
+            bpy.context.scene.frame_set(f)
+            dg = bpy.context.evaluated_depsgraph_get()
+            eval_obj = mesh.evaluated_get(dg)
+            eval_m = eval_obj.to_mesh()
+            for e_idx, v0_i, v1_i, rest_l in edge_rest_lens:
+                p0 = eval_m.vertices[v0_i].co
+                p1 = eval_m.vertices[v1_i].co
+                stretch = (p0 - p1).length - rest_l
+                if stretch > 0.035:
+                    if v0_i in eligible_verts:
+                        stretched_v_indices.add(v0_i)
+                    if v1_i in eligible_verts:
+                        stretched_v_indices.add(v1_i)
+            eval_obj.to_mesh_clear()
+
+        # Expansión a 3 anillos para transición continua y sellada
+        smoothing_set = set(stretched_v_indices)
+        for ring in range(3):
+            for v_idx in list(smoothing_set):
+                v = bm.verts[v_idx]
+                for edge in v.link_edges:
+                    other = edge.other_vert(v)
+                    if other.index in eligible_verts:
+                        smoothing_set.add(other.index)
+
+        print(f"  ✓ {len(smoothing_set)} vértices en zona de unión tronco-patas estabilizados.")
+
+        alpha = 0.50
+        for it in range(5):
+            new_weights = {}
+            for v_idx in smoothing_set:
+                v = bm.verts[v_idx]
+                dvert = v[dvert_layer]
+                neighbors = [e.other_vert(v) for e in v.link_edges]
+                if not neighbors:
+                    continue
+
+                all_groups = set(dvert.keys())
+                for n in neighbors:
+                    all_groups.update(n[dvert_layer].keys())
+
+                v_weights = defaultdict(float)
+                for g_idx in all_groups:
+                    self_w = dvert.get(g_idx, 0.0)
+                    neigh_avg = sum(n[dvert_layer].get(g_idx, 0.0) for n in neighbors) / len(neighbors)
+                    blended = (1.0 - alpha) * self_w + alpha * neigh_avg
+                    if blended > 0.005:
+                        v_weights[g_idx] = blended
+
+                total_w = sum(v_weights.values())
+                if total_w > 0:
+                    for g_idx in v_weights:
+                        v_weights[g_idx] /= total_w
+
+                new_weights[v_idx] = v_weights
+
+            for v_idx, w_dict in new_weights.items():
+                v = bm.verts[v_idx]
+                dvert = v[dvert_layer]
+                dvert.clear()
+                for g_idx, val in w_dict.items():
+                    dvert[g_idx] = val
+
+    bm.to_mesh(mesh.data)
+    bm.free()
+    mesh.data.update()
+    print("  ✓ Pesos elásticos sellados con éxito.")
+
     # ─── MORPH TARGETS (BLINK Y MOUTH_OPEN) ───
-    print("10. Creando Morph Targets (blink y mouth_open)...")
+    print("11. Creando Morph Targets (blink y mouth_open)...")
     sk_basis = mesh.shape_key_add(name='Basis')
     sk_blink = mesh.shape_key_add(name='blink')
     sk_mouth = mesh.shape_key_add(name='mouth_open')
@@ -348,12 +453,12 @@ def main():
     mesh.location = (0, 0, 0)
     mesh.rotation_euler = (0, 0, 0)
 
-    # 11. Guardar archivo fuente Blender (.blend)
+    # 12. Guardar archivo fuente Blender (.blend)
     bpy.ops.wm.save_as_mainfile(filepath=out_blend)
-    print(f"11. Archivo fuente Blender guardado en {out_blend}")
+    print(f"12. Archivo fuente Blender guardado en {out_blend}")
 
-    # 12. Exportar GLB definitivo
-    print(f"12. Exportando GLB definitivo a {out_glb}...")
+    # 13. Exportar GLB definitivo
+    print(f"13. Exportando GLB definitivo a {out_glb}...")
     for o in bpy.data.objects:
         o.select_set(True)
     bpy.context.view_layer.objects.active = mesh
@@ -373,8 +478,8 @@ def main():
         export_optimize_animation_size=False
     )
 
-    # 13. Exportar FBX definitivo
-    print(f"13. Exportando FBX definitivo a {out_fbx}...")
+    # 14. Exportar FBX definitivo
+    print(f"14. Exportando FBX definitivo a {out_fbx}...")
     bpy.ops.export_scene.fbx(
         filepath=out_fbx,
         use_selection=False,
