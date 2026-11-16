@@ -54,7 +54,7 @@ const range = (min: number, max: number) => min + Math.random() * (max - min);
  * reproduce `ZoeClipDirector`, que también entiende los de un autorig de cuadrúpedos: basta con
  * reemplazar el GLB para que ZOE use animaciones nuevas.
  */
-const MODEL_URL = '/assets/zoe/zoe.glb?v=v35_mouth_reference_sealed_walk';
+const MODEL_URL = '/assets/zoe/zoe.glb?v=v36_sealed_elbows_clean_mustache';
 /** Alto y largo máximos de ZOE en la escena (la cámara ve ~1,6 de alto). */
 const FIT_HEIGHT = 1.16;
 const FIT_LENGTH = 1.42;
