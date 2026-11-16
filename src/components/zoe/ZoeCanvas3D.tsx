@@ -54,7 +54,7 @@ const range = (min: number, max: number) => min + Math.random() * (max - min);
  * reproduce `ZoeClipDirector`, que también entiende los de un autorig de cuadrúpedos: basta con
  * reemplazar el GLB para que ZOE use animaciones nuevas.
  */
-const MODEL_URL = '/assets/zoe/zoe.glb?v=v31_master_40k_sealed_mouth_walk_fixed';
+const MODEL_URL = '/assets/zoe/zoe.glb?v=v32_crisp_hd_render';
 /** Alto y largo máximos de ZOE en la escena (la cámara ve ~1,6 de alto). */
 const FIT_HEIGHT = 1.16;
 const FIT_LENGTH = 1.42;
@@ -275,14 +275,19 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
     const camera = new THREE.PerspectiveCamera(27, width / height, 0.1, 100);
     camera.position.set(0, 0.02, 3.3);
 
-    // ZOE ocupa poco de la pantalla: 1.5 de densidad basta, y con densidad alta el antialias sobra.
-    let pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: pixelRatio < 1.5, powerPreference: 'default' });
+    // Calidad visual HD: resolución nítida (mínimo 2x supersampling) y antialiasing por hardware siempre activo.
+    const pixelRatio = Math.min(Math.max(window.devicePixelRatio || 1, 2.0), 3.0);
+    const renderer = new THREE.WebGLRenderer({
+      alpha: true,
+      antialias: true,
+      powerPreference: 'high-performance',
+    });
     renderer.setPixelRatio(pixelRatio);
     renderer.setSize(width, height);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.05;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
+    const maxAniso = renderer.capabilities.getMaxAnisotropy();
     container.innerHTML = '';
     container.appendChild(renderer.domElement);
 
@@ -459,6 +464,15 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
                 orig.map.generateMipmaps = true;
                 orig.map.minFilter = THREE.LinearMipmapLinearFilter;
                 orig.map.magFilter = THREE.LinearFilter;
+                orig.map.anisotropy = maxAniso;
+                orig.map.needsUpdate = true;
+              }
+              if (orig.normalMap) {
+                orig.normalMap.generateMipmaps = true;
+                orig.normalMap.minFilter = THREE.LinearMipmapLinearFilter;
+                orig.normalMap.magFilter = THREE.LinearFilter;
+                orig.normalMap.anisotropy = maxAniso;
+                orig.normalMap.needsUpdate = true;
               }
               const bodyMat = track(
                 new THREE.MeshStandardMaterial({
@@ -482,6 +496,15 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
               original.map.generateMipmaps = true;
               original.map.minFilter = THREE.LinearMipmapLinearFilter;
               original.map.magFilter = THREE.LinearFilter;
+              original.map.anisotropy = maxAniso;
+              original.map.needsUpdate = true;
+            }
+            if (original.normalMap) {
+              original.normalMap.generateMipmaps = true;
+              original.normalMap.minFilter = THREE.LinearMipmapLinearFilter;
+              original.normalMap.magFilter = THREE.LinearFilter;
+              original.normalMap.anisotropy = maxAniso;
+              original.normalMap.needsUpdate = true;
             }
             const body = track(
               new THREE.MeshStandardMaterial({
@@ -651,23 +674,10 @@ export const ZoeCanvas3D: React.FC<ZoeCanvas3DProps> = ({
 
     let animId = 0;
     let lastFrame = 0;
-    const FRAME_MS = 1000 / 30;
-    const CALM_FRAME_MS = 1000 / 20;
-    // Calidad adaptable: si el equipo tarda en dibujar, baja la densidad de píxeles (nunca de 1) hasta que respire.
-    let costSum = 0;
-    let costFrames = 0;
-    const adaptQuality = (cost: number) => {
-      costSum += cost;
-      if (++costFrames < 45) return;
-      const avg = costSum / costFrames;
-      costSum = 0;
-      costFrames = 0;
-      if (avg > 14 && pixelRatio > 1) {
-        pixelRatio = Math.max(1, pixelRatio - 0.25);
-        renderer.setPixelRatio(pixelRatio);
-        renderer.setSize(width, height);
-      }
-    };
+    const FRAME_MS = 1000 / 60;
+    const CALM_FRAME_MS = 1000 / 60;
+    // La resolución HD y el antialiasing se mantienen fijos y nítidos.
+    const adaptQuality = (_cost: number) => {};
     // Mientras la página se desplaza, la GPU es para el scroll: ZOE espera quieta un instante.
     let scrollingUntil = 0;
     const onScroll = () => {
